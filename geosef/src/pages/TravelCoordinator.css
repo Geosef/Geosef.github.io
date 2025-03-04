@@ -1,0 +1,113 @@
+.travel-coordinator {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.upload-container {
+  display: flex;
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.file-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.data-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.travelers-preview, .resorts-preview {
+  background-color: #1a1e24;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.travelers-preview ul, .resorts-preview ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+.travelers-preview li, .resorts-preview li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #2c3138;
+}
+
+.analysis-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.resort-analysis-card {
+  background-color: #1a1e24;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.resort-analysis-card:hover {
+  transform: translateY(-2px);
+}
+
+.analysis-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  margin: 1rem 0;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem;
+  background-color: #282c34;
+  border-radius: 4px;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #8b949e;
+}
+
+.stat-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #61dafb;
+}
+
+.detailed-analysis {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #2c3138;
+}
+
+.connection-group {
+  margin: 1rem 0;
+}
+
+.connection-group h5 {
+  color: #8b949e;
+  margin-bottom: 0.5rem;
+}
+
+.connection-group ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.connection-group li {
+  padding: 0.25rem 0;
+} 
