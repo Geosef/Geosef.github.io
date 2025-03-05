@@ -1,0 +1,282 @@
+{
+  "page": 7,
+  "per_page": 25,
+  "pre_page": 6,
+  "next_page": 8,
+  "total": 187,
+  "total_pages": 8,
+  "data": [
+    {
+      "slug": "snowshoe",
+      "name": "Snowshoe Mountain",
+      "country": "US",
+      "region": "WV",
+      "location": {
+        "latitude": 38.400002,
+        "longitude": -79.989998
+      },
+      "url": "https://api.skiapi.com/v1/resort/snowshoe"
+    },
+    {
+      "slug": "soelden",
+      "name": "Sölden",
+      "country": "AT",
+      "region": "7",
+      "location": {
+        "latitude": 11.0092,
+        "longitude": 46.9702
+      },
+      "url": "https://api.skiapi.com/v1/resort/soelden"
+    },
+    {
+      "slug": "solitude",
+      "name": "Solitude",
+      "country": "US",
+      "region": "UT",
+      "location": {
+        "latitude": 40.625648,
+        "longitude": -111.600708
+      },
+      "url": "https://api.skiapi.com/v1/resort/solitude"
+    },
+    {
+      "slug": "st-anton-am-arlberg",
+      "name": "St. Anton Am Arlberg",
+      "country": "AT",
+      "region": "7",
+      "location": {
+        "latitude": 47.127499,
+        "longitude": 10.264
+      },
+      "url": "https://api.skiapi.com/v1/resort/st-anton-am-arlberg"
+    },
+    {
+      "slug": "steamboat",
+      "name": "Steamboat",
+      "country": "US",
+      "region": "CO",
+      "location": {
+        "latitude": 40.458214,
+        "longitude": -106.805733
+      },
+      "url": "https://api.skiapi.com/v1/resort/steamboat"
+    },
+    {
+      "slug": "stevens",
+      "name": "Stevens Pass",
+      "country": "US",
+      "region": "WA",
+      "location": {
+        "latitude": 47.76046,
+        "longitude": -121.421242
+      },
+      "url": "https://api.skiapi.com/v1/resort/stevens"
+    },
+    {
+      "slug": "stowe",
+      "name": "Stowe",
+      "country": "US",
+      "region": "VT",
+      "location": {
+        "latitude": 44.530502,
+        "longitude": -72.786873
+      },
+      "url": "https://api.skiapi.com/v1/resort/stowe"
+    },
+    {
+      "slug": "stratton",
+      "name": "Stratton",
+      "country": "US",
+      "region": "VT",
+      "location": {
+        "latitude": 43.114017,
+        "longitude": -72.906303
+      },
+      "url": "https://api.skiapi.com/v1/resort/stratton"
+    },
+    {
+      "slug": "sugarbowl",
+      "name": "Sugar Bowl",
+      "country": "US",
+      "region": "CA",
+      "location": {
+        "latitude": 39.305447,
+        "longitude": -120.333206
+      },
+      "url": "https://api.skiapi.com/v1/resort/sugarbowl"
+    },
+    {
+      "slug": "sugarbush",
+      "name": "Sugarbush",
+      "country": "US",
+      "region": "VT",
+      "location": {
+        "latitude": 44.145721,
+        "longitude": -72.879318
+      },
+      "url": "https://api.skiapi.com/v1/resort/sugarbush"
+    },
+    {
+      "slug": "sugarloaf",
+      "name": "Sugarloaf",
+      "country": "US",
+      "region": "ME",
+      "location": {
+        "latitude": 45.06728,
+        "longitude": -70.315147
+      },
+      "url": "https://api.skiapi.com/v1/resort/sugarloaf"
+    },
+    {
+      "slug": "sun-peaks",
+      "name": "Sun Peaks",
+      "country": "CA",
+      "region": "BC",
+      "location": {
+        "latitude": 50.877369,
+        "longitude": -119.9132
+      },
+      "url": "https://api.skiapi.com/v1/resort/sun-peaks"
+    },
+    {
+      "slug": "sunday-river",
+      "name": "Sunday River",
+      "country": "US",
+      "region": "ME",
+      "location": {
+        "latitude": 44.550358,
+        "longitude": -70.907394
+      },
+      "url": "https://api.skiapi.com/v1/resort/sunday-river"
+    },
+    {
+      "slug": "sunshine-village",
+      "name": "Sunshine Village",
+      "country": "CA",
+      "region": "AB",
+      "location": {
+        "latitude": 51.174175,
+        "longitude": -115.682602
+      },
+      "url": "https://api.skiapi.com/v1/resort/sunshine-village"
+    },
+    {
+      "slug": "sunvalley",
+      "name": "Sun Valley",
+      "country": "US",
+      "region": "ID",
+      "location": {
+        "latitude": 43.709999,
+        "longitude": -114.339996
+      },
+      "url": "https://api.skiapi.com/v1/resort/sunvalley"
+    },
+    {
+      "slug": "tahoe-donner",
+      "name": "Tahoe Donner",
+      "country": "US",
+      "region": "CA",
+      "location": {
+        "latitude": 39.354725,
+        "longitude": -120.257957
+      },
+      "url": "https://api.skiapi.com/v1/resort/tahoe-donner"
+    },
+    {
+      "slug": "taos",
+      "name": "Taos Ski Valley",
+      "country": "US",
+      "region": "NM",
+      "location": {
+        "latitude": 36.596199,
+        "longitude": -105.450699
+      },
+      "url": "https://api.skiapi.com/v1/resort/taos"
+    },
+    {
+      "slug": "tarvisio",
+      "name": "Tarvisio",
+      "country": "IT",
+      "location": {
+        "latitude": 46.5047,
+        "longitude": 13.58024
+      },
+      "url": "https://api.skiapi.com/v1/resort/tarvisio"
+    },
+    {
+      "slug": "telluride",
+      "name": "Telluride",
+      "country": "US",
+      "region": "CO",
+      "location": {
+        "latitude": 37.932961,
+        "longitude": -107.850723
+      },
+      "url": "https://api.skiapi.com/v1/resort/telluride"
+    },
+    {
+      "slug": "thredbo",
+      "name": "Thredbo",
+      "country": "AU",
+      "region": "NSW",
+      "location": {
+        "latitude": -36.504722,
+        "longitude": 148.305556
+      },
+      "url": "https://api.skiapi.com/v1/resort/thredbo"
+    },
+    {
+      "slug": "tignes",
+      "name": "Tignes",
+      "country": "FR",
+      "location": {
+        "latitude": 45.46976,
+        "longitude": 6.90692
+      },
+      "url": "https://api.skiapi.com/v1/resort/tignes"
+    },
+    {
+      "slug": "timberline-lodge",
+      "name": "Timberline Lodge",
+      "country": "US",
+      "region": "OR",
+      "location": {
+        "latitude": 45.33,
+        "longitude": -121.71
+      },
+      "url": "https://api.skiapi.com/v1/resort/timberline-lodge"
+    },
+    {
+      "slug": "tremblant",
+      "name": "Mont Tremblant",
+      "country": "CA",
+      "region": "QB",
+      "location": {
+        "latitude": 46.213696,
+        "longitude": -74.584641
+      },
+      "url": "https://api.skiapi.com/v1/resort/tremblant"
+    },
+    {
+      "slug": "vail",
+      "name": "Vail",
+      "country": "US",
+      "region": "CO",
+      "location": {
+        "latitude": 39.605026,
+        "longitude": -106.356155
+      },
+      "url": "https://api.skiapi.com/v1/resort/vail"
+    },
+    {
+      "slug": "val-di-fassa",
+      "name": "Val di Fassa / Carezza",
+      "country": "IT",
+      "location": {
+        "latitude": 46.43410083398821,
+        "longitude": 11.699957222982263
+      },
+      "url": "https://api.skiapi.com/v1/resort/val-di-fassa"
+    }
+  ]
+}

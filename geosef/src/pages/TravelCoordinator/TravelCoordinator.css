@@ -42,55 +42,92 @@
 }
 
 .analysis-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
   padding: 1rem;
 }
 
-.resort-analysis-card {
+.resort-row {
   background-color: #1a1e24;
   border-radius: 8px;
   padding: 1rem;
   cursor: pointer;
-  transition: transform 0.2s;
+  transition: background-color 0.2s;
 }
 
-.resort-analysis-card:hover {
-  transform: translateY(-2px);
+.resort-row:hover {
+  background-color: #22272e;
+}
+
+.resort-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.resort-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.resort-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.resort-location {
+  color: #8b949e;
+  font-size: 0.9rem;
 }
 
 .analysis-stats {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.5rem;
-  margin: 1rem 0;
+  display: flex;
+  gap: 1rem;
 }
 
 .stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.5rem;
+  padding: 0.5rem 1rem;
   background-color: #282c34;
   border-radius: 4px;
+  min-width: 80px;
 }
 
-.stat-label {
-  font-size: 0.8rem;
-  color: #8b949e;
-}
-
-.stat-value {
+.expand-icon {
+  margin-left: 1rem;
   font-size: 1.2rem;
-  font-weight: bold;
-  color: #61dafb;
+  transition: transform 0.3s;
+}
+
+.expanded .expand-icon {
+  transform: rotate(180deg);
 }
 
 .detailed-analysis {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.expanded .detailed-analysis {
+  max-height: 1000px;
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid #2c3138;
+  transition: max-height 0.5s ease-in;
+}
+
+.connection-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
 }
 
 .connection-group {

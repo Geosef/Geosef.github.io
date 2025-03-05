@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import TravelCoordinator from './pages/TravelCoordinator';
+import TravelCoordinator from './pages/TravelCoordinator/TravelCoordinator';
 import './App.css';
 
 function App() {

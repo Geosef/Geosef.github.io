@@ -1,0 +1,277 @@
+{
+  "page": 6,
+  "per_page": 25,
+  "pre_page": 5,
+  "next_page": 7,
+  "total": 187,
+  "total_pages": 8,
+  "data": [
+    {
+      "slug": "red-lodge-mountain",
+      "name": "Red Lodge Mountain",
+      "country": "US",
+      "region": "MT",
+      "location": {
+        "latitude": 45.191021,
+        "longitude": -109.335037
+      },
+      "url": "https://api.skiapi.com/v1/resort/red-lodge-mountain"
+    },
+    {
+      "slug": "red-mountain",
+      "name": "Red Mountain",
+      "country": "CA",
+      "region": "BC",
+      "location": {
+        "latitude": 49.105343,
+        "longitude": -117.819099
+      },
+      "url": "https://api.skiapi.com/v1/resort/red-mountain"
+    },
+    {
+      "slug": "rio-pusteria-bressanone",
+      "name": "Rio Pusteria - Bressanone",
+      "country": "IT",
+      "location": {
+        "latitude": 46.69822328224162,
+        "longitude": 11.682696694362933
+      },
+      "url": "https://api.skiapi.com/v1/resort/rio-pusteria-bressanone"
+    },
+    {
+      "slug": "roccaraso",
+      "name": "Roccaraso - Rivisondoli",
+      "country": "IT",
+      "location": {
+        "latitude": 41.85103115486714,
+        "longitude": 14.08396047685749
+      },
+      "url": "https://api.skiapi.com/v1/resort/roccaraso"
+    },
+    {
+      "slug": "saddleback",
+      "name": "Saddleback",
+      "country": "US",
+      "region": "ME",
+      "location": {
+        "latitude": 44.983387,
+        "longitude": -70.632965
+      },
+      "url": "https://api.skiapi.com/v1/resort/saddleback"
+    },
+    {
+      "slug": "san-martino-di-castrozza-passo-rolle",
+      "name": "San Martino di Castrozza / Passo Rolle",
+      "country": "IT",
+      "location": {
+        "latitude": 46.26409767242098,
+        "longitude": 11.804839312144885
+      },
+      "url": "https://api.skiapi.com/v1/resort/san-martino-di-castrozza-passo-rolle"
+    },
+    {
+      "slug": "sansicario",
+      "name": "Cesana San Sicario",
+      "country": "IT",
+      "region": "21",
+      "location": {
+        "latitude": 44.95812,
+        "longitude": 6.8062
+      },
+      "url": "https://api.skiapi.com/v1/resort/sansicario"
+    },
+    {
+      "slug": "sappada",
+      "name": "Sappada/Forni Avoltri",
+      "country": "IT",
+      "location": {
+        "latitude": 46.56691,
+        "longitude": 12.68458
+      },
+      "url": "https://api.skiapi.com/v1/resort/sappada"
+    },
+    {
+      "slug": "sasquatch-mountain",
+      "name": "Sasquatch Mountain",
+      "country": "CA",
+      "region": "BC",
+      "location": {
+        "latitude": 49.38000608027801,
+        "longitude": -121.93556496672508
+      },
+      "url": "https://api.skiapi.com/v1/resort/sasquatch-mountain"
+    },
+    {
+      "slug": "sauris",
+      "name": "Sauris",
+      "country": "IT",
+      "location": {
+        "latitude": 46.46634,
+        "longitude": 12.70914
+      },
+      "url": "https://api.skiapi.com/v1/resort/sauris"
+    },
+    {
+      "slug": "sauze",
+      "name": "Sauze d'Oulx",
+      "country": "IT",
+      "region": "21",
+      "location": {
+        "latitude": 45.016667,
+        "longitude": 6.85
+      },
+      "url": "https://api.skiapi.com/v1/resort/sauze"
+    },
+    {
+      "slug": "schweitzer",
+      "name": "Schweitzer",
+      "country": "US",
+      "region": "ID",
+      "location": {
+        "latitude": 48.538433,
+        "longitude": -116.643562
+      },
+      "url": "https://api.skiapi.com/v1/resort/schweitzer"
+    },
+    {
+      "slug": "sella",
+      "name": "Sella Nevea",
+      "country": "IT",
+      "location": {
+        "latitude": 46.38774,
+        "longitude": 13.47331
+      },
+      "url": "https://api.skiapi.com/v1/resort/sella"
+    },
+    {
+      "slug": "serfaus-fiss-ladis",
+      "name": "Serfaus-Fiss-Ladis",
+      "country": "AT",
+      "location": {
+        "latitude": 47.038611,
+        "longitude": 10.605833
+      },
+      "url": "https://api.skiapi.com/v1/resort/serfaus-fiss-ladis"
+    },
+    {
+      "slug": "sestriere",
+      "name": "Sestriere",
+      "country": "IT",
+      "region": "21",
+      "location": {
+        "latitude": 44.95,
+        "longitude": 6.883333
+      },
+      "url": "https://api.skiapi.com/v1/resort/sestriere"
+    },
+    {
+      "slug": "shawnee-mountain",
+      "name": "Shawnee Mountain",
+      "country": "US",
+      "region": "PA",
+      "location": {
+        "latitude": 41.03688,
+        "longitude": -75.078117
+      },
+      "url": "https://api.skiapi.com/v1/resort/shawnee-mountain"
+    },
+    {
+      "slug": "sierra",
+      "name": "Sierra at Tahoe",
+      "country": "US",
+      "region": "CA",
+      "location": {
+        "latitude": 38.792763,
+        "longitude": -120.090012
+      },
+      "url": "https://api.skiapi.com/v1/resort/sierra"
+    },
+    {
+      "slug": "silver-star",
+      "name": "Silver Star",
+      "country": "CA",
+      "region": "BC",
+      "location": {
+        "latitude": 50.438702,
+        "longitude": -119.208603
+      },
+      "url": "https://api.skiapi.com/v1/resort/silver-star"
+    },
+    {
+      "slug": "skiwelt",
+      "name": "Skiwelt",
+      "country": "AT",
+      "location": {
+        "latitude": 47.45,
+        "longitude": 12.25
+      },
+      "url": "https://api.skiapi.com/v1/resort/skiwelt"
+    },
+    {
+      "slug": "smuggs",
+      "name": "Smugglers' Notch",
+      "country": "US",
+      "region": "VT",
+      "location": {
+        "latitude": 44.589092,
+        "longitude": -72.78833
+      },
+      "url": "https://api.skiapi.com/v1/resort/smuggs"
+    },
+    {
+      "slug": "snow-summit",
+      "name": "Snow Summit",
+      "country": "US",
+      "region": "MT",
+      "location": {
+        "latitude": 35.37017,
+        "longitude": -83.15934
+      },
+      "url": "https://api.skiapi.com/v1/resort/snow-summit"
+    },
+    {
+      "slug": "snow-valley",
+      "name": "Snow Valley",
+      "country": "US",
+      "region": "CA",
+      "location": {
+        "latitude": 34.228409,
+        "longitude": -117.035667
+      },
+      "url": "https://api.skiapi.com/v1/resort/snow-valley"
+    },
+    {
+      "slug": "snowbasin",
+      "name": "Snowbasin",
+      "country": "US",
+      "region": "UT",
+      "location": {
+        "latitude": 41.214596,
+        "longitude": -111.859703
+      },
+      "url": "https://api.skiapi.com/v1/resort/snowbasin"
+    },
+    {
+      "slug": "snowbird",
+      "name": "Snowbird",
+      "country": "US",
+      "region": "UT",
+      "location": {
+        "latitude": 40.581074,
+        "longitude": -111.657082
+      },
+      "url": "https://api.skiapi.com/v1/resort/snowbird"
+    },
+    {
+      "slug": "snowmass",
+      "name": "Snowmass",
+      "country": "US",
+      "region": "CO",
+      "location": {
+        "latitude": 39.198471,
+        "longitude": -106.949158
+      },
+      "url": "https://api.skiapi.com/v1/resort/snowmass"
+    }
+  ]
+}

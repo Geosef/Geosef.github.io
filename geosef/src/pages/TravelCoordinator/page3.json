@@ -1,0 +1,282 @@
+{
+  "page": 3,
+  "per_page": 25,
+  "pre_page": 2,
+  "next_page": 4,
+  "total": 187,
+  "total_pages": 8,
+  "data": [
+    {
+      "slug": "diamondpeak",
+      "name": "Diamond Peak",
+      "country": "US",
+      "region": "NV",
+      "location": {
+        "latitude": 39.249599,
+        "longitude": -119.930199
+      },
+      "url": "https://api.skiapi.com/v1/resort/diamondpeak"
+    },
+    {
+      "slug": "falls-creek",
+      "name": "Falls Creek",
+      "country": "AU",
+      "region": "VIC",
+      "location": {
+        "latitude": -36.8659,
+        "longitude": 147.287
+      },
+      "url": "https://api.skiapi.com/v1/resort/falls-creek"
+    },
+    {
+      "slug": "flims-laax-falera",
+      "name": "Flims Laax Falera",
+      "country": "CH",
+      "location": {
+        "latitude": 46.833333,
+        "longitude": 9.283333
+      },
+      "url": "https://api.skiapi.com/v1/resort/flims-laax-falera"
+    },
+    {
+      "slug": "folgaria",
+      "name": "Folgaria",
+      "country": "IL",
+      "location": {
+        "latitude": 45.881187,
+        "longitude": 11.198438
+      },
+      "url": "https://api.skiapi.com/v1/resort/folgaria"
+    },
+    {
+      "slug": "folgarida-marilleva",
+      "name": "Folgarida Marilleva",
+      "country": "IT",
+      "region": "TN",
+      "location": {
+        "latitude": 46.284751,
+        "longitude": 10.828321
+      },
+      "url": "https://api.skiapi.com/v1/resort/folgarida-marilleva"
+    },
+    {
+      "slug": "forni",
+      "name": "Forni di Sopra",
+      "country": "IL",
+      "location": {
+        "latitude": 46.42171,
+        "longitude": 12.58232
+      },
+      "url": "https://api.skiapi.com/v1/resort/forni"
+    },
+    {
+      "slug": "gore-mountain",
+      "name": "Gore Mountain",
+      "country": "US",
+      "region": "NY",
+      "location": {
+        "latitude": 43.672653,
+        "longitude": -74.007172
+      },
+      "url": "https://api.skiapi.com/v1/resort/gore-mountain"
+    },
+    {
+      "slug": "grand-targhee",
+      "name": "Grand Targhee",
+      "country": "US",
+      "region": "WY",
+      "location": {
+        "latitude": 43.742401,
+        "longitude": -111.065201
+      },
+      "url": "https://api.skiapi.com/v1/resort/grand-targhee"
+    },
+    {
+      "slug": "grouse",
+      "name": "Grouse Mountain",
+      "country": "CA",
+      "region": "BC",
+      "location": {
+        "latitude": 49.379292,
+        "longitude": -123.083099
+      },
+      "url": "https://api.skiapi.com/v1/resort/grouse"
+    },
+    {
+      "slug": "gunstock",
+      "name": "Gunstock",
+      "country": "US",
+      "region": "NH",
+      "location": {
+        "latitude": 43.551796,
+        "longitude": -71.360092
+      },
+      "url": "https://api.skiapi.com/v1/resort/gunstock"
+    },
+    {
+      "slug": "heavenly",
+      "name": "Heavenly",
+      "country": "US",
+      "region": "CA",
+      "location": {
+        "latitude": 38.936611,
+        "longitude": -119.939629
+      },
+      "url": "https://api.skiapi.com/v1/resort/heavenly"
+    },
+    {
+      "slug": "hochfuegen",
+      "name": "Hochfügen",
+      "country": "AT",
+      "region": "7",
+      "location": {
+        "latitude": 47.26889038,
+        "longitude": 11.77694416
+      },
+      "url": "https://api.skiapi.com/v1/resort/hochfuegen"
+    },
+    {
+      "slug": "homewood",
+      "name": "Homewood",
+      "country": "US",
+      "region": "CA",
+      "location": {
+        "latitude": 39.063099,
+        "longitude": -120.219498
+      },
+      "url": "https://api.skiapi.com/v1/resort/homewood"
+    },
+    {
+      "slug": "hoodoo",
+      "name": "Hoodoo",
+      "country": "US",
+      "region": "OR",
+      "location": {
+        "latitude": 44.408646,
+        "longitude": -121.871513
+      },
+      "url": "https://api.skiapi.com/v1/resort/hoodoo"
+    },
+    {
+      "slug": "hunter",
+      "name": "Hunter Mountain",
+      "country": "US",
+      "region": "NY",
+      "location": {
+        "latitude": 42.205029,
+        "longitude": -74.20874
+      },
+      "url": "https://api.skiapi.com/v1/resort/hunter"
+    },
+    {
+      "slug": "ischgl-silvretta-arena",
+      "name": "Ischgl - Silvretta",
+      "country": "AT",
+      "region": "7",
+      "location": {
+        "latitude": 47.010101,
+        "longitude": 10.2887
+      },
+      "url": "https://api.skiapi.com/v1/resort/ischgl-silvretta-arena"
+    },
+    {
+      "slug": "jackson-hole",
+      "name": "Jackson Hole",
+      "country": "US",
+      "region": "WY",
+      "location": {
+        "latitude": 43.588318,
+        "longitude": -110.827438
+      },
+      "url": "https://api.skiapi.com/v1/resort/jackson-hole"
+    },
+    {
+      "slug": "jay-peak",
+      "name": "Jay Peak",
+      "country": "US",
+      "region": "VT",
+      "location": {
+        "latitude": 44.928837,
+        "longitude": -72.501701
+      },
+      "url": "https://api.skiapi.com/v1/resort/jay-peak"
+    },
+    {
+      "slug": "jiminypeak",
+      "name": "Jiminy Peak",
+      "country": "US",
+      "region": "MA",
+      "location": {
+        "latitude": 42.556477,
+        "longitude": -73.291328
+      },
+      "url": "https://api.skiapi.com/v1/resort/jiminypeak"
+    },
+    {
+      "slug": "june-mountain",
+      "name": "June Mountain",
+      "country": "US",
+      "region": "CA",
+      "location": {
+        "latitude": 37.767796,
+        "longitude": -119.090721
+      },
+      "url": "https://api.skiapi.com/v1/resort/june-mountain"
+    },
+    {
+      "slug": "keystone",
+      "name": "Keystone",
+      "country": "US",
+      "region": "CO",
+      "location": {
+        "latitude": 39.605011,
+        "longitude": -105.953438
+      },
+      "url": "https://api.skiapi.com/v1/resort/keystone"
+    },
+    {
+      "slug": "killington",
+      "name": "Killington",
+      "country": "US",
+      "region": "VT",
+      "location": {
+        "latitude": 43.619675,
+        "longitude": -72.802879
+      },
+      "url": "https://api.skiapi.com/v1/resort/killington"
+    },
+    {
+      "slug": "king-pine",
+      "name": "King Pine",
+      "country": "US",
+      "region": "NH",
+      "location": {
+        "latitude": 43.86063,
+        "longitude": -71.088127
+      },
+      "url": "https://api.skiapi.com/v1/resort/king-pine"
+    },
+    {
+      "slug": "kirkwood",
+      "name": "Kirkwood",
+      "country": "US",
+      "region": "CA",
+      "location": {
+        "latitude": 38.683231,
+        "longitude": -120.066856
+      },
+      "url": "https://api.skiapi.com/v1/resort/kirkwood"
+    },
+    {
+      "slug": "kitzbuehel",
+      "name": "Kitzbühel",
+      "country": "AT",
+      "region": "7",
+      "location": {
+        "latitude": 47.446602,
+        "longitude": 12.3908
+      },
+      "url": "https://api.skiapi.com/v1/resort/kitzbuehel"
+    }
+  ]
+}
