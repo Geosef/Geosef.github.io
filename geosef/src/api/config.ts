@@ -1,10 +1,10 @@
 // Option 1: Use fetch API directly
 const apiClient = {
-  baseURL: process.env.REACT_APP_API_URL || '',
+  baseURL: import.meta.env.VITE_API_URL || '',
   headers: {
     'Content-Type': 'application/json',
-    'x-api-key': process.env.REACT_APP_API_KEY || '',
-    'x-api-host': process.env.REACT_APP_API_HOST || '',
+    'x-api-key': import.meta.env.VITE_API_KEY || '',
+    'x-api-host': import.meta.env.VITE_API_HOST || '',
   },
 
   async get(url: string) {
