@@ -247,6 +247,15 @@
   color: var(--gl-gold);
 }
 
+.gl-tab-disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.gl-tab-disabled:hover {
+  color: rgba(255,255,255,0.65);
+}
+
 /* ── Cut line ── */
 .gl-cut-row {
   background: none !important;

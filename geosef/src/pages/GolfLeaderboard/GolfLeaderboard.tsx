@@ -11,12 +11,21 @@ const CUT_LINE_POSITION = 48;
 type ActiveTab = 'season' | 'april' | 'may' | 'june' | 'july' | 'august';
 
 const MONTH_TABS = [
-  { key: 'april'  as ActiveTab, label: 'Apr', param: 'April'  },
-  { key: 'may'    as ActiveTab, label: 'May', param: 'May'    },
-  { key: 'june'   as ActiveTab, label: 'Jun', param: 'June'   },
-  { key: 'july'   as ActiveTab, label: 'Jul', param: 'July'   },
-  { key: 'august' as ActiveTab, label: 'Aug', param: 'August' },
+  { key: 'april'  as ActiveTab, label: 'Apr', param: 'April',  month: 3 },
+  { key: 'may'    as ActiveTab, label: 'May', param: 'May',    month: 4 },
+  { key: 'june'   as ActiveTab, label: 'Jun', param: 'June',   month: 5 },
+  { key: 'july'   as ActiveTab, label: 'Jul', param: 'July',   month: 6 },
+  { key: 'august' as ActiveTab, label: 'Aug', param: 'August', month: 7 },
 ];
+
+function getActiveMonthTab(): ActiveTab {
+  const m = new Date().getMonth(); // 0-indexed
+  return (MONTH_TABS.find(t => t.month >= m) ?? MONTH_TABS[MONTH_TABS.length - 1]).key;
+}
+
+function isFutureMonth(tab: typeof MONTH_TABS[number]): boolean {
+  return tab.month > new Date().getMonth();
+}
 
 function formatRank(isTied: boolean, rank: number): string {
   return isTied ? `T${rank}` : `${rank}`;
@@ -104,7 +113,9 @@ export default function GolfLeaderboard() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
     const tab = searchParams.get('tab') as ActiveTab;
-    return MONTH_TABS.some(m => m.key === tab) ? tab : 'season';
+    if (tab === 'season') return 'season';
+    if (MONTH_TABS.some(m => m.key === tab)) return tab;
+    return getActiveMonthTab();
   });
 
   function handleTabChange(tab: ActiveTab) {
@@ -230,21 +241,25 @@ export default function GolfLeaderboard() {
       </div>
 
       <div className="gl-tabs">
+        {MONTH_TABS.map(m => {
+          const future = isFutureMonth(m);
+          return (
+            <button
+              key={m.key}
+              className={`gl-tab ${activeTab === m.key ? 'gl-tab-active' : ''} ${future ? 'gl-tab-disabled' : ''}`}
+              onClick={() => !future && handleTabChange(m.key)}
+              disabled={future}
+            >
+              {m.label}
+            </button>
+          );
+        })}
         <button
           className={`gl-tab ${activeTab === 'season' ? 'gl-tab-active' : ''}`}
           onClick={() => handleTabChange('season')}
         >
           Season
         </button>
-        {MONTH_TABS.map(m => (
-          <button
-            key={m.key}
-            className={`gl-tab ${activeTab === m.key ? 'gl-tab-active' : ''}`}
-            onClick={() => handleTabChange(m.key)}
-          >
-            {m.label}
-          </button>
-        ))}
       </div>
 
       <div className="gl-content">

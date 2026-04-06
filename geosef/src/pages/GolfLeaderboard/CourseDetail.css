@@ -1,0 +1,234 @@
+/* Uses Masters palette variables from GolfLeaderboard.css via :root */
+
+.cd-wrapper {
+  min-height: 100vh;
+  background-color: var(--gl-white);
+  color: var(--gl-text);
+  font-family: 'Georgia', serif;
+}
+
+/* ── Header ── */
+.cd-header {
+  background-color: var(--gl-green);
+  color: white;
+  padding: 1.25rem 1rem 1rem;
+}
+
+.cd-back {
+  display: inline-block;
+  color: rgba(255,255,255,0.75);
+  font-family: sans-serif;
+  font-size: 0.82rem;
+  text-decoration: none;
+  margin-bottom: 0.6rem;
+  letter-spacing: 0.04em;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.cd-back:hover {
+  color: white;
+}
+
+.cd-name {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: var(--gl-gold);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  letter-spacing: 0.03em;
+}
+
+.cd-meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.8);
+  font-family: sans-serif;
+}
+
+/* ── Content ── */
+.cd-content {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.cd-loading,
+.cd-error {
+  text-align: center;
+  padding: 3rem 1rem;
+  font-family: sans-serif;
+  color: var(--gl-muted);
+}
+
+.cd-error {
+  color: var(--gl-red);
+}
+
+/* ── Sections ── */
+.cd-section {
+  margin-bottom: 2rem;
+}
+
+.cd-section-title {
+  font-size: 0.72rem;
+  font-family: sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gl-green-dark);
+  border-bottom: 2px solid var(--gl-green);
+  padding-bottom: 0.35rem;
+  margin: 0 0 0.75rem;
+}
+
+/* ── Notable Rounds ── */
+.cd-notable-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.cd-notable-label {
+  font-family: sans-serif;
+  font-size: 0.72rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gl-muted);
+  margin-bottom: 0.5rem;
+}
+
+.cd-notable-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  font-family: sans-serif;
+  font-size: 0.82rem;
+}
+
+.cd-notable-row:last-child {
+  border-bottom: none;
+}
+
+.cd-notable-medal {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.cd-notable-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.cd-notable-date {
+  font-size: 0.75rem;
+  color: var(--gl-muted);
+}
+
+.cd-notable-score {
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--gl-green-dark);
+}
+
+/* ── Frequent Players ── */
+.cd-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  font-family: sans-serif;
+  font-size: 0.88rem;
+  border-bottom: 1px solid #e0d9cc;
+}
+
+.cd-stat-row:last-child {
+  border-bottom: none;
+}
+
+.cd-stat-link {
+  font-weight: 500;
+  color: var(--gl-green-dark);
+  text-decoration: none;
+}
+
+.cd-stat-link:hover {
+  text-decoration: underline;
+}
+
+.cd-stat-count {
+  color: var(--gl-muted);
+  font-size: 0.82rem;
+}
+
+/* ── Round History ── */
+.cd-round-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  padding: 0.35rem 0;
+  font-family: sans-serif;
+  font-size: 0.82rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.cd-round-row:last-child {
+  border-bottom: none;
+}
+
+.cd-round-date {
+  font-weight: 500;
+  min-width: 4rem;
+}
+
+.cd-round-player {
+  flex: 1;
+  min-width: 7rem;
+}
+
+.cd-round-tees {
+  color: var(--gl-muted);
+}
+
+.cd-round-scores {
+  font-weight: 500;
+}
+
+.cd-round-hcp {
+  color: var(--gl-muted);
+}
+
+.cd-player-link {
+  font-weight: 500;
+  color: var(--gl-green-dark);
+  text-decoration: none;
+}
+
+.cd-player-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .cd-name {
+    font-size: 1.3rem;
+  }
+
+  .cd-notable-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cd-round-row {
+    font-size: 0.78rem;
+  }
+}

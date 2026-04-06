@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-const APPS_SCRIPT_DEPLOYMENT = 'AKfycbwOgxas12kd44P6tQrKdNbWM4-241xE2NAmXqCkGwHNVwHz_W8mO7aPLfIH2Wf3kgn1';
+const APPS_SCRIPT_DEPLOYMENT = 'AKfycbx_BXPqarS99RO8hTK-xnKKlzWWYmZBTFYiR7YOXzstnZ2Dsx15DSKpliU3nUFj4kWb';
 const APPS_SCRIPT_PROD_URL = `https://script.google.com/macros/s/${APPS_SCRIPT_DEPLOYMENT}/exec`;
 
 export default defineConfig({

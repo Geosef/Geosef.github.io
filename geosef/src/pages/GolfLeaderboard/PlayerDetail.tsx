@@ -41,24 +41,23 @@ function playingPartners(rounds: Round[]): { partner: string; count: number }[] 
     .sort((a, b) => b.count - a.count);
 }
 
-function weekKey(dateStr: string): number {
-  return Math.floor(new Date(dateStr + 'T12:00:00').getTime() / (7 * 24 * 60 * 60 * 1000));
+// The sheet's base date cell uses an old year (e.g. 2025 instead of 2026).
+// Match on MM-DD only so year mismatches don't break the lookup.
+function toMD(dateStr: string): string {
+  const iso = dateStr.match(/^\d{4}-(\d{2}-\d{2})/);
+  if (iso) return iso[1];
+  const slash = dateStr.match(/^(\d{1,2})\/(\d{1,2})/);
+  if (slash) return `${slash[1].padStart(2, '0')}-${slash[2].padStart(2, '0')}`;
+  return dateStr;
 }
 
 function HandicapChart({ history }: { history: HandicapPoint[] }) {
   if (history.length === 0) return null;
 
-  // Index history by week so we can look up values for each season week
-  const byWeek = new Map<number, number>();
-  for (const h of history) {
-    const k = weekKey(h.date);
-    if (!byWeek.has(k)) byWeek.set(k, h.index); // first entry per week wins
-  }
-
-  // Build a data point for every season week; null = no data yet
+  const byMD = new Map(history.map(h => [toMD(h.date), h.index]));
   const data = SEASON_WEEKS.map(d => ({
     date: formatDate(d),
-    index: byWeek.get(weekKey(d)) ?? null,
+    index: byMD.get(d.slice(5)) ?? null, // SEASON_WEEKS are "YYYY-MM-DD", slice to "MM-DD"
   }));
 
   const knownValues = data.flatMap(d => d.index !== null ? [d.index] : []);
@@ -229,7 +228,14 @@ export default function PlayerDetail() {
                     <span className="pd-round-check">{r.counts ? '✓' : '·'}</span>
                     <span className="pd-round-date">{formatDate(r.datePlayed)}</span>
                     <span className="pd-round-course">
-                      {r.course}{r.tees ? ` (${r.tees})` : ''}
+                      <Link
+                        to={`/golf-leaderboard/course/${encodeURIComponent(r.course)}`}
+                        className="pd-course-link"
+                        onClick={e => e.stopPropagation()}
+                      >
+                        {r.course}
+                      </Link>
+                      {r.tees ? ` (${r.tees})` : ''}
                     </span>
                     <span className="pd-round-scores">
                       {r.score} / {r.netScore} ({formatPlusMinus(r.plusMinus)})
@@ -259,7 +265,12 @@ export default function PlayerDetail() {
             <h2 className="pd-section-title">Courses Played</h2>
             {courses.map(({ course, count }) => (
               <div key={course} className="pd-stat-row">
-                <span className="pd-stat-name">{course}</span>
+                <Link
+                  to={`/golf-leaderboard/course/${encodeURIComponent(course)}`}
+                  className="pd-stat-link"
+                >
+                  {course}
+                </Link>
                 <span className="pd-stat-count">{count} round{count !== 1 ? 's' : ''}</span>
               </div>
             ))}

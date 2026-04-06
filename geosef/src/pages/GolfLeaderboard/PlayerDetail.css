@@ -236,6 +236,16 @@
   text-decoration: underline;
 }
 
+.pd-course-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.pd-course-link:hover {
+  color: var(--gl-green-dark);
+  text-decoration: underline;
+}
+
 .pd-stat-count {
   color: var(--gl-muted);
   font-size: 0.82rem;
