@@ -29,7 +29,7 @@ export default function PlayersList() {
       setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     } else {
       setSortKey(key);
-      setSortDir('asc');
+      setSortDir(key === 'points' ? 'desc' : 'asc');
     }
   }
 
@@ -42,29 +42,28 @@ export default function PlayersList() {
   return (
     <div className="gl-wrapper">
       <div className="gl-header">
-        <div className="gl-header-top">
-          <button className="gl-back-btn" onClick={() => navigate('/golf-leaderboard')}>← Leaderboard</button>
-          <h1 className="gl-title">All Players</h1>
-        </div>
-        <div className="gl-header-controls">
-          <div className="gl-search-row">
-            <input
-              type="text"
-              className="gl-search-input"
-              placeholder="Filter players…"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && <button className="gl-search-clear" onClick={() => setSearchQuery('')}>✕</button>}
-          </div>
+        <h1 className="gl-title">All Players</h1>
+      </div>
+
+      <div className="gl-controls-bar">
+        <div className="gl-search-row">
+          <input
+            type="text"
+            className="gl-search-input"
+            placeholder="Filter players…"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && <button className="gl-search-clear" onClick={() => setSearchQuery('')}>✕</button>}
         </div>
       </div>
+
       <div className="gl-content">
         {display.length > 0 ? (
           <table className="gl-table">
             <thead>
               <tr>
-                <SortTh label="Pos" sortK="rank" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-rank" />
+                <SortTh label="Pos" sortK="rank" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-rank" invertArrow />
                 <SortTh label="Player" sortK="name" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-name" />
                 <SortTh label="Points" sortK="points" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-points" />
               </tr>

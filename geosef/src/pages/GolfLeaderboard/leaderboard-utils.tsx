@@ -51,17 +51,23 @@ interface SortThProps {
   dir: SortDir;
   onSort: (k: string) => void;
   className?: string;
+  /** When true, ascending = ↓ (lower is better: rank, plusMinus) */
+  invertArrow?: boolean;
 }
 
-export function SortTh({ label, sortK, currentKey, dir, onSort, className }: SortThProps) {
+export function SortTh({ label, sortK, currentKey, dir, onSort, className, invertArrow }: SortThProps) {
   const isActive = sortK === currentKey;
-  const indicator = isActive ? (dir === 'asc' ? '↑' : '↓') : '⇅';
+  let indicator: string | null = null;
+  if (isActive) {
+    const goingDown = invertArrow ? dir === 'asc' : dir === 'desc';
+    indicator = goingDown ? '↓' : '↑';
+  }
   return (
     <th
       className={['gl-th-sortable', isActive ? 'gl-th-active' : '', className].filter(Boolean).join(' ')}
       onClick={() => onSort(sortK)}
     >
-      {label}<span className="gl-sort-indicator">{indicator}</span>
+      {label}{indicator && <span className="gl-sort-indicator">{indicator}</span>}
     </th>
   );
 }

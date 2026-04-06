@@ -21,7 +21,7 @@ const MONTH_TABS = [
 ];
 
 function getActiveMonthTab(): ActiveTab {
-  const m = new Date().getMonth(); // 0-indexed
+  const m = new Date().getMonth();
   return (MONTH_TABS.find(t => t.month >= m) ?? MONTH_TABS[MONTH_TABS.length - 1]).key;
 }
 
@@ -58,8 +58,6 @@ function getMonthlyR1R2(playerName: string, monthParam: string): { r1: number | 
   };
 }
 
-// ── Expanded rounds sub-component ──
-
 function ExpandedRounds({ rounds, tab }: { rounds: Round[]; tab: ActiveTab }) {
   const tagged = tagCountingRounds(rounds);
 
@@ -77,7 +75,6 @@ function ExpandedRounds({ rounds, tab }: { rounds: Round[]; tab: ActiveTab }) {
     );
   }
 
-  // Monthly tab: only show rounds for that month
   const monthParam = MONTH_TABS.find(m => m.key === tab)?.param ?? '';
   const monthRounds = tagged.filter(r => (r.monthPlayed || r.month) === monthParam);
   const monthlyCount = monthRounds[0]?.monthlyCount ?? 0;
@@ -93,7 +90,13 @@ function ExpandedRounds({ rounds, tab }: { rounds: Round[]; tab: ActiveTab }) {
   );
 }
 
-// ── Main component ──
+function defaultDir(key: string): SortDir {
+  if (key === 'points' || key === 'april' || key === 'may' || key === 'june' ||
+      key === 'july' || key === 'august' || key === 'theOpen' || key === 'captainsCup') {
+    return 'desc';
+  }
+  return 'asc';
+}
 
 export default function GolfLeaderboard() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -125,7 +128,7 @@ export default function GolfLeaderboard() {
       setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     } else {
       setSortKey(key);
-      setSortDir('asc');
+      setSortDir(defaultDir(key));
     }
   }
 
@@ -157,7 +160,6 @@ export default function GolfLeaderboard() {
     if (!sessionCache.season) fetchSeason();
   }, [fetchSeason]);
 
-  // Fetch scoring log in the background — powers expanded round views and R1/R2 columns
   useEffect(() => {
     if (sessionCache.scoringLog) return;
     fetch(`${APPS_SCRIPT_URL}?action=scoringLog`)
@@ -169,7 +171,6 @@ export default function GolfLeaderboard() {
       .catch(() => {});
   }, []);
 
-  // Fetch handicap index in the background — powers player detail pages
   useEffect(() => {
     if (sessionCache.handicapIndex) return;
     fetch(`${APPS_SCRIPT_URL}?action=handicapIndex`)
@@ -178,7 +179,6 @@ export default function GolfLeaderboard() {
       .catch(() => {});
   }, []);
 
-  // Fetch monthly data when tab changes (session-cached)
   useEffect(() => {
     if (activeTab === 'season') return;
     const monthTab = MONTH_TABS.find(m => m.key === activeTab);
@@ -193,13 +193,11 @@ export default function GolfLeaderboard() {
       .catch(() => {});
   }, [activeTab]);
 
-  // When expanding a row, show loading only if scoring log isn't ready yet
   useEffect(() => {
     if (!expandedPlayer) return;
     setLoadingDetail(!sessionCache.scoringLog);
     if (sessionCache.scoringLog) return;
 
-    // If scoring log is still in flight, wait for it
     const interval = setInterval(() => {
       if (sessionCache.scoringLog) {
         setScoringLogLoaded(true);
@@ -241,7 +239,9 @@ export default function GolfLeaderboard() {
           )}
           <button className="gl-refresh-btn" onClick={fetchSeason} title="Refresh">↻</button>
         </div>
+      </div>
 
+      <div className="gl-controls-bar">
         <div className="gl-month-selector">
           <select
             className="gl-month-select"
@@ -256,22 +256,15 @@ export default function GolfLeaderboard() {
             <option value="season">Season</option>
           </select>
         </div>
-
-        <div className="gl-header-controls">
-          <div className="gl-search-row">
-            <input
-              type="text"
-              className="gl-search-input"
-              placeholder="Filter players…"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && <button className="gl-search-clear" onClick={() => setSearchQuery('')}>✕</button>}
-          </div>
-          <div className="gl-nav-links">
-            <Link to="/golf-leaderboard/players" className="gl-nav-link">All Players</Link>
-            <Link to="/golf-leaderboard/courses" className="gl-nav-link">All Courses</Link>
-          </div>
+        <div className="gl-search-row">
+          <input
+            type="text"
+            className="gl-search-input"
+            placeholder="Filter players…"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && <button className="gl-search-clear" onClick={() => setSearchQuery('')}>✕</button>}
         </div>
       </div>
 
@@ -282,13 +275,13 @@ export default function GolfLeaderboard() {
           <table className="gl-table">
             <thead>
               <tr>
-                <SortTh label="Pos" sortK="rank" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-rank" />
+                <SortTh label="Pos" sortK="rank" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-rank" invertArrow />
                 <SortTh label="Player" sortK="name" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-name" />
                 {isMonthTab ? (
                   <>
                     <th className="gl-col-r1">R1</th>
                     <th className="gl-col-r2">R2</th>
-                    <SortTh label="Total" sortK="plusMinus" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-pm-total" />
+                    <SortTh label="Total" sortK="plusMinus" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-pm-total" invertArrow />
                   </>
                 ) : (
                   <>
@@ -315,7 +308,7 @@ export default function GolfLeaderboard() {
 
                 return (
                   <React.Fragment key={s.name}>
-                    {!searchQuery && i === CUT_LINE_POSITION && (
+                    {!searchQuery && !isMonthTab && i === CUT_LINE_POSITION && (
                       <tr className="gl-cut-row">
                         <td colSpan={colCount} className="gl-cut-label">✂ CUT</td>
                       </tr>
@@ -390,6 +383,7 @@ export default function GolfLeaderboard() {
           !error && <div className="gl-loading">Loading standings…</div>
         )}
       </div>
+
     </div>
   );
 }

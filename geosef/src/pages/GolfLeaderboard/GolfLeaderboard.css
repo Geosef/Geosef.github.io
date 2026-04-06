@@ -1,5 +1,6 @@
 /* ── Masters palette ── */
 :root {
+  --app-header-height: 40px;
   --gl-green:        #006747;
   --gl-green-dark:   #1c4932;
   --gl-green-light:  #107d57;
@@ -18,8 +19,53 @@
   --gl-font-sans:    'Source Sans 3', 'Helvetica', sans-serif;
 }
 
-.gl-wrapper {
+/* ── Layout shell (GolfLayout) ── */
+.gl-layout {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--gl-white);
+}
+
+/* ── Sticky subnav ── */
+.gl-subnav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--gl-green-dark);
+  min-height: var(--app-header-height);
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.45);
+}
+
+.gl-subnav-link {
+  color: rgba(255,255,255,0.65);
+  text-decoration: none;
+  font-family: var(--gl-font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 0 1.25rem;
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s;
+}
+
+.gl-subnav-link:hover {
+  color: white;
+}
+
+.gl-subnav-active {
+  color: var(--gl-yellow);
+  border-bottom-color: var(--gl-yellow);
+}
+
+.gl-wrapper {
+  flex: 1;
   background-color: var(--gl-white);
   color: var(--gl-text);
   font-family: var(--gl-font-serif);
@@ -29,11 +75,8 @@
 .gl-header {
   background-color: var(--gl-green);
   color: white;
-  padding: 1.5rem 1rem 0;
+  padding: 1.25rem 1rem 1rem;
   text-align: center;
-  position: sticky;
-  top: var(--app-header-height, 40px);
-  z-index: 90;
 }
 
 .gl-header-top {
@@ -253,9 +296,19 @@
   color: var(--gl-green);
 }
 
+/* ── Controls bar (below header, in page flow) ── */
+.gl-controls-bar {
+  background-color: var(--gl-green-dark);
+  padding: 0.6rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 /* ── Month selector ── */
 .gl-month-selector {
-  margin-top: 0.75rem;
   display: flex;
   justify-content: center;
 }
@@ -282,14 +335,38 @@
   border-color: var(--gl-yellow);
 }
 
-/* ── Header controls (search + nav links) ── */
-.gl-header-controls {
-  margin-top: 0.5rem;
-  padding-bottom: 0.75rem;
+/* ── Footer ── */
+.gl-footer {
+  background-color: var(--gl-green-dark);
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.gl-footer-inner {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0.85rem 1rem;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.4rem;
+}
+
+.gl-footer-credit {
+  font-size: 0.78rem;
+  font-family: var(--gl-font-sans);
+  color: rgba(255,255,255,0.4);
+}
+
+.gl-footer-link {
+  color: #c0dc8f;
+  font-size: 0.78rem;
+  font-family: var(--gl-font-sans);
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.gl-footer-link:hover {
+  color: white;
 }
 
 .gl-search-row {
@@ -331,41 +408,6 @@
   color: white;
 }
 
-.gl-nav-links {
-  display: flex;
-  gap: 1.25rem;
-}
-
-.gl-nav-link {
-  color: rgba(255,255,255,0.6);
-  font-size: 0.78rem;
-  font-family: var(--gl-font-sans);
-  text-decoration: none;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.gl-nav-link:hover {
-  color: white;
-}
-
-/* ── Back button (used in PlayersList / CoursesList) ── */
-.gl-back-btn {
-  display: inline-block;
-  background: none;
-  border: none;
-  color: rgba(255,255,255,0.75);
-  font-family: var(--gl-font-sans);
-  font-size: 0.82rem;
-  cursor: pointer;
-  padding: 0;
-  margin-bottom: 0.4rem;
-  letter-spacing: 0.04em;
-}
-
-.gl-back-btn:hover {
-  color: white;
-}
 
 /* ── Sort headers ── */
 .gl-th-sortable {

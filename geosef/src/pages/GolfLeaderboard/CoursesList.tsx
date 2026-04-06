@@ -58,7 +58,8 @@ export default function CoursesList() {
       setSortDir(d => d === 'asc' ? 'desc' : 'asc');
     } else {
       setSortKey(key);
-      setSortDir(key === 'rounds' ? 'desc' : 'asc');
+      // rounds & lowGross: more/higher shown first; avgPlusMinus: lower (better) first
+      setSortDir(key === 'avgPlusMinus' || key === 'name' ? 'asc' : 'desc');
     }
   }
 
@@ -81,23 +82,22 @@ export default function CoursesList() {
   return (
     <div className="gl-wrapper">
       <div className="gl-header">
-        <div className="gl-header-top">
-          <button className="gl-back-btn" onClick={() => navigate('/golf-leaderboard')}>← Leaderboard</button>
-          <h1 className="gl-title">All Courses</h1>
-        </div>
-        <div className="gl-header-controls">
-          <div className="gl-search-row">
-            <input
-              type="text"
-              className="gl-search-input"
-              placeholder="Filter courses…"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && <button className="gl-search-clear" onClick={() => setSearchQuery('')}>✕</button>}
-          </div>
+        <h1 className="gl-title">All Courses</h1>
+      </div>
+
+      <div className="gl-controls-bar">
+        <div className="gl-search-row">
+          <input
+            type="text"
+            className="gl-search-input"
+            placeholder="Filter courses…"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+          {searchQuery && <button className="gl-search-clear" onClick={() => setSearchQuery('')}>✕</button>}
         </div>
       </div>
+
       <div className="gl-content">
         {display.length > 0 ? (
           <table className="gl-table">
@@ -106,8 +106,8 @@ export default function CoursesList() {
                 <SortTh label="Course" sortK="name" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-name" />
                 <SortTh label="Rounds" sortK="rounds" currentKey={sortKey} dir={sortDir} onSort={handleSort} />
                 <th>Par</th>
-                <SortTh label="Avg +/-" sortK="avgPlusMinus" currentKey={sortKey} dir={sortDir} onSort={handleSort} />
-                <SortTh label="Low Gross" sortK="lowGross" currentKey={sortKey} dir={sortDir} onSort={handleSort} />
+                <SortTh label="Avg +/-" sortK="avgPlusMinus" currentKey={sortKey} dir={sortDir} onSort={handleSort} invertArrow />
+                <SortTh label="Low Gross" sortK="lowGross" currentKey={sortKey} dir={sortDir} onSort={handleSort} invertArrow />
               </tr>
             </thead>
             <tbody>
