@@ -1,0 +1,236 @@
+/* Uses Masters palette variables from GolfLeaderboard.css via :root */
+
+.pd-wrapper {
+  min-height: 100vh;
+  background-color: var(--gl-white);
+  color: var(--gl-text);
+  font-family: 'Georgia', serif;
+}
+
+/* ── Header ── */
+.pd-header {
+  background-color: var(--gl-green);
+  color: white;
+  padding: 1.25rem 1rem 1rem;
+}
+
+.pd-back {
+  display: inline-block;
+  color: rgba(255,255,255,0.75);
+  font-family: sans-serif;
+  font-size: 0.82rem;
+  text-decoration: none;
+  margin-bottom: 0.6rem;
+  letter-spacing: 0.04em;
+}
+
+.pd-back:hover {
+  color: white;
+}
+
+.pd-name {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: var(--gl-gold);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+  letter-spacing: 0.03em;
+}
+
+.pd-hcp-current {
+  margin: 0.35rem 0 0;
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.8);
+  font-family: sans-serif;
+}
+
+/* ── Content ── */
+.pd-content {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.pd-loading,
+.pd-error {
+  text-align: center;
+  padding: 3rem 1rem;
+  font-family: sans-serif;
+  color: var(--gl-muted);
+}
+
+.pd-error {
+  color: var(--gl-red);
+}
+
+/* ── Sections ── */
+.pd-section {
+  margin-bottom: 2rem;
+}
+
+.pd-section-title {
+  font-size: 0.72rem;
+  font-family: sans-serif;
+  font-weight: bold;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gl-green-dark);
+  border-bottom: 2px solid var(--gl-green);
+  padding-bottom: 0.35rem;
+  margin: 0 0 0.75rem;
+}
+
+.pd-empty {
+  font-family: sans-serif;
+  font-size: 0.85rem;
+  color: var(--gl-muted);
+}
+
+/* ── Round history ── */
+.pd-month-group {
+  margin-bottom: 1rem;
+}
+
+.pd-month-header {
+  font-family: sans-serif;
+  font-size: 0.8rem;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gl-green-dark);
+  padding: 0.25rem 0;
+  border-bottom: 1px solid #c0d4c0;
+  margin-bottom: 0.3rem;
+}
+
+.pd-month-meta {
+  font-weight: normal;
+  color: var(--gl-muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.pd-round-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  padding: 0.35rem 0;
+  font-family: sans-serif;
+  font-size: 0.82rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.pd-round-row:last-child {
+  border-bottom: none;
+}
+
+.pd-round-counting {
+  color: var(--gl-text);
+}
+
+.pd-round-other {
+  color: var(--gl-muted);
+}
+
+.pd-round-check {
+  width: 1rem;
+  text-align: center;
+  color: var(--gl-green);
+  font-weight: bold;
+}
+
+.pd-round-other .pd-round-check {
+  color: var(--gl-muted);
+}
+
+.pd-round-date {
+  font-weight: 500;
+  min-width: 4rem;
+}
+
+.pd-round-course {
+  flex: 1;
+  min-width: 8rem;
+}
+
+.pd-round-scores {
+  font-weight: 500;
+}
+
+.pd-round-hcp,
+.pd-round-partner {
+  color: var(--gl-muted);
+}
+
+.pd-round-partner {
+  font-style: italic;
+}
+
+/* ── Handicap history ── */
+.pd-hcp-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.pd-hcp-row {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  font-family: sans-serif;
+  font-size: 0.82rem;
+  padding: 0.2rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.pd-hcp-row:last-child {
+  border-bottom: none;
+}
+
+.pd-hcp-date {
+  color: var(--gl-muted);
+  min-width: 5rem;
+}
+
+.pd-hcp-val {
+  font-weight: 500;
+}
+
+/* ── Courses & partners ── */
+.pd-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  font-family: sans-serif;
+  font-size: 0.88rem;
+  border-bottom: 1px solid #e0d9cc;
+}
+
+.pd-stat-row:last-child {
+  border-bottom: none;
+}
+
+.pd-stat-name {
+  font-weight: 500;
+}
+
+.pd-stat-count {
+  color: var(--gl-muted);
+  font-size: 0.82rem;
+}
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .pd-name {
+    font-size: 1.3rem;
+  }
+
+  .pd-round-row,
+  .pd-hcp-row {
+    font-size: 0.78rem;
+  }
+}

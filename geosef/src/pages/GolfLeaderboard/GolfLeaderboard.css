@@ -88,6 +88,21 @@
   font-family: sans-serif;
 }
 
+.gl-refresh-btn {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.55);
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.2rem;
+  transition: color 0.15s;
+}
+
+.gl-refresh-btn:hover {
+  color: white;
+}
+
 /* ── Content ── */
 .gl-content {
   max-width: 680px;
@@ -196,6 +211,197 @@
   width: 4.5rem;
   font-family: sans-serif;
   font-weight: bold;
+}
+
+/* ── Tabs ── */
+.gl-tabs {
+  background-color: var(--gl-green-dark);
+  display: flex;
+  gap: 0;
+  padding: 0 1rem;
+  overflow-x: auto;
+}
+
+.gl-tab {
+  background: none;
+  border: none;
+  border-bottom: 3px solid transparent;
+  color: rgba(255,255,255,0.65);
+  cursor: pointer;
+  font-family: sans-serif;
+  font-size: 0.8rem;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  padding: 0.65rem 1rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color 0.15s;
+}
+
+.gl-tab:hover {
+  color: rgba(255,255,255,0.9);
+}
+
+.gl-tab-active {
+  border-bottom-color: var(--gl-gold);
+  color: var(--gl-gold);
+}
+
+/* ── Cut line ── */
+.gl-cut-row {
+  background: none !important;
+}
+
+.gl-cut-label {
+  padding: 0.3rem 0.75rem;
+  font-family: sans-serif;
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 0.12em;
+  color: var(--gl-muted);
+  text-align: center;
+  border-top: 2px dashed #c0b08a;
+  border-bottom: 2px dashed #c0b08a;
+}
+
+/* ── Player link ── */
+.gl-player-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.gl-player-link:hover {
+  color: var(--gl-green);
+  text-decoration: underline;
+}
+
+/* ── Monthly +/- column ── */
+.gl-col-plusminus {
+  width: 3.5rem;
+  font-family: sans-serif;
+  font-size: 0.9rem;
+  color: var(--gl-muted);
+  text-align: center;
+}
+
+/* ── Expandable row ── */
+.gl-row {
+  cursor: pointer;
+}
+
+.gl-row-is-expanded {
+  background-color: #e8f0e8 !important;
+}
+
+.gl-row-detail td {
+  padding: 0;
+  background-color: #f4f8f4;
+  border-bottom: 2px solid #c0d4c0;
+}
+
+.gl-detail-loading {
+  padding: 0.75rem 1rem;
+  font-family: sans-serif;
+  font-size: 0.82rem;
+  color: var(--gl-muted);
+}
+
+.gl-expanded-rounds {
+  padding: 0.5rem 0.75rem 0.75rem;
+}
+
+.gl-round-group {
+  margin-bottom: 0.75rem;
+}
+
+.gl-round-group:last-child {
+  margin-bottom: 0;
+}
+
+.gl-round-group-header {
+  font-family: sans-serif;
+  font-size: 0.72rem;
+  font-weight: bold;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gl-green-dark);
+  padding: 0.3rem 0 0.3rem 0.25rem;
+  border-bottom: 1px solid #c0d4c0;
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.gl-round-group-meta {
+  font-weight: normal;
+  color: var(--gl-muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.gl-round-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  padding: 0.3rem 0.25rem;
+  font-family: sans-serif;
+  font-size: 0.8rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.gl-round-row:last-child {
+  border-bottom: none;
+}
+
+.gl-round-counting {
+  color: var(--gl-text);
+}
+
+.gl-round-other {
+  color: var(--gl-muted);
+}
+
+.gl-round-check {
+  width: 1rem;
+  text-align: center;
+  color: var(--gl-green);
+  font-weight: bold;
+}
+
+.gl-round-other .gl-round-check {
+  color: var(--gl-muted);
+}
+
+.gl-round-date {
+  font-weight: 500;
+  min-width: 4rem;
+}
+
+.gl-round-course {
+  flex: 1;
+  min-width: 8rem;
+}
+
+.gl-round-scores {
+  font-weight: 500;
+}
+
+.gl-round-hcp {
+  color: var(--gl-muted);
+}
+
+.gl-round-partner {
+  color: var(--gl-muted);
+  font-style: italic;
+}
+
+.gl-round-empty {
+  font-family: sans-serif;
+  font-size: 0.82rem;
+  color: var(--gl-muted);
+  padding: 0.5rem 0.25rem;
 }
 
 /* ── Mobile ── */
