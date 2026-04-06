@@ -1,6 +1,43 @@
 import React from 'react';
 import type { Standing, MonthlyStanding, MonthlyBreakdown } from '../../types/golf';
 
+export function pmScoreClass(pm: number): string {
+  return pm < 0 ? 'gl-score-under' : 'gl-score-even';
+}
+
+/** Generic frequency counter — maps items to a sorted [{value, count}] array. */
+export function countBy<T>(items: T[], key: (item: T) => string | null | undefined): { value: string; count: number }[] {
+  const map = new Map<string, number>();
+  for (const item of items) {
+    const k = key(item);
+    if (k) map.set(k, (map.get(k) ?? 0) + 1);
+  }
+  return [...map.entries()]
+    .map(([value, count]) => ({ value, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+interface SearchInputProps {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+}
+
+export function SearchInput({ value, onChange, placeholder }: SearchInputProps) {
+  return (
+    <div className="gl-search-row">
+      <input
+        type="text"
+        className="gl-search-input"
+        placeholder={placeholder}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+      />
+      {value && <button className="gl-search-clear" onClick={() => onChange('')}>✕</button>}
+    </div>
+  );
+}
+
 export type SortKey =
   | 'rank' | 'name' | 'points'
   | 'april' | 'may' | 'june' | 'july' | 'august'

@@ -4,7 +4,7 @@ import './GolfLeaderboard.css';
 import type { LeaderboardData } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
-import { SortTh, sortStandings, SortDir } from './leaderboard-utils';
+import { SortTh, sortStandings, SortDir, SearchInput } from './leaderboard-utils';
 
 export default function PlayersList() {
   const navigate = useNavigate();
@@ -46,16 +46,7 @@ export default function PlayersList() {
       </div>
 
       <div className="gl-controls-bar">
-        <div className="gl-search-row">
-          <input
-            type="text"
-            className="gl-search-input"
-            placeholder="Filter players…"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && <button className="gl-search-clear" onClick={() => setSearchQuery('')}>✕</button>}
-        </div>
+        <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Filter players…" />
       </div>
 
       <div className="gl-content">

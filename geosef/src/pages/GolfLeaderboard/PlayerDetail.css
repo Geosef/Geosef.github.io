@@ -1,40 +1,5 @@
 /* Uses Masters palette variables from GolfLeaderboard.css via :root */
 
-.pd-wrapper {
-  min-height: 100vh;
-  background-color: var(--gl-white);
-  color: var(--gl-text);
-  font-family: var(--gl-font-serif);
-}
-
-/* ── Header ── */
-.pd-header {
-  background-color: var(--gl-green);
-  color: white;
-  padding: 1.25rem 1rem 1rem;
-  position: sticky;
-  top: var(--app-header-height, 40px);
-  z-index: 90;
-}
-
-.pd-back {
-  display: inline-block;
-  color: rgba(255,255,255,0.75);
-  font-family: var(--gl-font-sans);
-  font-size: 0.82rem;
-  text-decoration: none;
-  margin-bottom: 0.6rem;
-  letter-spacing: 0.04em;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-
-.pd-back:hover {
-  color: white;
-}
-
 .pd-name {
   margin: 0;
   font-size: 1.6rem;
@@ -48,129 +13,6 @@
   color: var(--gl-white);
   font-family: var(--gl-font-sans);
   font-weight: 500;
-}
-
-/* ── Content ── */
-.pd-content {
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 1rem;
-}
-
-.pd-loading,
-.pd-error {
-  text-align: center;
-  padding: 3rem 1rem;
-  font-family: var(--gl-font-sans);
-  color: var(--gl-muted);
-}
-
-.pd-error {
-  color: var(--gl-red);
-}
-
-/* ── Sections ── */
-.pd-section {
-  margin-bottom: 2rem;
-}
-
-.pd-section-title {
-  font-size: 0.72rem;
-  font-family: var(--gl-font-sans);
-  font-weight: bold;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gl-green-dark);
-  border-bottom: 2px solid var(--gl-green);
-  padding-bottom: 0.35rem;
-  margin: 0 0 0.75rem;
-}
-
-.pd-empty {
-  font-family: var(--gl-font-sans);
-  font-size: 0.85rem;
-  color: var(--gl-muted);
-}
-
-/* ── Round history ── */
-.pd-month-group {
-  margin-bottom: 1rem;
-}
-
-.pd-month-header {
-  font-family: var(--gl-font-sans);
-  font-size: 0.8rem;
-  font-weight: bold;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--gl-green-dark);
-  padding: 0.25rem 0;
-  border-bottom: 1px solid #c0d4c0;
-  margin-bottom: 0.3rem;
-}
-
-.pd-month-meta {
-  font-weight: normal;
-  color: var(--gl-muted);
-  text-transform: none;
-  letter-spacing: 0;
-}
-
-.pd-round-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.4rem 0.75rem;
-  padding: 0.35rem 0;
-  font-family: var(--gl-font-sans);
-  font-size: 0.82rem;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
-}
-
-.pd-round-row:last-child {
-  border-bottom: none;
-}
-
-.pd-round-counting {
-  color: var(--gl-text);
-}
-
-.pd-round-other {
-  color: var(--gl-muted);
-}
-
-.pd-round-check {
-  width: 1rem;
-  text-align: center;
-  color: var(--gl-green);
-  font-weight: bold;
-}
-
-.pd-round-other .pd-round-check {
-  color: var(--gl-muted);
-}
-
-.pd-round-date {
-  font-weight: 500;
-  min-width: 4rem;
-}
-
-.pd-round-course {
-  flex: 1;
-  min-width: 8rem;
-}
-
-.pd-round-scores {
-  font-weight: 500;
-}
-
-.pd-round-hcp,
-.pd-round-partner {
-  color: var(--gl-muted);
-}
-
-.pd-round-partner {
-  font-style: italic;
 }
 
 /* ── Handicap history ── */
@@ -209,61 +51,12 @@
   font-weight: 500;
 }
 
-/* ── Courses & partners ── */
-.pd-stat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.4rem 0;
-  font-family: var(--gl-font-sans);
-  font-size: 0.88rem;
-  border-bottom: 1px solid var(--gl-border);
-}
-
-/* ── Score coloring ── */
-.pd-score-under { color: var(--gl-red); font-weight: 600; }
-.pd-score-even  { color: var(--gl-green); font-weight: 600; }
-
-.pd-stat-row:last-child {
-  border-bottom: none;
-}
-
-.pd-stat-name {
-  font-weight: 500;
-}
-
-.pd-stat-link {
-  font-weight: 500;
-  color: var(--gl-green-dark);
-  text-decoration: none;
-}
-
-.pd-stat-link:hover {
-  text-decoration: underline;
-}
-
-.pd-course-link {
-  color: inherit;
-  text-decoration: none;
-}
-
-.pd-course-link:hover {
-  color: var(--gl-green-dark);
-  text-decoration: underline;
-}
-
-.pd-stat-count {
-  color: var(--gl-muted);
-  font-size: 0.82rem;
-}
-
 /* ── Mobile ── */
 @media (max-width: 480px) {
   .pd-name {
     font-size: 1.3rem;
   }
 
-  .pd-round-row,
   .pd-hcp-row {
     font-size: 0.78rem;
   }

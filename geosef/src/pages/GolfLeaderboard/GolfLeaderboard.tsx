@@ -6,7 +6,7 @@ import { tagCountingRounds, groupRoundsByMonth, formatPlusMinus } from '../../ty
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
 import { RoundMonthGroup } from './RoundHistory';
-import { SortTh, sortStandings, SortDir } from './leaderboard-utils';
+import { SortTh, sortStandings, SortDir, pmScoreClass, SearchInput } from './leaderboard-utils';
 
 const CUT_LINE_POSITION = 48;
 
@@ -40,10 +40,6 @@ function formatPoints(points: number): string {
 function lastName(name: string): string {
   const parts = name.trim().split(/\s+/);
   return parts.slice(1).join(' ');
-}
-
-function pmScoreClass(pm: number): string {
-  return pm < 0 ? 'gl-score-under' : 'gl-score-even';
 }
 
 function getMonthlyR1R2(playerName: string, monthParam: string): { r1: number | null; r2: number | null } {
@@ -256,22 +252,14 @@ export default function GolfLeaderboard() {
             <option value="season">Season</option>
           </select>
         </div>
-        <div className="gl-search-row">
-          <input
-            type="text"
-            className="gl-search-input"
-            placeholder="Filter players…"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && <button className="gl-search-clear" onClick={() => setSearchQuery('')}>✕</button>}
-        </div>
+        <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Filter players…" />
       </div>
 
       <div className="gl-content">
         {error && <div className="gl-error">{error}</div>}
 
         {standings.length > 0 ? (
+          <div className="gl-table-scroll">
           <table className="gl-table">
             <thead>
               <tr>
@@ -379,6 +367,7 @@ export default function GolfLeaderboard() {
               })}
             </tbody>
           </table>
+          </div>
         ) : (
           !error && <div className="gl-loading">Loading standings…</div>
         )}

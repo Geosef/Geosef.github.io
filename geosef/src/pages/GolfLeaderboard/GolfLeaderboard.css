@@ -7,7 +7,8 @@
   --gl-yellow:         #fce300;
   --gl-muted:        #6b6f73;
   --gl-border:       #e8e8e8;
-  --gl-red:          #df2f3b;
+  --gl-red-light:    #df2f3b;
+  --gl-red:          #ba0c2f;
   --gl-white:        #ffffff;
   --gl-row-alt:      #f7f7f7;
   --gl-leader-bg:    #fffbf0;
@@ -102,7 +103,7 @@
 }
 
 .gl-live-badge {
-  background-color: var(--gl-red);
+  background-color: var(--gl-red-light);
   color: white;
   font-size: 0.7rem;
   font-family: var(--gl-font-sans);
@@ -180,6 +181,11 @@
 }
 
 /* ── Table ── */
+.gl-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .gl-table {
   width: 100%;
   border-collapse: collapse;
@@ -207,17 +213,35 @@
 
 .gl-col-name {
   text-align: left !important;
+  position: sticky;
+  left: 2.5rem;
+  z-index: 2;
+  background-color: var(--gl-white);
 }
 
 .gl-table thead th.gl-col-name {
   border-right: 2px solid rgba(255,255,255,0.35);
 }
 
+.gl-table thead th.gl-col-rank,
+.gl-table thead th.gl-col-name {
+  background-color: var(--gl-green);
+  z-index: 3;
+}
+
+.gl-row-even td.gl-col-rank,
+.gl-row-even td.gl-col-name         { background-color: var(--gl-row-alt); }
+.gl-row-leader td.gl-col-rank,
+.gl-row-leader td.gl-col-name       { background-color: var(--gl-leader-bg); }
+.gl-row-is-expanded td.gl-col-rank,
+.gl-row-is-expanded td.gl-col-name  { background-color: #e8f0e8; }
+
 .gl-table tbody td {
   padding: 0.65rem 0.5rem;
   border-bottom: 1px solid var(--gl-border);
   border-right: 1px solid var(--gl-border);
   text-align: center;
+  font-family: var(--gl-font-sans);
 }
 
 .gl-table tbody td:last-child {
@@ -244,6 +268,10 @@
   font-weight: 500;
   color: var(--gl-muted);
   width: 2.5rem;
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background-color: var(--gl-white);
 }
 
 .gl-col-rounds {
@@ -298,7 +326,7 @@
 
 /* ── Controls bar (below header, in page flow) ── */
 .gl-controls-bar {
-  background-color: var(--gl-green-dark);
+  background-color: var(--gl-green);
   padding: 0.6rem 1rem;
   display: flex;
   align-items: center;
@@ -584,6 +612,114 @@
   padding: 0.5rem 0.25rem;
 }
 
+/* ── Shared detail page structure (CourseDetail + PlayerDetail) ── */
+.gl-detail-wrapper {
+  min-height: 100vh;
+  background-color: var(--gl-white);
+  color: var(--gl-text);
+  font-family: var(--gl-font-serif);
+}
+
+.gl-detail-header {
+  background-color: var(--gl-green);
+  color: white;
+  padding: 1.25rem 1rem 1rem;
+  position: sticky;
+  top: var(--app-header-height, 40px);
+  z-index: 90;
+}
+
+.gl-detail-back {
+  display: inline-block;
+  color: rgba(255,255,255,0.75);
+  font-family: var(--gl-font-sans);
+  font-size: 0.82rem;
+  text-decoration: none;
+  margin-bottom: 0.6rem;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.gl-detail-back:hover {
+  color: white;
+}
+
+.gl-detail-content {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.gl-detail-loading,
+.gl-detail-error {
+  text-align: center;
+  padding: 3rem 1rem;
+  font-family: var(--gl-font-sans);
+  color: var(--gl-muted);
+}
+
+.gl-detail-error {
+  color: var(--gl-red);
+}
+
+.gl-detail-empty {
+  font-family: var(--gl-font-sans);
+  font-size: 0.85rem;
+  color: var(--gl-muted);
+}
+
+.gl-detail-section {
+  margin-bottom: 2rem;
+}
+
+.gl-detail-section-title {
+  font-size: 0.72rem;
+  font-family: var(--gl-font-sans);
+  font-weight: bold;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gl-green-dark);
+  border-bottom: 2px solid var(--gl-green);
+  padding-bottom: 0.35rem;
+  margin: 0 0 0.75rem;
+}
+
+/* ── Shared stat list (Frequent Players, Courses Played, Partners) ── */
+.gl-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  font-family: var(--gl-font-sans);
+  font-size: 0.88rem;
+  border-bottom: 1px solid var(--gl-border);
+}
+
+.gl-stat-row:last-child {
+  border-bottom: none;
+}
+
+.gl-stat-name {
+  font-weight: 500;
+}
+
+.gl-stat-link {
+  font-weight: 500;
+  color: var(--gl-green-dark);
+  text-decoration: none;
+}
+
+.gl-stat-link:hover {
+  text-decoration: underline;
+}
+
+.gl-stat-count {
+  color: var(--gl-muted);
+  font-size: 0.82rem;
+}
+
 /* ── Mobile ── */
 @media (max-width: 480px) {
   .gl-title {
@@ -594,8 +730,4 @@
     font-size: 0.88rem;
   }
 
-  .gl-col-rounds,
-  .gl-col-month {
-    display: none;
-  }
 }

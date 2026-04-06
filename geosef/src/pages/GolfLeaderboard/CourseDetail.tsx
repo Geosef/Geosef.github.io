@@ -4,12 +4,9 @@ import './GolfLeaderboard.css';
 import './CourseDetail.css';
 import type { Round, ScoringLogData } from '../../types/golf';
 import { formatPlusMinus, formatDate } from '../../types/golf';
-
-function pmScoreClass(pm: number): string {
-  return pm < 0 ? 'gl-score-under' : 'gl-score-even';
-}
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
+import { pmScoreClass, countBy } from './leaderboard-utils';
 
 function topRoundsByGross(rounds: Round[], n = 3): Round[] {
   return [...rounds].sort((a, b) => a.score - b.score).slice(0, n);
@@ -17,16 +14,6 @@ function topRoundsByGross(rounds: Round[], n = 3): Round[] {
 
 function topRoundsByNet(rounds: Round[], n = 3): Round[] {
   return [...rounds].sort((a, b) => a.netScore - b.netScore).slice(0, n);
-}
-
-function frequentPlayers(rounds: Round[]): { player: string; count: number }[] {
-  const map = new Map<string, number>();
-  for (const r of rounds) {
-    map.set(r.player, (map.get(r.player) ?? 0) + 1);
-  }
-  return [...map.entries()]
-    .map(([player, count]) => ({ player, count }))
-    .sort((a, b) => b.count - a.count);
 }
 
 const MEDALS = ['🥇', '🥈', '🥉'];
@@ -70,17 +57,17 @@ export default function CourseDetail() {
 
   if (loading) {
     return (
-      <div className="cd-wrapper">
-        <div className="cd-loading">Loading…</div>
+      <div className="gl-detail-wrapper">
+        <div className="gl-detail-loading">Loading…</div>
       </div>
     );
   }
 
   if (error || !courseName) {
     return (
-      <div className="cd-wrapper">
-        <button onClick={goBack} className="cd-back">← Back</button>
-        <div className="cd-error">{error ?? 'Course not found.'}</div>
+      <div className="gl-detail-wrapper">
+        <button onClick={goBack} className="gl-detail-back">← Back</button>
+        <div className="gl-detail-error">{error ?? 'Course not found.'}</div>
       </div>
     );
   }
@@ -90,16 +77,16 @@ export default function CourseDetail() {
 
   if (rounds.length === 0) {
     return (
-      <div className="cd-wrapper">
-        <button onClick={goBack} className="cd-back">← Back</button>
-        <div className="cd-error">No rounds found for {decoded}.</div>
+      <div className="gl-detail-wrapper">
+        <button onClick={goBack} className="gl-detail-back">← Back</button>
+        <div className="gl-detail-error">No rounds found for {decoded}.</div>
       </div>
     );
   }
 
   const grossTop = topRoundsByGross(rounds);
   const netTop = topRoundsByNet(rounds);
-  const players = frequentPlayers(rounds);
+  const players = countBy(rounds, r => r.player);
   const history = [...rounds].sort(
     (a, b) => new Date(b.datePlayed).getTime() - new Date(a.datePlayed).getTime()
   );
@@ -109,21 +96,21 @@ export default function CourseDetail() {
   const par = rounds[0]?.coursePar;
 
   return (
-    <div className="cd-wrapper">
-      <div className="cd-header">
-        <button onClick={goBack} className="cd-back">← Back</button>
+    <div className="gl-detail-wrapper">
+      <div className="gl-detail-header">
+        <button onClick={goBack} className="gl-detail-back">← Back</button>
         <h1 className="cd-name">{decoded}</h1>
         <p className="cd-meta">
           Par {par} · {rounds.length} round{rounds.length !== 1 ? 's' : ''}
-          {teesSet.size > 0 && ` · ${[...teesSet].join(', ')} tees`}
+          {teesSet.size > 0 && ` · ${[...teesSet].join(', ')}`}
         </p>
       </div>
 
-      <div className="cd-content">
+      <div className="gl-detail-content">
 
         {/* Notable Rounds */}
-        <section className="cd-section">
-          <h2 className="cd-section-title">Notable Rounds</h2>
+        <section className="gl-detail-section">
+          <h2 className="gl-detail-section-title">Notable Rounds</h2>
           <div className="cd-notable-grid">
             <div className="cd-notable-col">
               <div className="cd-notable-label">Low Gross</div>
@@ -169,24 +156,24 @@ export default function CourseDetail() {
         </section>
 
         {/* Frequent Players */}
-        <section className="cd-section">
-          <h2 className="cd-section-title">Frequent Players</h2>
-          {players.map(({ player, count }) => (
-            <div key={player} className="cd-stat-row">
+        <section className="gl-detail-section">
+          <h2 className="gl-detail-section-title">Frequent Players</h2>
+          {players.map(({ value: player, count }) => (
+            <div key={player} className="gl-stat-row">
               <Link
                 to={`/golf-leaderboard/player/${encodeURIComponent(player)}`}
-                className="cd-stat-link"
+                className="gl-stat-link"
               >
                 {player}
               </Link>
-              <span className="cd-stat-count">{count} round{count !== 1 ? 's' : ''}</span>
+              <span className="gl-stat-count">{count} round{count !== 1 ? 's' : ''}</span>
             </div>
           ))}
         </section>
 
         {/* Round History */}
-        <section className="cd-section">
-          <h2 className="cd-section-title">Round History</h2>
+        <section className="gl-detail-section">
+          <h2 className="gl-detail-section-title">Round History</h2>
           {history.map((r, i) => (
             <div key={i} className="cd-round-row">
               <span className="cd-round-date">{formatDate(r.datePlayed)}</span>

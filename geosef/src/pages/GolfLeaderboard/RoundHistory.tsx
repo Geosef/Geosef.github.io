@@ -1,10 +1,7 @@
 import { Link } from 'react-router-dom';
 import type { Round } from '../../types/golf';
 import { formatPlusMinus, formatDate } from '../../types/golf';
-
-function pmScoreClass(pm: number): string {
-  return pm < 0 ? 'gl-score-under' : 'gl-score-even';
-}
+import { pmScoreClass } from './leaderboard-utils';
 
 export function RoundRow({ round, linkCourse }: { round: Round; linkCourse?: boolean }) {
   return (

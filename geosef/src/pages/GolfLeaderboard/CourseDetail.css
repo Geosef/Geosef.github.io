@@ -1,39 +1,5 @@
 /* Uses Masters palette variables from GolfLeaderboard.css via :root */
 
-.cd-wrapper {
-  min-height: 100vh;
-  background-color: var(--gl-white);
-  color: var(--gl-text);
-  font-family: var(--gl-font-serif);
-}
-
-/* ── Header ── */
-.cd-header {
-  background-color: var(--gl-green);
-  color: white;
-  padding: 1.25rem 1rem 1rem;
-  position: sticky;
-  top: var(--app-header-height, 40px);
-  z-index: 90;
-}
-
-.cd-back {
-  display: inline-block;
-  color: rgba(255,255,255,0.75);
-  font-family: var(--gl-font-sans);
-  font-size: 0.82rem;
-  text-decoration: none;
-  margin-bottom: 0.6rem;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-}
-
-.cd-back:hover {
-  color: white;
-}
-
 .cd-name {
   margin: 0;
   font-size: 1.6rem;
@@ -47,42 +13,6 @@
   color: var(--gl-white);
   font-family: var(--gl-font-sans);
   font-weight: 500;
-}
-
-/* ── Content ── */
-.cd-content {
-  max-width: 680px;
-  margin: 0 auto;
-  padding: 1rem;
-}
-
-.cd-loading,
-.cd-error {
-  text-align: center;
-  padding: 3rem 1rem;
-  font-family: var(--gl-font-sans);
-  color: var(--gl-muted);
-}
-
-.cd-error {
-  color: var(--gl-red);
-}
-
-/* ── Sections ── */
-.cd-section {
-  margin-bottom: 2rem;
-}
-
-.cd-section-title {
-  font-size: 0.72rem;
-  font-family: var(--gl-font-sans);
-  font-weight: bold;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gl-green-dark);
-  border-bottom: 2px solid var(--gl-green);
-  padding-bottom: 0.35rem;
-  margin: 0 0 0.75rem;
 }
 
 /* ── Notable Rounds ── */
@@ -138,36 +68,6 @@
   font-weight: 600;
   white-space: nowrap;
   color: var(--gl-green-dark);
-}
-
-/* ── Frequent Players ── */
-.cd-stat-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.4rem 0;
-  font-family: var(--gl-font-sans);
-  font-size: 0.88rem;
-  border-bottom: 1px solid #e0d9cc;
-}
-
-.cd-stat-row:last-child {
-  border-bottom: none;
-}
-
-.cd-stat-link {
-  font-weight: 500;
-  color: var(--gl-green-dark);
-  text-decoration: none;
-}
-
-.cd-stat-link:hover {
-  text-decoration: underline;
-}
-
-.cd-stat-count {
-  color: var(--gl-muted);
-  font-size: 0.82rem;
 }
 
 /* ── Round History ── */

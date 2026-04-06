@@ -5,7 +5,7 @@ import type { ScoringLogData, Round } from '../../types/golf';
 import { formatPlusMinus } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
-import { SortTh, SortDir } from './leaderboard-utils';
+import { SortTh, SortDir, pmScoreClass, SearchInput } from './leaderboard-utils';
 
 interface CourseSummary {
   name: string;
@@ -13,10 +13,6 @@ interface CourseSummary {
   par: number;
   avgPlusMinus: number;
   lowGross: number;
-}
-
-function pmScoreClass(pm: number): string {
-  return pm < 0 ? 'gl-score-under' : 'gl-score-even';
 }
 
 export default function CoursesList() {
@@ -86,16 +82,7 @@ export default function CoursesList() {
       </div>
 
       <div className="gl-controls-bar">
-        <div className="gl-search-row">
-          <input
-            type="text"
-            className="gl-search-input"
-            placeholder="Filter courses…"
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && <button className="gl-search-clear" onClick={() => setSearchQuery('')}>✕</button>}
-        </div>
+        <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Filter courses…" />
       </div>
 
       <div className="gl-content">

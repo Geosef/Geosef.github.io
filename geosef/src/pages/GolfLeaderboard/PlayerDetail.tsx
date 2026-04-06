@@ -11,6 +11,7 @@ import { tagCountingRounds, groupRoundsByMonth, formatDate } from '../../types/g
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
 import { RoundMonthGroup } from './RoundHistory';
+import { countBy } from './leaderboard-utils';
 
 const NON_MEMBER_PARTNER = 'Other (GGC Member)';
 
@@ -23,25 +24,6 @@ const SEASON_WEEKS = [
   '2026-08-04','2026-08-11','2026-08-18','2026-08-25',
 ];
 
-function coursesPlayed(rounds: Round[]): { course: string; count: number }[] {
-  const map = new Map<string, number>();
-  for (const r of rounds) {
-    if (r.course) map.set(r.course, (map.get(r.course) ?? 0) + 1);
-  }
-  return [...map.entries()]
-    .map(([course, count]) => ({ course, count }))
-    .sort((a, b) => b.count - a.count);
-}
-
-function playingPartners(rounds: Round[]): { partner: string; count: number }[] {
-  const map = new Map<string, number>();
-  for (const r of rounds) {
-    if (r.partner?.trim()) map.set(r.partner, (map.get(r.partner) ?? 0) + 1);
-  }
-  return [...map.entries()]
-    .map(([partner, count]) => ({ partner, count }))
-    .sort((a, b) => b.count - a.count);
-}
 
 // The sheet's base date cell uses an old year (e.g. 2025 instead of 2026).
 // Match on MM-DD only so year mismatches don't break the lookup.
@@ -165,17 +147,17 @@ export default function PlayerDetail() {
 
   if (loading) {
     return (
-      <div className="pd-wrapper">
-        <div className="pd-loading">Loading…</div>
+      <div className="gl-detail-wrapper">
+        <div className="gl-detail-loading">Loading…</div>
       </div>
     );
   }
 
   if (error || !playerName) {
     return (
-      <div className="pd-wrapper">
-        <button onClick={goBack} className="pd-back">← Back</button>
-        <div className="pd-error">{error ?? 'Player not found.'}</div>
+      <div className="gl-detail-wrapper">
+        <button onClick={goBack} className="gl-detail-back">← Back</button>
+        <div className="gl-detail-error">{error ?? 'Player not found.'}</div>
       </div>
     );
   }
@@ -187,34 +169,34 @@ export default function PlayerDetail() {
 
   if (rounds.length === 0 && !handicap) {
     return (
-      <div className="pd-wrapper">
-        <button onClick={goBack} className="pd-back">← Back</button>
-        <div className="pd-error">No data found for {playerName}.</div>
+      <div className="gl-detail-wrapper">
+        <button onClick={goBack} className="gl-detail-back">← Back</button>
+        <div className="gl-detail-error">No data found for {playerName}.</div>
       </div>
     );
   }
 
   const tagged = tagCountingRounds(rounds);
   const groups = groupRoundsByMonth(tagged);
-  const courses = coursesPlayed(tagged);
-  const partners = playingPartners(tagged);
+  const courses = countBy(tagged, r => r.course);
+  const partners = countBy(tagged, r => r.partner?.trim() || null);
 
   return (
-    <div className="pd-wrapper">
-      <div className="pd-header">
-        <button onClick={goBack} className="pd-back">← Back</button>
+    <div className="gl-detail-wrapper">
+      <div className="gl-detail-header">
+        <button onClick={goBack} className="gl-detail-back">← Back</button>
         <h1 className="pd-name">{playerName}</h1>
         {handicap?.current != null && (
           <p className="pd-hcp-current">Handicap Index: {handicap.current.toFixed(1)}</p>
         )}
       </div>
 
-      <div className="pd-content">
+      <div className="gl-detail-content">
 
         {/* Round History */}
-        <section className="pd-section">
-          <h2 className="pd-section-title">Round History</h2>
-          {groups.length === 0 && <p className="pd-empty">No rounds recorded.</p>}
+        <section className="gl-detail-section">
+          <h2 className="gl-detail-section-title">Round History</h2>
+          {groups.length === 0 && <p className="gl-detail-empty">No rounds recorded.</p>}
           {groups.map(({ month, rounds: monthRounds, monthlyCount }) => (
             <RoundMonthGroup key={month} month={month} rounds={monthRounds} monthlyCount={monthlyCount} linkCourse />
           ))}
@@ -222,8 +204,8 @@ export default function PlayerDetail() {
 
         {/* Handicap History */}
         {handicap && handicap.history.length > 0 && (
-          <section className="pd-section">
-            <h2 className="pd-section-title">Handicap History</h2>
+          <section className="gl-detail-section">
+            <h2 className="gl-detail-section-title">Handicap History</h2>
             <div className="pd-hcp-chart">
               <HandicapChart history={handicap.history} />
             </div>
@@ -232,17 +214,17 @@ export default function PlayerDetail() {
 
         {/* Courses Played */}
         {courses.length > 0 && (
-          <section className="pd-section">
-            <h2 className="pd-section-title">Courses Played</h2>
-            {courses.map(({ course, count }) => (
-              <div key={course} className="pd-stat-row">
+          <section className="gl-detail-section">
+            <h2 className="gl-detail-section-title">Courses Played</h2>
+            {courses.map(({ value: course, count }) => (
+              <div key={course} className="gl-stat-row">
                 <Link
                   to={`/golf-leaderboard/course/${encodeURIComponent(course)}`}
-                  className="pd-stat-link"
+                  className="gl-stat-link"
                 >
                   {course}
                 </Link>
-                <span className="pd-stat-count">{count} round{count !== 1 ? 's' : ''}</span>
+                <span className="gl-stat-count">{count} round{count !== 1 ? 's' : ''}</span>
               </div>
             ))}
           </section>
@@ -250,21 +232,21 @@ export default function PlayerDetail() {
 
         {/* Playing Partners */}
         {partners.length > 0 && (
-          <section className="pd-section">
-            <h2 className="pd-section-title">Playing Partners</h2>
-            {partners.map(({ partner, count }) => (
-              <div key={partner} className="pd-stat-row">
+          <section className="gl-detail-section">
+            <h2 className="gl-detail-section-title">Playing Partners</h2>
+            {partners.map(({ value: partner, count }) => (
+              <div key={partner} className="gl-stat-row">
                 {partner === NON_MEMBER_PARTNER ? (
-                  <span className="pd-stat-name">{partner}</span>
+                  <span className="gl-stat-name">{partner}</span>
                 ) : (
                   <Link
                     to={`/golf-leaderboard/player/${encodeURIComponent(partner)}`}
-                    className="pd-stat-link"
+                    className="gl-stat-link"
                   >
                     {partner}
                   </Link>
                 )}
-                <span className="pd-stat-count">{count} round{count !== 1 ? 's' : ''}</span>
+                <span className="gl-stat-count">{count} round{count !== 1 ? 's' : ''}</span>
               </div>
             ))}
           </section>
