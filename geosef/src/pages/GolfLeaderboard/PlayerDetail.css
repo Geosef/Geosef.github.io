@@ -218,6 +218,16 @@
   font-weight: 500;
 }
 
+.pd-stat-link {
+  font-weight: 500;
+  color: var(--gl-green-dark);
+  text-decoration: none;
+}
+
+.pd-stat-link:hover {
+  text-decoration: underline;
+}
+
 .pd-stat-count {
   color: var(--gl-muted);
   font-size: 0.82rem;

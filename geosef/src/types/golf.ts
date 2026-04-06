@@ -27,7 +27,7 @@ export interface MonthlyData {
 }
 
 export interface Round {
-  timestamp: string;
+  player: string;
   course: string;
   tees: string;
   frontBack: string;
@@ -50,10 +50,18 @@ export interface HandicapPoint {
   index: number;
 }
 
-export interface PlayerDetailData {
+export interface PlayerHandicap {
   player: string;
+  current: number | null;
+  history: HandicapPoint[];
+}
+
+export interface ScoringLogData {
   rounds: Round[];
-  handicapHistory: HandicapPoint[];
+}
+
+export interface HandicapIndexData {
+  players: PlayerHandicap[];
 }
 
 // --- Shared utilities ---
@@ -81,13 +89,16 @@ export function groupRoundsByMonth(rounds: Round[]): { month: string; rounds: Ro
     if (!map.has(key)) map.set(key, []);
     map.get(key)!.push(r);
   }
-  return MONTH_ORDER
-    .filter(m => map.has(m))
-    .map(m => ({
-      month: m,
-      rounds: map.get(m)!,
-      monthlyCount: map.get(m)![0]?.monthlyCount ?? 0,
-    }));
+  // Season-ordered months first, then any extras (e.g. "The Open") sorted by date
+  const ordered = MONTH_ORDER.filter(m => map.has(m));
+  const extras = [...map.keys()]
+    .filter(k => !MONTH_ORDER.includes(k))
+    .sort((a, b) => new Date(map.get(a)![0].datePlayed).getTime() - new Date(map.get(b)![0].datePlayed).getTime());
+  return [...ordered, ...extras].map(m => ({
+    month: m,
+    rounds: map.get(m)!,
+    monthlyCount: map.get(m)![0]?.monthlyCount ?? 0,
+  }));
 }
 
 export function formatPlusMinus(pm: number | null): string {

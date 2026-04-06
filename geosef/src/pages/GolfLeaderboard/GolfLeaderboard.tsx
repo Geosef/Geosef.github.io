@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import './GolfLeaderboard.css';
-import type { LeaderboardData, MonthlyData, PlayerDetailData, Round } from '../../types/golf';
+import type { LeaderboardData, MonthlyData, Round, ScoringLogData, HandicapIndexData } from '../../types/golf';
 import { tagCountingRounds, groupRoundsByMonth, formatPlusMinus, formatDate } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
@@ -45,8 +45,8 @@ function RoundRow({ round }: { round: Round }) {
   );
 }
 
-function ExpandedRounds({ detail, tab }: { detail: PlayerDetailData; tab: ActiveTab }) {
-  const tagged = tagCountingRounds(detail.rounds);
+function ExpandedRounds({ rounds, tab }: { rounds: Round[]; tab: ActiveTab }) {
+  const tagged = tagCountingRounds(rounds);
 
   if (tab === 'season') {
     const groups = groupRoundsByMonth(tagged);
@@ -55,8 +55,8 @@ function ExpandedRounds({ detail, tab }: { detail: PlayerDetailData; tab: Active
     }
     return (
       <div className="gl-expanded-rounds">
-        {groups.map(({ month, rounds, monthlyCount }) => {
-          const countingCount = rounds.filter(r => r.counts).length;
+        {groups.map(({ month, rounds: monthRounds, monthlyCount }) => {
+          const countingCount = monthRounds.filter(r => r.counts).length;
           return (
             <div key={month} className="gl-round-group">
               <div className="gl-round-group-header">
@@ -65,7 +65,7 @@ function ExpandedRounds({ detail, tab }: { detail: PlayerDetailData; tab: Active
                   {countingCount} of {monthlyCount} round{monthlyCount !== 1 ? 's' : ''} count
                 </span>
               </div>
-              {rounds.map((r, i) => <RoundRow key={i} round={r} />)}
+              {monthRounds.map((r, i) => <RoundRow key={i} round={r} />)}
             </div>
           );
         })}
@@ -102,10 +102,9 @@ function ExpandedRounds({ detail, tab }: { detail: PlayerDetailData; tab: Active
 
 export default function GolfLeaderboard() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('season');
-  // Seed from module-level session cache so navigating back doesn't refetch
   const [seasonData, setSeasonData] = useState<LeaderboardData | null>(sessionCache.season);
   const [monthlyCache, setMonthlyCache] = useState(new Map(sessionCache.monthly));
-  const [playerCache, setPlayerCache] = useState(new Map(sessionCache.players));
+  const [scoringLogLoaded, setScoringLogLoaded] = useState(sessionCache.scoringLog !== null);
   const [expandedPlayer, setExpandedPlayer] = useState<string | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -128,9 +127,29 @@ export default function GolfLeaderboard() {
   }, []);
 
   useEffect(() => {
-    // Skip fetch if we already have season data from this session
     if (!sessionCache.season) fetchSeason();
   }, [fetchSeason]);
+
+  // Fetch scoring log in the background — powers all expanded round views
+  useEffect(() => {
+    if (sessionCache.scoringLog) return;
+    fetch(`${APPS_SCRIPT_URL}?action=scoringLog`)
+      .then(r => r.json())
+      .then((data: ScoringLogData) => {
+        sessionCache.scoringLog = data;
+        setScoringLogLoaded(true);
+      })
+      .catch(() => {});
+  }, []);
+
+  // Fetch handicap index in the background — powers player detail pages
+  useEffect(() => {
+    if (sessionCache.handicapIndex) return;
+    fetch(`${APPS_SCRIPT_URL}?action=handicapIndex`)
+      .then(r => r.json())
+      .then((data: HandicapIndexData) => { sessionCache.handicapIndex = data; })
+      .catch(() => {});
+  }, []);
 
   // Fetch monthly data when tab changes (session-cached)
   useEffect(() => {
@@ -147,25 +166,21 @@ export default function GolfLeaderboard() {
       .catch(() => {});
   }, [activeTab]);
 
-  // Fetch player detail when row is expanded (session-cached)
+  // When expanding a row, show loading only if scoring log isn't ready yet
   useEffect(() => {
-    if (!expandedPlayer || sessionCache.players.has(expandedPlayer)) {
-      // Already cached — just make sure local state reflects it
-      if (expandedPlayer && sessionCache.players.has(expandedPlayer) && !playerCache.has(expandedPlayer)) {
-        setPlayerCache(new Map(sessionCache.players));
-      }
-      return;
-    }
+    if (!expandedPlayer) return;
+    setLoadingDetail(!sessionCache.scoringLog);
+    if (sessionCache.scoringLog) return;
 
-    setLoadingDetail(true);
-    fetch(`${APPS_SCRIPT_URL}?action=playerDetail&name=${encodeURIComponent(expandedPlayer)}`)
-      .then(r => r.json())
-      .then((data: PlayerDetailData) => {
-        sessionCache.players.set(expandedPlayer, data);
-        setPlayerCache(new Map(sessionCache.players));
+    // If scoring log is still in flight, wait for it
+    const interval = setInterval(() => {
+      if (sessionCache.scoringLog) {
+        setScoringLogLoaded(true);
         setLoadingDetail(false);
-      })
-      .catch(() => setLoadingDetail(false));
+        clearInterval(interval);
+      }
+    }, 200);
+    return () => clearInterval(interval);
   }, [expandedPlayer]);
 
   function handleRowClick(name: string) {
@@ -236,57 +251,63 @@ export default function GolfLeaderboard() {
               </tr>
             </thead>
             <tbody>
-              {standings.map((s, i) => (
-                <React.Fragment key={s.name}>
-                  {i === CUT_LINE_POSITION && (
-                    <tr className="gl-cut-row">
-                      <td colSpan={colCount} className="gl-cut-label">✂ CUT</td>
-                    </tr>
-                  )}
-                  <tr
-                    className={[
-                      'gl-row',
-                      i === 0 ? 'gl-row-leader' : '',
-                      i % 2 === 0 ? 'gl-row-even' : '',
-                      expandedPlayer === s.name ? 'gl-row-is-expanded' : '',
-                    ].filter(Boolean).join(' ')}
-                    onClick={() => handleRowClick(s.name)}
-                  >
-                    <td className="gl-col-rank">{formatRank(s.isTied, s.rank)}</td>
-                    <td className="gl-col-name">
-                      <Link
-                        to={`/golf-leaderboard/player/${encodeURIComponent(s.name)}`}
-                        className="gl-player-link"
-                        onClick={e => e.stopPropagation()}
-                      >
-                        {s.name}
-                      </Link>
-                    </td>
-                    {isMonthTab ? (
-                      <td className="gl-col-plusminus">
-                        {formatPlusMinus((s as { plusMinus: number | null }).plusMinus)}
-                      </td>
-                    ) : (
-                      <td className="gl-col-rounds">
-                        {(s as { events: number }).events}
-                      </td>
-                    )}
-                    <td className="gl-col-points">{formatPoints(s.points)}</td>
-                  </tr>
+              {standings.map((s, i) => {
+                const expandedRounds = expandedPlayer === s.name && sessionCache.scoringLog
+                  ? sessionCache.scoringLog.rounds.filter(r => r.player === s.name)
+                  : null;
 
-                  {expandedPlayer === s.name && (
-                    <tr className="gl-row-detail">
-                      <td colSpan={colCount}>
-                        {loadingDetail && !playerCache.has(s.name) ? (
-                          <div className="gl-detail-loading">Loading rounds…</div>
-                        ) : playerCache.has(s.name) ? (
-                          <ExpandedRounds detail={playerCache.get(s.name)!} tab={activeTab} />
-                        ) : null}
+                return (
+                  <React.Fragment key={s.name}>
+                    {i === CUT_LINE_POSITION && (
+                      <tr className="gl-cut-row">
+                        <td colSpan={colCount} className="gl-cut-label">✂ CUT</td>
+                      </tr>
+                    )}
+                    <tr
+                      className={[
+                        'gl-row',
+                        i === 0 ? 'gl-row-leader' : '',
+                        i % 2 === 0 ? 'gl-row-even' : '',
+                        expandedPlayer === s.name ? 'gl-row-is-expanded' : '',
+                      ].filter(Boolean).join(' ')}
+                      onClick={() => handleRowClick(s.name)}
+                    >
+                      <td className="gl-col-rank">{formatRank(s.isTied, s.rank)}</td>
+                      <td className="gl-col-name">
+                        <Link
+                          to={`/golf-leaderboard/player/${encodeURIComponent(s.name)}`}
+                          className="gl-player-link"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          {s.name}
+                        </Link>
                       </td>
+                      {isMonthTab ? (
+                        <td className="gl-col-plusminus">
+                          {formatPlusMinus((s as { plusMinus: number | null }).plusMinus)}
+                        </td>
+                      ) : (
+                        <td className="gl-col-rounds">
+                          {(s as { events: number }).events}
+                        </td>
+                      )}
+                      <td className="gl-col-points">{formatPoints(s.points)}</td>
                     </tr>
-                  )}
-                </React.Fragment>
-              ))}
+
+                    {expandedPlayer === s.name && (
+                      <tr className="gl-row-detail">
+                        <td colSpan={colCount}>
+                          {loadingDetail ? (
+                            <div className="gl-detail-loading">Loading rounds…</div>
+                          ) : expandedRounds ? (
+                            <ExpandedRounds rounds={expandedRounds} tab={activeTab} />
+                          ) : null}
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </tbody>
           </table>
         ) : (
