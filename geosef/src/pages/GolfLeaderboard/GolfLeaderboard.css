@@ -3,7 +3,7 @@
   --gl-green:        #006747;
   --gl-green-dark:   #1c4932;
   --gl-green-light:  #107d57;
-  --gl-gold:         #fce300;
+  --gl-yellow:         #fce300;
   --gl-muted:        #6b6f73;
   --gl-border:       #e8e8e8;
   --gl-red:          #df2f3b;
@@ -13,8 +13,9 @@
   --gl-leader-border: #fce300;
   --gl-text:         #1a1a1a;
   --gl-error-bg:     #fdf2f2;
-  --gl-font-serif:   'Playfair Display', Georgia, serif;
-  --gl-font-sans:    'Source Sans 3', 'Helvetica Neue', sans-serif;
+  --gl-font-serif:   'Playfair Display', 'Georgia', serif;
+  --gl-font-sc:      'Playfair Display SC', 'Georgia', serif;
+  --gl-font-sans:    'Source Sans 3', 'Helvetica', sans-serif;
 }
 
 .gl-wrapper {
@@ -36,28 +37,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-}
-
-.gl-flag {
-  font-size: 1.5rem;
 }
 
 .gl-title {
   margin: 0;
   font-size: 1.8rem;
-  font-weight: bold;
-  letter-spacing: 0.05em;
-  color: var(--gl-gold);
-  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
-}
-
-.gl-subtitle {
-  margin: 0.2rem 0 0;
-  font-size: 0.9rem;
-  color: rgba(255,255,255,0.8);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-weight: 400;
+  color: white;
 }
 
 .gl-meta {
@@ -75,7 +61,6 @@
   font-size: 0.7rem;
   font-family: var(--gl-font-sans);
   font-weight: bold;
-  letter-spacing: 0.08em;
   padding: 0.2rem 0.6rem;
   border-radius: 3px;
   animation: gl-pulse 1.5s ease-in-out infinite;
@@ -116,7 +101,7 @@
 
 .gl-notice {
   background: #fffbe6;
-  border: 1px solid var(--gl-gold);
+  border: 1px solid var(--gl-yellow);
   border-radius: 4px;
   padding: 0.75rem 1rem;
   font-size: 0.85rem;
@@ -157,31 +142,45 @@
 
 .gl-table thead tr {
   background-color: var(--gl-green);
-  color: var(--gl-gold);
+  color: white;
 }
 
 .gl-table thead th {
   padding: 0.6rem 0.5rem;
   font-family: var(--gl-font-sans);
-  font-size: 0.72rem;
-  font-weight: bold;
-  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: white;
   text-align: center;
+  border-right: 1px solid rgba(255,255,255,0.2);
+}
+
+.gl-table thead th:last-child {
+  border-right: none;
 }
 
 .gl-col-name {
   text-align: left !important;
 }
 
+.gl-table thead th.gl-col-name {
+  border-right: 2px solid rgba(255,255,255,0.35);
+}
+
 .gl-table tbody td {
   padding: 0.65rem 0.5rem;
   border-bottom: 1px solid var(--gl-border);
+  border-right: 1px solid var(--gl-border);
   text-align: center;
 }
 
-.gl-table tbody .gl-col-name {
+.gl-table tbody td:last-child {
+  border-right: none;
+}
+
+.gl-table tbody td.gl-col-name {
   text-align: left;
-  font-weight: 500;
+  border-right: 2px solid #d8d8d8;
 }
 
 .gl-row-even {
@@ -193,13 +192,10 @@
   border-left: 3px solid var(--gl-leader-border);
 }
 
-.gl-row-leader .gl-col-name {
-  font-weight: bold;
-}
-
 .gl-col-rank {
   font-family: var(--gl-font-sans);
   font-size: 0.85rem;
+  font-weight: 500;
   color: var(--gl-muted);
   width: 2.5rem;
 }
@@ -208,13 +204,15 @@
   width: 3rem;
   font-family: var(--gl-font-sans);
   font-size: 0.9rem;
+  font-weight: 500;
   color: var(--gl-muted);
 }
 
 .gl-col-points {
   width: 4rem;
   font-family: var(--gl-font-sans);
-  font-weight: bold;
+  font-weight: 500;
+  color: var(--gl-green);
 }
 
 /* ── Season month breakdown columns ── */
@@ -222,7 +220,8 @@
   width: 3rem;
   font-family: var(--gl-font-sans);
   font-size: 0.85rem;
-  color: var(--gl-muted);
+  font-weight: 500;
+  color: var(--gl-green);
 }
 
 .gl-col-major {
@@ -230,17 +229,27 @@
   opacity: 0.85;
 }
 
-/* ── Monthly R1/R2 columns ── */
+/* ── Monthly R1/R2/Total columns ── */
 .gl-col-r1,
-.gl-col-r2 {
+.gl-col-r2,
+.gl-col-pm-total {
   width: 3rem;
   font-family: var(--gl-font-sans);
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
 /* ── Score coloring ── */
 .gl-score-under { color: var(--gl-red); font-weight: 600; }
 .gl-score-even  { color: var(--gl-green); font-weight: 600; }
+
+/* ── Player name cell ── */
+.gl-table tbody .gl-col-name {
+  font-family: var(--gl-font-sc);
+  text-transform: uppercase;
+  font-weight: 400;
+  color: var(--gl-green);
+}
 
 /* ── Tabs ── */
 .gl-tabs {
@@ -255,34 +264,33 @@
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
-  color: rgba(255,255,255,0.65);
+  color: white;
   cursor: pointer;
   font-family: var(--gl-font-sans);
-  font-size: 0.8rem;
-  font-weight: bold;
-  letter-spacing: 0.08em;
-  padding: 0.65rem 1rem;
   text-transform: uppercase;
+  font-size: 0.9rem;
+  font-weight: 500;
+  padding: 0.6rem 1rem;
   white-space: nowrap;
   transition: color 0.15s;
 }
 
 .gl-tab:hover {
-  color: rgba(255,255,255,0.9);
+  color: var(--gl-yellow);
 }
 
 .gl-tab-active {
-  border-bottom-color: var(--gl-gold);
-  color: var(--gl-gold);
+  border-bottom-color: var(--gl-yellow);
+  color: var(--gl-yellow);
 }
 
 .gl-tab-disabled {
-  opacity: 0.35;
+  color: rgba(255,255,255,0.35);
   cursor: default;
 }
 
 .gl-tab-disabled:hover {
-  color: rgba(255,255,255,0.65);
+  color: rgba(255,255,255,0.35);
 }
 
 /* ── Cut line ── */
@@ -295,11 +303,10 @@
   font-family: var(--gl-font-sans);
   font-size: 0.7rem;
   font-weight: bold;
-  letter-spacing: 0.12em;
   color: var(--gl-muted);
   text-align: center;
-  border-top: 2px dashed #c0b08a;
-  border-bottom: 2px dashed #c0b08a;
+  border-top: 2px dashed var(--gl-red);
+  border-bottom: 2px dashed var(--gl-red);
 }
 
 /* ── Player link ── */
@@ -309,17 +316,18 @@
 }
 
 .gl-player-link:hover {
-  color: var(--gl-green);
+  opacity: 0.75;
   text-decoration: underline;
 }
 
-/* ── Monthly +/- column ── */
-.gl-col-plusminus {
-  width: 3.5rem;
-  font-family: var(--gl-font-sans);
-  font-size: 0.9rem;
-  color: var(--gl-muted);
-  text-align: center;
+/* ── Round history course link ── */
+.gl-round-course-link {
+  color: var(--gl-green-dark);
+  text-decoration: none;
+}
+
+.gl-round-course-link:hover {
+  text-decoration: underline;
 }
 
 /* ── Expandable row ── */
@@ -360,7 +368,6 @@
   font-family: var(--gl-font-sans);
   font-size: 0.72rem;
   font-weight: bold;
-  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--gl-green-dark);
   padding: 0.3rem 0 0.3rem 0.25rem;
@@ -375,7 +382,6 @@
   font-weight: normal;
   color: var(--gl-muted);
   text-transform: none;
-  letter-spacing: 0;
 }
 
 .gl-round-row {

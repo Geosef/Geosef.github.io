@@ -4,11 +4,13 @@ import {
   ResponsiveContainer, LineChart, Line,
   XAxis, YAxis, Tooltip, ReferenceLine,
 } from 'recharts';
+import './GolfLeaderboard.css';
 import './PlayerDetail.css';
 import type { Round, HandicapPoint, ScoringLogData, HandicapIndexData, PlayerHandicap } from '../../types/golf';
-import { tagCountingRounds, groupRoundsByMonth, formatPlusMinus, formatDate } from '../../types/golf';
+import { tagCountingRounds, groupRoundsByMonth, formatDate } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
+import { RoundMonthGroup } from './RoundHistory';
 
 const NON_MEMBER_PARTNER = 'Other (GGC Member)';
 
@@ -96,7 +98,7 @@ function HandicapChart({ history }: { history: HandicapPoint[] }) {
           stroke="#006747"
           strokeWidth={2}
           dot={{ r: 3, fill: '#006747', strokeWidth: 0 }}
-          activeDot={{ r: 5, fill: '#c9a84c' }}
+          activeDot={{ r: 5, fill: '#fce300' }}
           connectNulls={false}
         />
       </LineChart>
@@ -213,40 +215,9 @@ export default function PlayerDetail() {
         <section className="pd-section">
           <h2 className="pd-section-title">Round History</h2>
           {groups.length === 0 && <p className="pd-empty">No rounds recorded.</p>}
-          {groups.map(({ month, rounds: monthRounds, monthlyCount }) => {
-            const countingCount = monthRounds.filter(r => r.counts).length;
-            return (
-              <div key={month} className="pd-month-group">
-                <div className="pd-month-header">
-                  {month}
-                  <span className="pd-month-meta">
-                    · {countingCount} of {monthlyCount} round{monthlyCount !== 1 ? 's' : ''} count
-                  </span>
-                </div>
-                {monthRounds.map((r, i) => (
-                  <div key={i} className={`pd-round-row ${r.counts ? 'pd-round-counting' : 'pd-round-other'}`}>
-                    <span className="pd-round-check">{r.counts ? '✓' : '·'}</span>
-                    <span className="pd-round-date">{formatDate(r.datePlayed)}</span>
-                    <span className="pd-round-course">
-                      <Link
-                        to={`/golf-leaderboard/course/${encodeURIComponent(r.course)}`}
-                        className="pd-course-link"
-                        onClick={e => e.stopPropagation()}
-                      >
-                        {r.course}
-                      </Link>
-                      {r.tees ? ` (${r.tees})` : ''}
-                    </span>
-                    <span className={`pd-round-scores ${r.plusMinus < 0 ? 'pd-score-under' : 'pd-score-even'}`}>
-                      {r.score} / {r.netScore} ({formatPlusMinus(r.plusMinus)})
-                    </span>
-                    <span className="pd-round-hcp">HCP {r.playingHandicap}</span>
-                    {r.partner && <span className="pd-round-partner">w/ {r.partner}</span>}
-                  </div>
-                ))}
-              </div>
-            );
-          })}
+          {groups.map(({ month, rounds: monthRounds, monthlyCount }) => (
+            <RoundMonthGroup key={month} month={month} rounds={monthRounds} monthlyCount={monthlyCount} linkCourse />
+          ))}
         </section>
 
         {/* Handicap History */}
