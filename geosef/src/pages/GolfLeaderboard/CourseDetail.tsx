@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import './GolfLeaderboard.css';
 import './CourseDetail.css';
 import type { Round, ScoringLogData } from '../../types/golf';
 import { formatPlusMinus, formatDate } from '../../types/golf';
+
+function pmScoreClass(pm: number): string {
+  return pm < 0 ? 'gl-score-under' : 'gl-score-even';
+}
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
 
@@ -134,7 +139,7 @@ export default function CourseDetail() {
                     </Link>
                     <span className="cd-notable-date">{formatDate(r.datePlayed)}</span>
                   </span>
-                  <span className="cd-notable-score">
+                  <span className={`cd-notable-score ${pmScoreClass(r.plusMinus)}`}>
                     {r.score} ({formatPlusMinus(r.plusMinus)})
                   </span>
                 </div>
@@ -154,8 +159,8 @@ export default function CourseDetail() {
                     </Link>
                     <span className="cd-notable-date">{formatDate(r.datePlayed)}</span>
                   </span>
-                  <span className="cd-notable-score">
-                    {r.netScore} net
+                  <span className={`cd-notable-score ${pmScoreClass(r.plusMinus)}`}>
+                    {r.netScore} net ({formatPlusMinus(r.plusMinus)})
                   </span>
                 </div>
               ))}
@@ -192,7 +197,7 @@ export default function CourseDetail() {
                 {r.player}
               </Link>
               {r.tees && <span className="cd-round-tees">{r.tees}</span>}
-              <span className="cd-round-scores">
+              <span className={`cd-round-scores ${pmScoreClass(r.plusMinus)}`}>
                 {r.score} / {r.netScore} ({formatPlusMinus(r.plusMinus)})
               </span>
               <span className="cd-round-hcp">HCP {r.playingHandicap}</span>

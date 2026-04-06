@@ -115,6 +115,7 @@ export function groupRoundsByMonth(rounds: Round[]): { month: string; rounds: Ro
 export function formatPlusMinus(pm: number | null): string {
   if (pm === null) return '—';
   if (pm > 0) return `+${pm}`;
+  if (pm === 0) return 'E';
   return `${pm}`;
 }
 
