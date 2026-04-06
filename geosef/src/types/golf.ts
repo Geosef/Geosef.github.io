@@ -1,11 +1,22 @@
 // --- Data types ---
 
+export interface MonthlyBreakdown {
+  april: number;
+  may: number;
+  june: number;
+  theOpen: number;
+  july: number;
+  captainsCup: number;
+  august: number;
+}
+
 export interface Standing {
   rank: number;
   name: string;
   points: number;
   events: number;
   isTied: boolean;
+  monthly?: MonthlyBreakdown;
 }
 
 export interface LeaderboardData {

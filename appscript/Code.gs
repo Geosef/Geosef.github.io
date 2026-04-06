@@ -61,34 +61,45 @@
 
 var SPREADSHEET_ID = "1PATbhSmfKVcHa3ffxiqicTidGhV0g2JN18NkhCcq5xc";
 
-var CACHE_TTL_LEADERBOARD   = 900;   // 15 min
-var CACHE_TTL_MONTHLY       = 1800;  // 30 min
-var CACHE_TTL_SCORING_LOG   = 900;   // 15 min (same cadence as leaderboard)
-var CACHE_TTL_HANDICAP      = 3600;  // 60 min (pulled weekly)
+var CACHE_TTL_LEADERBOARD = 900; // 15 min
+var CACHE_TTL_MONTHLY = 1800; // 30 min
+var CACHE_TTL_SCORING_LOG = 900; // 15 min (same cadence as leaderboard)
+var CACHE_TTL_HANDICAP = 3600; // 60 min (pulled weekly)
 
-var TOTAL_POINTS_SHEET   = "Total Points";
-var SCORING_LOG_SHEET    = "Scoring Log 2026";
+var TOTAL_POINTS_SHEET = "Total Points";
+var SCORING_LOG_SHEET = "Scoring Log 2026";
 var HANDICAP_INDEX_SHEET = "Handicap Index Log";
 var DATA_START_ROW = 3; // 0-based index; row 4 in sheet
 
-var COL_RANK  = 0;
-var COL_NAME  = 1;
+var COL_RANK = 0;
+var COL_NAME = 1;
 var COL_TOTAL = 10;
 
 // Columns that represent actual scoring events (excludes col 8: Adjustment)
 var MONTHLY_COLS = [2, 3, 4, 5, 6, 7, 9];
 
 var MONTHLY_SHEETS = {
-  April:  "April Points",
-  May:    "May Points",
-  June:   "June Points",
-  July:   "July Points",
+  April: "April Points",
+  May: "May Points",
+  June: "June Points",
+  July: "July Points",
   August: "August Points",
 };
 
 var MONTH_NAMES = [
-  '', 'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December'
+  "",
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 // --- Helpers ---
@@ -99,17 +110,17 @@ var MONTH_NAMES = [
  * If somehow stored as a serial number, we convert from the Sheets epoch.
  */
 function toDateStr(val) {
-  if (!val || val === '') return '';
+  if (!val || val === "") return "";
   var d;
   if (val instanceof Date) {
     d = val;
-  } else if (typeof val === 'number') {
+  } else if (typeof val === "number") {
     // Sheets serial: days since Dec 30 1899 (with Lotus leap-year bug baked in)
     d = new Date((val - 25569) * 86400000);
   } else {
     return String(val).trim();
   }
-  return Utilities.formatDate(d, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  return Utilities.formatDate(d, Session.getScriptTimeZone(), "yyyy-MM-dd");
 }
 
 /**
@@ -125,31 +136,33 @@ function toMonthName(val) {
 // --- Entry point ---
 
 function doGet(e) {
-  var action = e && e.parameter && e.parameter.action ? e.parameter.action : 'leaderboard';
+  var action =
+    e && e.parameter && e.parameter.action ? e.parameter.action : "leaderboard";
 
   var result;
-  if (action === 'leaderboard') {
+  if (action === "leaderboard") {
     result = getLeaderboard();
-  } else if (action === 'monthly') {
-    var month = e.parameter && e.parameter.month ? e.parameter.month : '';
+  } else if (action === "monthly") {
+    var month = e.parameter && e.parameter.month ? e.parameter.month : "";
     result = getMonthly(month);
-  } else if (action === 'scoringLog') {
+  } else if (action === "scoringLog") {
     result = getScoringLog();
-  } else if (action === 'handicapIndex') {
+  } else if (action === "handicapIndex") {
     result = getHandicapIndex();
   } else {
-    result = { error: 'Unknown action: ' + action };
+    result = { error: "Unknown action: " + action };
   }
 
-  return ContentService.createTextOutput(JSON.stringify(result))
-    .setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(
+    ContentService.MimeType.JSON,
+  );
 }
 
 // --- Season leaderboard ---
 
 function getLeaderboard() {
   var cache = CacheService.getScriptCache();
-  var cached = cache.get('leaderboard');
+  var cached = cache.get("leaderboard");
   if (cached) return JSON.parse(cached);
 
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -171,39 +184,59 @@ function getLeaderboard() {
       if (!isNaN(pts) && pts > 0) events++;
     }
 
-    standings.push({ rank: rank, name: name, points: totalPoints, events: events });
+    standings.push({
+      rank: rank,
+      name: name,
+      points: totalPoints,
+      events: events,
+      monthly: {
+        april: parseFloat(row[2]) || 0,
+        may: parseFloat(row[3]) || 0,
+        june: parseFloat(row[4]) || 0,
+        theOpen: parseFloat(row[5]) || 0,
+        july: parseFloat(row[6]) || 0,
+        captainsCup: parseFloat(row[7]) || 0,
+        august: parseFloat(row[9]) || 0,
+      },
+    });
   }
 
   // Mark ties
   for (var j = 0; j < standings.length; j++) {
     var prev = j > 0 && standings[j - 1].points === standings[j].points;
-    var next = j < standings.length - 1 && standings[j + 1].points === standings[j].points;
+    var next =
+      j < standings.length - 1 &&
+      standings[j + 1].points === standings[j].points;
     standings[j].isTied = prev || next;
     if (prev) standings[j].rank = standings[j - 1].rank;
   }
 
   var result = {
     standings: standings,
-    lastUpdated: Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMM d, h:mm a'),
+    lastUpdated: Utilities.formatDate(
+      new Date(),
+      Session.getScriptTimeZone(),
+      "MMM d, h:mm a",
+    ),
   };
-  cache.put('leaderboard', JSON.stringify(result), CACHE_TTL_LEADERBOARD);
+  cache.put("leaderboard", JSON.stringify(result), CACHE_TTL_LEADERBOARD);
   return result;
 }
 
 // --- Monthly standings ---
 
 function getMonthly(month) {
-  var cacheKey = 'monthly_' + month;
+  var cacheKey = "monthly_" + month;
   var cache = CacheService.getScriptCache();
   var cached = cache.get(cacheKey);
   if (cached) return JSON.parse(cached);
 
   var sheetName = MONTHLY_SHEETS[month];
-  if (!sheetName) return { error: 'Unknown month: ' + month };
+  if (!sheetName) return { error: "Unknown month: " + month };
 
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sheet = ss.getSheetByName(sheetName);
-  if (!sheet) return { error: 'Sheet not found: ' + sheetName };
+  if (!sheet) return { error: "Sheet not found: " + sheetName };
 
   var rows = sheet.getDataRange().getValues();
   var result = [];
@@ -214,16 +247,23 @@ function getMonthly(month) {
 
     var rank = parseInt(rows[i][0], 10) || result.length + 1;
     var pmRaw = String(rows[i][3]).trim();
-    var plusMinus = (pmRaw === 'N/A' || pmRaw === '') ? null : (parseFloat(pmRaw) || 0);
+    var plusMinus =
+      pmRaw === "N/A" || pmRaw === "" ? null : parseFloat(pmRaw) || 0;
     var points = parseFloat(rows[i][6]) || 0;
 
-    result.push({ rank: rank, name: name, plusMinus: plusMinus, points: points });
+    result.push({
+      rank: rank,
+      name: name,
+      plusMinus: plusMinus,
+      points: points,
+    });
   }
 
   // Mark ties
   for (var j = 0; j < result.length; j++) {
     var prev = j > 0 && result[j - 1].points === result[j].points;
-    var next = j < result.length - 1 && result[j + 1].points === result[j].points;
+    var next =
+      j < result.length - 1 && result[j + 1].points === result[j].points;
     result[j].isTied = prev || next;
     if (prev) result[j].rank = result[j - 1].rank;
   }
@@ -237,7 +277,7 @@ function getMonthly(month) {
 
 function getScoringLog() {
   var cache = CacheService.getScriptCache();
-  var cached = cache.get('scoringLog');
+  var cached = cache.get("scoringLog");
   if (cached) return JSON.parse(cached);
 
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -249,35 +289,38 @@ function getScoringLog() {
     var row = rows[i];
     var player = String(row[1]).trim();
     if (!player) continue;
-    if (String(row[15]).trim() === 'Flagged') continue;
+    if (String(row[15]).trim() === "Flagged") continue;
 
     var courseAndTees = String(row[2]).trim();
-    var sepIdx = courseAndTees.lastIndexOf(' - ');
-    var course = sepIdx >= 0 ? courseAndTees.substring(0, sepIdx).trim() : courseAndTees;
-    var tees   = sepIdx >= 0 ? courseAndTees.substring(sepIdx + 3).trim() : '';
+    var sepIdx = courseAndTees.lastIndexOf(" - ");
+    var course =
+      sepIdx >= 0 ? courseAndTees.substring(0, sepIdx).trim() : courseAndTees;
+    var tees = sepIdx >= 0 ? courseAndTees.substring(sepIdx + 3).trim() : "";
 
     rounds.push({
-      player:          player,
-      course:          course,
-      tees:            tees,
-      frontBack:       String(row[3]).trim(),
-      month:           String(row[4]).trim(),
-      day:             String(row[5]).trim(),
-      score:           parseInt(row[6])    || 0,
-      partner:         String(row[7]).trim(),
-      datePlayed:      toDateStr(row[8]),
-      playingHandicap: parseFloat(row[9])  || 0,
-      netScore:        parseFloat(row[10]) || 0,
-      coursePar:       parseInt(row[11])   || 0,
-      plusMinus:       parseFloat(row[12]) || 0,
-      monthPlayed:     toMonthName(row[13]),
-      monthlyCount:    parseInt(row[16])   || 0,
+      player: player,
+      course: course,
+      tees: tees,
+      frontBack: String(row[3]).trim(),
+      month: String(row[4]).trim(),
+      day: String(row[5]).trim(),
+      score: parseInt(row[6]) || 0,
+      partner: String(row[7]).trim(),
+      datePlayed: toDateStr(row[8]),
+      playingHandicap: parseFloat(row[9]) || 0,
+      netScore: parseFloat(row[10]) || 0,
+      coursePar: parseInt(row[11]) || 0,
+      plusMinus: parseFloat(row[12]) || 0,
+      monthPlayed: toMonthName(row[13]),
+      monthlyCount: parseInt(row[16]) || 0,
     });
   }
 
   var result = { rounds: rounds };
   // CacheService limit is 100KB per entry; large logs may exceed it — serve uncached if so
-  try { cache.put('scoringLog', JSON.stringify(result), CACHE_TTL_SCORING_LOG); } catch(e) {}
+  try {
+    cache.put("scoringLog", JSON.stringify(result), CACHE_TTL_SCORING_LOG);
+  } catch (e) {}
   return result;
 }
 
@@ -285,7 +328,7 @@ function getScoringLog() {
 
 function getHandicapIndex() {
   var cache = CacheService.getScriptCache();
-  var cached = cache.get('handicapIndex');
+  var cached = cache.get("handicapIndex");
   if (cached) return JSON.parse(cached);
 
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -306,7 +349,7 @@ function getHandicapIndex() {
     // Col B (index 1) = current handicap; may be #N/A for players without GHIN
     var currentRaw = data[r][1];
     var current = null;
-    if (currentRaw !== '' && currentRaw !== null && currentRaw !== undefined) {
+    if (currentRaw !== "" && currentRaw !== null && currentRaw !== undefined) {
       var parsed = parseFloat(currentRaw);
       if (!isNaN(parsed)) current = parsed;
     }
@@ -315,7 +358,13 @@ function getHandicapIndex() {
     for (var c = 2; c < headers.length; c++) {
       var dateVal = headers[c];
       var hcapVal = data[r][c];
-      if (!dateVal || hcapVal === '' || hcapVal === null || hcapVal === undefined) continue;
+      if (
+        !dateVal ||
+        hcapVal === "" ||
+        hcapVal === null ||
+        hcapVal === undefined
+      )
+        continue;
       var hcapNum = parseFloat(hcapVal);
       if (isNaN(hcapNum)) continue;
       history.push({ date: toDateStr(dateVal), index: hcapNum });
@@ -325,6 +374,8 @@ function getHandicapIndex() {
   }
 
   var result = { players: players };
-  try { cache.put('handicapIndex', JSON.stringify(result), CACHE_TTL_HANDICAP); } catch(e) {}
+  try {
+    cache.put("handicapIndex", JSON.stringify(result), CACHE_TTL_HANDICAP);
+  } catch (e) {}
   return result;
 }

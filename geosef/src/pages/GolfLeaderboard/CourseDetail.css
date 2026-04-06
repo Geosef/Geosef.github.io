@@ -4,7 +4,7 @@
   min-height: 100vh;
   background-color: var(--gl-white);
   color: var(--gl-text);
-  font-family: 'Georgia', serif;
+  font-family: var(--gl-font-serif);
 }
 
 /* ── Header ── */
@@ -17,7 +17,7 @@
 .cd-back {
   display: inline-block;
   color: rgba(255,255,255,0.75);
-  font-family: sans-serif;
+  font-family: var(--gl-font-sans);
   font-size: 0.82rem;
   text-decoration: none;
   margin-bottom: 0.6rem;
@@ -45,7 +45,7 @@
   margin: 0.35rem 0 0;
   font-size: 0.88rem;
   color: rgba(255,255,255,0.8);
-  font-family: sans-serif;
+  font-family: var(--gl-font-sans);
 }
 
 /* ── Content ── */
@@ -59,7 +59,7 @@
 .cd-error {
   text-align: center;
   padding: 3rem 1rem;
-  font-family: sans-serif;
+  font-family: var(--gl-font-sans);
   color: var(--gl-muted);
 }
 
@@ -74,7 +74,7 @@
 
 .cd-section-title {
   font-size: 0.72rem;
-  font-family: sans-serif;
+  font-family: var(--gl-font-sans);
   font-weight: bold;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -92,7 +92,7 @@
 }
 
 .cd-notable-label {
-  font-family: sans-serif;
+  font-family: var(--gl-font-sans);
   font-size: 0.72rem;
   font-weight: bold;
   letter-spacing: 0.1em;
@@ -107,7 +107,7 @@
   gap: 0.4rem;
   padding: 0.35rem 0;
   border-bottom: 1px solid rgba(0,0,0,0.05);
-  font-family: sans-serif;
+  font-family: var(--gl-font-sans);
   font-size: 0.82rem;
 }
 
@@ -146,7 +146,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.4rem 0;
-  font-family: sans-serif;
+  font-family: var(--gl-font-sans);
   font-size: 0.88rem;
   border-bottom: 1px solid #e0d9cc;
 }
@@ -177,7 +177,7 @@
   align-items: center;
   gap: 0.4rem 0.75rem;
   padding: 0.35rem 0;
-  font-family: sans-serif;
+  font-family: var(--gl-font-sans);
   font-size: 0.82rem;
   border-bottom: 1px solid rgba(0,0,0,0.05);
 }

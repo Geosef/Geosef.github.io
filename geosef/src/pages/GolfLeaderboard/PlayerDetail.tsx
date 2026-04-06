@@ -237,7 +237,7 @@ export default function PlayerDetail() {
                       </Link>
                       {r.tees ? ` (${r.tees})` : ''}
                     </span>
-                    <span className="pd-round-scores">
+                    <span className={`pd-round-scores ${r.plusMinus < 0 ? 'pd-score-under' : 'pd-score-even'}`}>
                       {r.score} / {r.netScore} ({formatPlusMinus(r.plusMinus)})
                     </span>
                     <span className="pd-round-hcp">HCP {r.playingHandicap}</span>

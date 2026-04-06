@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import './GolfLeaderboard.css';
-import type { LeaderboardData, MonthlyData, Round, ScoringLogData, HandicapIndexData } from '../../types/golf';
+import type { LeaderboardData, MonthlyData, Round, ScoringLogData, HandicapIndexData, Standing } from '../../types/golf';
 import { tagCountingRounds, groupRoundsByMonth, formatPlusMinus, formatDate } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
@@ -32,7 +32,23 @@ function formatRank(isTied: boolean, rank: number): string {
 }
 
 function formatPoints(points: number): string {
-  return points.toFixed(2);
+  return Math.round(points).toString();
+}
+
+function pmScoreClass(pm: number): string {
+  return pm < 0 ? 'gl-score-under' : 'gl-score-even';
+}
+
+function getMonthlyR1R2(playerName: string, monthParam: string): { r1: number | null; r2: number | null } {
+  const log = sessionCache.scoringLog;
+  if (!log) return { r1: null, r2: null };
+  const rounds = log.rounds.filter(r => r.player === playerName && (r.monthPlayed || r.month) === monthParam);
+  const tagged = tagCountingRounds(rounds);
+  const counting = tagged.filter(r => r.counts).sort((a, b) => a.plusMinus - b.plusMinus);
+  return {
+    r1: counting[0]?.plusMinus ?? null,
+    r2: counting[1]?.plusMinus ?? null,
+  };
 }
 
 // ── Expanded rounds sub-component ──
@@ -45,7 +61,7 @@ function RoundRow({ round }: { round: Round }) {
       <span className="gl-round-course">
         {round.course}{round.tees ? ` (${round.tees})` : ''}
       </span>
-      <span className="gl-round-scores">
+      <span className={`gl-round-scores ${pmScoreClass(round.plusMinus)}`}>
         {round.score} / {round.netScore} ({formatPlusMinus(round.plusMinus)})
       </span>
       <span className="gl-round-hcp">HCP {round.playingHandicap}</span>
@@ -128,7 +144,7 @@ export default function GolfLeaderboard() {
   }
   const [seasonData, setSeasonData] = useState<LeaderboardData | null>(sessionCache.season);
   const [monthlyCache, setMonthlyCache] = useState(new Map(sessionCache.monthly));
-  const [scoringLogLoaded, setScoringLogLoaded] = useState(sessionCache.scoringLog !== null);
+  const [, setScoringLogLoaded] = useState(sessionCache.scoringLog !== null);
   const [expandedPlayer, setExpandedPlayer] = useState<string | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -154,7 +170,7 @@ export default function GolfLeaderboard() {
     if (!sessionCache.season) fetchSeason();
   }, [fetchSeason]);
 
-  // Fetch scoring log in the background — powers all expanded round views
+  // Fetch scoring log in the background — powers expanded round views and R1/R2 columns
   useEffect(() => {
     if (sessionCache.scoringLog) return;
     fetch(`${APPS_SCRIPT_URL}?action=scoringLog`)
@@ -218,7 +234,7 @@ export default function GolfLeaderboard() {
     : (currentMonthData?.standings ?? []);
 
   const isMonthTab = activeTab !== 'season';
-  const colCount = 4;
+  const colCount = isMonthTab ? 5 : 10;
 
   return (
     <div className="gl-wrapper">
@@ -271,17 +287,32 @@ export default function GolfLeaderboard() {
               <tr>
                 <th className="gl-col-rank">POS</th>
                 <th className="gl-col-name">PLAYER</th>
-                {isMonthTab
-                  ? <th className="gl-col-plusminus">+/-</th>
-                  : <th className="gl-col-rounds">RDS</th>
-                }
-                <th className="gl-col-points">PTS</th>
+                {isMonthTab ? (
+                  <>
+                    <th className="gl-col-r1">R1</th>
+                    <th className="gl-col-r2">R2</th>
+                  </>
+                ) : (
+                  <>
+                    <th className="gl-col-month">APR</th>
+                    <th className="gl-col-month">MAY</th>
+                    <th className="gl-col-month">JUN</th>
+                    <th className="gl-col-month gl-col-major">OPEN</th>
+                    <th className="gl-col-month">JUL</th>
+                    <th className="gl-col-month gl-col-major">CC</th>
+                    <th className="gl-col-month">AUG</th>
+                  </>
+                )}
+                <th className="gl-col-points">{isMonthTab ? 'PTS' : 'TOTAL'}</th>
               </tr>
             </thead>
             <tbody>
               {standings.map((s, i) => {
                 const expandedRounds = expandedPlayer === s.name && sessionCache.scoringLog
                   ? sessionCache.scoringLog.rounds.filter(r => r.player === s.name)
+                  : null;
+                const r1r2 = isMonthTab
+                  ? getMonthlyR1R2(s.name, monthTab?.param ?? '')
                   : null;
 
                 return (
@@ -311,13 +342,24 @@ export default function GolfLeaderboard() {
                         </Link>
                       </td>
                       {isMonthTab ? (
-                        <td className="gl-col-plusminus">
-                          {formatPlusMinus((s as { plusMinus: number | null }).plusMinus)}
-                        </td>
+                        <>
+                          <td className={`gl-col-r1${r1r2!.r1 !== null ? ' ' + pmScoreClass(r1r2!.r1) : ''}`}>
+                            {r1r2!.r1 !== null ? formatPlusMinus(r1r2!.r1) : '—'}
+                          </td>
+                          <td className={`gl-col-r2${r1r2!.r2 !== null ? ' ' + pmScoreClass(r1r2!.r2) : ''}`}>
+                            {r1r2!.r2 !== null ? formatPlusMinus(r1r2!.r2) : '—'}
+                          </td>
+                        </>
                       ) : (
-                        <td className="gl-col-rounds">
-                          {(s as { events: number }).events}
-                        </td>
+                        <>
+                          <td className="gl-col-month">{(s as Standing).monthly?.april ? Math.round((s as Standing).monthly!.april) : '—'}</td>
+                          <td className="gl-col-month">{(s as Standing).monthly?.may ? Math.round((s as Standing).monthly!.may) : '—'}</td>
+                          <td className="gl-col-month">{(s as Standing).monthly?.june ? Math.round((s as Standing).monthly!.june) : '—'}</td>
+                          <td className="gl-col-month">{(s as Standing).monthly?.theOpen ? Math.round((s as Standing).monthly!.theOpen) : '—'}</td>
+                          <td className="gl-col-month">{(s as Standing).monthly?.july ? Math.round((s as Standing).monthly!.july) : '—'}</td>
+                          <td className="gl-col-month">{(s as Standing).monthly?.captainsCup ? Math.round((s as Standing).monthly!.captainsCup) : '—'}</td>
+                          <td className="gl-col-month">{(s as Standing).monthly?.august ? Math.round((s as Standing).monthly!.august) : '—'}</td>
+                        </>
                       )}
                       <td className="gl-col-points">{formatPoints(s.points)}</td>
                     </tr>
