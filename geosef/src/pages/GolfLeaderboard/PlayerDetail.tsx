@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   ResponsiveContainer, LineChart, Line,
   XAxis, YAxis, Tooltip, ReferenceLine,
@@ -11,6 +11,15 @@ import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
 
 const NON_MEMBER_PARTNER = 'Other (GGC Member)';
+
+// Fixed weekly pull dates for the full 2026 season (Tuesdays, 3/31 – 8/25)
+const SEASON_WEEKS = [
+  '2026-03-31','2026-04-07','2026-04-14','2026-04-21','2026-04-28',
+  '2026-05-05','2026-05-12','2026-05-19','2026-05-26',
+  '2026-06-02','2026-06-09','2026-06-16','2026-06-23','2026-06-30',
+  '2026-07-07','2026-07-14','2026-07-21','2026-07-28',
+  '2026-08-04','2026-08-11','2026-08-18','2026-08-25',
+];
 
 function coursesPlayed(rounds: Round[]): { course: string; count: number }[] {
   const map = new Map<string, number>();
@@ -32,44 +41,50 @@ function playingPartners(rounds: Round[]): { partner: string; count: number }[] 
     .sort((a, b) => b.count - a.count);
 }
 
-// Keep one data point per calendar week (first entry of each week)
-function weeklyHistory(history: HandicapPoint[]): HandicapPoint[] {
-  const seen = new Set<number>();
-  return history.filter(h => {
-    const weekKey = Math.floor(new Date(h.date + 'T12:00:00').getTime() / (7 * 24 * 60 * 60 * 1000));
-    if (seen.has(weekKey)) return false;
-    seen.add(weekKey);
-    return true;
-  });
+function weekKey(dateStr: string): number {
+  return Math.floor(new Date(dateStr + 'T12:00:00').getTime() / (7 * 24 * 60 * 60 * 1000));
 }
 
 function HandicapChart({ history }: { history: HandicapPoint[] }) {
-  const weekly = weeklyHistory(history);
-  if (weekly.length === 0) return null;
+  if (history.length === 0) return null;
 
-  const data = weekly.map(h => ({ date: formatDate(h.date), index: h.index }));
-  const indices = weekly.map(h => h.index);
-  const minIdx = Math.min(...indices);
-  const maxIdx = Math.max(...indices);
-  // Give y-axis a little breathing room; at least a 2-point window
+  // Index history by week so we can look up values for each season week
+  const byWeek = new Map<number, number>();
+  for (const h of history) {
+    const k = weekKey(h.date);
+    if (!byWeek.has(k)) byWeek.set(k, h.index); // first entry per week wins
+  }
+
+  // Build a data point for every season week; null = no data yet
+  const data = SEASON_WEEKS.map(d => ({
+    date: formatDate(d),
+    index: byWeek.get(weekKey(d)) ?? null,
+  }));
+
+  const knownValues = data.flatMap(d => d.index !== null ? [d.index] : []);
+  if (knownValues.length === 0) return null;
+
+  const minIdx = Math.min(...knownValues);
+  const maxIdx = Math.max(...knownValues);
   const yMin = Math.floor(minIdx - 1);
   const yMax = Math.ceil(maxIdx + 1);
 
   return (
     <ResponsiveContainer width="100%" height={160}>
-      <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: -8 }}>
+      <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 4 }}>
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 11, fontFamily: 'sans-serif', fill: '#5a6e5a' }}
+          tick={{ fontSize: 10, fontFamily: 'sans-serif', fill: '#5a6e5a' }}
           tickLine={false}
           axisLine={{ stroke: '#c0d4c0' }}
+          interval={3}
         />
         <YAxis
           domain={[yMin, yMax]}
           tick={{ fontSize: 11, fontFamily: 'sans-serif', fill: '#5a6e5a' }}
           tickLine={false}
           axisLine={false}
-          width={32}
+          width={40}
         />
         <Tooltip
           formatter={(v) => [typeof v === 'number' ? v.toFixed(1) : v, 'Index']}
@@ -83,6 +98,7 @@ function HandicapChart({ history }: { history: HandicapPoint[] }) {
           strokeWidth={2}
           dot={{ r: 3, fill: '#006747', strokeWidth: 0 }}
           activeDot={{ r: 5, fill: '#c9a84c' }}
+          connectNulls={false}
         />
       </LineChart>
     </ResponsiveContainer>
@@ -91,6 +107,17 @@ function HandicapChart({ history }: { history: HandicapPoint[] }) {
 
 export default function PlayerDetail() {
   const { playerName } = useParams<{ playerName: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // Go back in history if we have it; fall back to leaderboard for direct-URL visits
+  function goBack() {
+    if (location.key !== 'default') {
+      navigate(-1);
+    } else {
+      navigate('/golf-leaderboard');
+    }
+  }
 
   const [loading, setLoading] = useState(
     !sessionCache.scoringLog || !sessionCache.handicapIndex
@@ -146,7 +173,7 @@ export default function PlayerDetail() {
   if (error || !playerName) {
     return (
       <div className="pd-wrapper">
-        <Link to="/golf-leaderboard" className="pd-back">← Leaderboard</Link>
+        <button onClick={goBack} className="pd-back">← Back</button>
         <div className="pd-error">{error ?? 'Player not found.'}</div>
       </div>
     );
@@ -160,7 +187,7 @@ export default function PlayerDetail() {
   if (rounds.length === 0 && !handicap) {
     return (
       <div className="pd-wrapper">
-        <Link to="/golf-leaderboard" className="pd-back">← Leaderboard</Link>
+        <button onClick={goBack} className="pd-back">← Back</button>
         <div className="pd-error">No data found for {playerName}.</div>
       </div>
     );
@@ -174,7 +201,7 @@ export default function PlayerDetail() {
   return (
     <div className="pd-wrapper">
       <div className="pd-header">
-        <Link to="/golf-leaderboard" className="pd-back">← Leaderboard</Link>
+        <button onClick={goBack} className="pd-back">← Back</button>
         <h1 className="pd-name">{playerName}</h1>
         {handicap?.current != null && (
           <p className="pd-hcp-current">Handicap Index: {handicap.current.toFixed(1)}</p>

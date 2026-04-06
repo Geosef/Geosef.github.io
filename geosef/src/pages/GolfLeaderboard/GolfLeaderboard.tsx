@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import './GolfLeaderboard.css';
 import type { LeaderboardData, MonthlyData, Round, ScoringLogData, HandicapIndexData } from '../../types/golf';
 import { tagCountingRounds, groupRoundsByMonth, formatPlusMinus, formatDate } from '../../types/golf';
@@ -101,7 +101,20 @@ function ExpandedRounds({ rounds, tab }: { rounds: Round[]; tab: ActiveTab }) {
 // ── Main component ──
 
 export default function GolfLeaderboard() {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('season');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
+    const tab = searchParams.get('tab') as ActiveTab;
+    return MONTH_TABS.some(m => m.key === tab) ? tab : 'season';
+  });
+
+  function handleTabChange(tab: ActiveTab) {
+    setActiveTab(tab);
+    if (tab === 'season') {
+      setSearchParams({}, { replace: true });
+    } else {
+      setSearchParams({ tab }, { replace: true });
+    }
+  }
   const [seasonData, setSeasonData] = useState<LeaderboardData | null>(sessionCache.season);
   const [monthlyCache, setMonthlyCache] = useState(new Map(sessionCache.monthly));
   const [scoringLogLoaded, setScoringLogLoaded] = useState(sessionCache.scoringLog !== null);
@@ -219,7 +232,7 @@ export default function GolfLeaderboard() {
       <div className="gl-tabs">
         <button
           className={`gl-tab ${activeTab === 'season' ? 'gl-tab-active' : ''}`}
-          onClick={() => setActiveTab('season')}
+          onClick={() => handleTabChange('season')}
         >
           Season
         </button>
@@ -227,7 +240,7 @@ export default function GolfLeaderboard() {
           <button
             key={m.key}
             className={`gl-tab ${activeTab === m.key ? 'gl-tab-active' : ''}`}
-            onClick={() => setActiveTab(m.key)}
+            onClick={() => handleTabChange(m.key)}
           >
             {m.label}
           </button>
