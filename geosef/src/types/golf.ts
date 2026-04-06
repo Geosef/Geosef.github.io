@@ -97,7 +97,7 @@ export function groupRoundsByMonth(rounds: Round[]): { month: string; rounds: Ro
   return [...ordered, ...extras].map(m => ({
     month: m,
     rounds: map.get(m)!,
-    monthlyCount: map.get(m)![0]?.monthlyCount ?? 0,
+    monthlyCount: map.get(m)!.length,
   }));
 }
 
@@ -110,7 +110,8 @@ export function formatPlusMinus(pm: number | null): string {
 export function formatDate(dateStr: string): string {
   if (!dateStr) return '';
   try {
-    const d = new Date(dateStr);
+    // Append T12:00:00 so date-only strings aren't shifted by UTC offset
+    const d = new Date(dateStr.length === 10 ? dateStr + 'T12:00:00' : dateStr);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   } catch {
     return dateStr;

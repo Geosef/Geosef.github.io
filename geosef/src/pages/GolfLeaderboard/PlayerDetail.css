@@ -168,6 +168,10 @@
 }
 
 /* ── Handicap history ── */
+.pd-hcp-chart {
+  margin-top: 0.25rem;
+}
+
 .pd-hcp-list {
   display: flex;
   flex-wrap: wrap;
