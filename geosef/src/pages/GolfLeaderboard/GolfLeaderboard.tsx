@@ -5,7 +5,8 @@ import type { LeaderboardData, MonthlyData, Round, ScoringLogData, HandicapIndex
 import { tagCountingRounds, groupRoundsByMonth, formatPlusMinus } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
-import { RoundRow, RoundMonthGroup } from './RoundHistory';
+import { RoundMonthGroup } from './RoundHistory';
+import { SortTh, sortStandings, SortDir } from './leaderboard-utils';
 
 const CUT_LINE_POSITION = 48;
 
@@ -103,14 +104,31 @@ export default function GolfLeaderboard() {
     return getActiveMonthTab();
   });
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortKey, setSortKey] = useState('rank');
+  const [sortDir, setSortDir] = useState<SortDir>('asc');
+
   function handleTabChange(tab: ActiveTab) {
     setActiveTab(tab);
+    setSortKey('rank');
+    setSortDir('asc');
+    setSearchQuery('');
     if (tab === 'season') {
       setSearchParams({}, { replace: true });
     } else {
       setSearchParams({ tab }, { replace: true });
     }
   }
+
+  function handleSort(key: string) {
+    if (key === sortKey) {
+      setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  }
+
   const [seasonData, setSeasonData] = useState<LeaderboardData | null>(sessionCache.season);
   const [monthlyCache, setMonthlyCache] = useState(new Map(sessionCache.monthly));
   const [, setScoringLogLoaded] = useState(sessionCache.scoringLog !== null);
@@ -205,6 +223,11 @@ export default function GolfLeaderboard() {
   const isMonthTab = activeTab !== 'season';
   const colCount = isMonthTab ? 6 : 10;
 
+  const filtered = searchQuery.trim()
+    ? standings.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase().trim()))
+    : standings;
+  const displayStandings = sortStandings(filtered, sortKey, sortDir, activeTab);
+
   return (
     <div className="gl-wrapper">
       <div className="gl-header">
@@ -218,28 +241,38 @@ export default function GolfLeaderboard() {
           )}
           <button className="gl-refresh-btn" onClick={fetchSeason} title="Refresh">↻</button>
         </div>
-      </div>
 
-      <div className="gl-tabs">
-        {MONTH_TABS.map(m => {
-          const future = isFutureMonth(m);
-          return (
-            <button
-              key={m.key}
-              className={`gl-tab ${activeTab === m.key ? 'gl-tab-active' : ''} ${future ? 'gl-tab-disabled' : ''}`}
-              onClick={() => !future && handleTabChange(m.key)}
-              disabled={future}
-            >
-              {m.label}
-            </button>
-          );
-        })}
-        <button
-          className={`gl-tab ${activeTab === 'season' ? 'gl-tab-active' : ''}`}
-          onClick={() => handleTabChange('season')}
-        >
-          Season
-        </button>
+        <div className="gl-month-selector">
+          <select
+            className="gl-month-select"
+            value={activeTab}
+            onChange={e => handleTabChange(e.target.value as ActiveTab)}
+          >
+            {MONTH_TABS.map(m => (
+              <option key={m.key} value={m.key} disabled={isFutureMonth(m)}>
+                {m.label} 2026
+              </option>
+            ))}
+            <option value="season">Season</option>
+          </select>
+        </div>
+
+        <div className="gl-header-controls">
+          <div className="gl-search-row">
+            <input
+              type="text"
+              className="gl-search-input"
+              placeholder="Filter players…"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && <button className="gl-search-clear" onClick={() => setSearchQuery('')}>✕</button>}
+          </div>
+          <div className="gl-nav-links">
+            <Link to="/golf-leaderboard/players" className="gl-nav-link">All Players</Link>
+            <Link to="/golf-leaderboard/courses" className="gl-nav-link">All Courses</Link>
+          </div>
+        </div>
       </div>
 
       <div className="gl-content">
@@ -249,30 +282,30 @@ export default function GolfLeaderboard() {
           <table className="gl-table">
             <thead>
               <tr>
-                <th className="gl-col-rank">Pos</th>
-                <th className="gl-col-name">Player</th>
+                <SortTh label="Pos" sortK="rank" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-rank" />
+                <SortTh label="Player" sortK="name" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-name" />
                 {isMonthTab ? (
                   <>
                     <th className="gl-col-r1">R1</th>
                     <th className="gl-col-r2">R2</th>
-                    <th className="gl-col-pm-total">Total</th>
+                    <SortTh label="Total" sortK="plusMinus" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-pm-total" />
                   </>
                 ) : (
                   <>
-                    <th className="gl-col-month">Apr</th>
-                    <th className="gl-col-month">May</th>
-                    <th className="gl-col-month">Jun</th>
-                    <th className="gl-col-month gl-col-major">Open</th>
-                    <th className="gl-col-month">Jul</th>
-                    <th className="gl-col-month gl-col-major">CC</th>
-                    <th className="gl-col-month">Aug</th>
+                    <SortTh label="Apr" sortK="april" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
+                    <SortTh label="May" sortK="may" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
+                    <SortTh label="Jun" sortK="june" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
+                    <SortTh label="Open" sortK="theOpen" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month gl-col-major" />
+                    <SortTh label="Jul" sortK="july" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
+                    <SortTh label="CC" sortK="captainsCup" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month gl-col-major" />
+                    <SortTh label="Aug" sortK="august" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
                   </>
                 )}
-                <th className="gl-col-points">{isMonthTab ? 'Pts' : 'Total'}</th>
+                <SortTh label={isMonthTab ? 'Pts' : 'Total'} sortK="points" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-points" />
               </tr>
             </thead>
             <tbody>
-              {standings.map((s, i) => {
+              {displayStandings.map((s, i) => {
                 const expandedRounds = expandedPlayer === s.name && sessionCache.scoringLog
                   ? sessionCache.scoringLog.rounds.filter(r => r.player === s.name)
                   : null;
@@ -282,7 +315,7 @@ export default function GolfLeaderboard() {
 
                 return (
                   <React.Fragment key={s.name}>
-                    {i === CUT_LINE_POSITION && (
+                    {!searchQuery && i === CUT_LINE_POSITION && (
                       <tr className="gl-cut-row">
                         <td colSpan={colCount} className="gl-cut-label">✂ CUT</td>
                       </tr>

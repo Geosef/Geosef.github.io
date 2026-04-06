@@ -1,3 +1,7 @@
+:root {
+  --app-header-height: 40px;
+}
+
 .App {
   text-align: center;
   min-height: 100vh;
@@ -17,7 +21,52 @@
 }
 
 .App-header {
-  padding: 2rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: #282c34;
+  padding: 0;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+.App-byline {
+  font-size: 0.78rem;
+  font-family: 'Source Sans 3', sans-serif;
+  color: rgba(255,255,255,0.5);
+}
+
+.App-byline-link {
+  color: rgba(255,255,255,0.75);
+  text-decoration: none;
+}
+
+.App-byline-link:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+.App-footer {
+  text-align: center;
+  padding: 1.5rem;
+  background-color: #282c34;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.App-footer-link {
+  color: rgba(255,255,255,0.45);
+  font-size: 0.78rem;
+  font-family: 'Source Sans 3', sans-serif;
+  text-decoration: none;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.App-footer-link:hover {
+  color: rgba(255,255,255,0.85);
 }
 
 .App-link {

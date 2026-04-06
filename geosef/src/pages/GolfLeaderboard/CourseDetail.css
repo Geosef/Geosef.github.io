@@ -12,6 +12,9 @@
   background-color: var(--gl-green);
   color: white;
   padding: 1.25rem 1rem 1rem;
+  position: sticky;
+  top: var(--app-header-height, 40px);
+  z-index: 90;
 }
 
 .cd-back {
