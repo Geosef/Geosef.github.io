@@ -1,14 +1,16 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import './GolfLeaderboard.css';
 
-const APPS_SCRIPT_URL = ''; // TODO: paste your deployed Apps Script URL here
+const APPS_SCRIPT_URL = import.meta.env.DEV
+  ? '/apps-script-proxy'
+  : 'https://script.google.com/macros/s/AKfycbyN9DBo7X4ETzHnZD7m94SdUIjQqMXRKqVLxaQb7Ra4YuOnpPusIGKSlUcVzJ65knKL/exec';
 const POLL_INTERVAL_MS = 60_000;
 
 interface Standing {
   rank: number;
   name: string;
   points: number;
-  rounds: number;
+  events: number;
   isTied: boolean;
 }
 
@@ -34,13 +36,17 @@ export default function GolfLeaderboard() {
     if (!APPS_SCRIPT_URL) return;
     try {
       const res = await fetch(`${APPS_SCRIPT_URL}?action=leaderboard`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json: LeaderboardData = await res.json();
+      const text = await res.text();
+      console.log('Apps Script response status:', res.status);
+      console.log('Apps Script response body:', text.slice(0, 2000));
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${text.slice(0, 200)}`);
+      const json: LeaderboardData = JSON.parse(text);
       setData(json);
       setError(null);
       setIsLive(true);
       setTimeout(() => setIsLive(false), 3000);
     } catch (e) {
+      console.error('Leaderboard fetch error:', e);
       setError('Could not load leaderboard. Will retry.');
     }
   }, []);
@@ -97,7 +103,7 @@ export default function GolfLeaderboard() {
                 >
                   <td className="gl-col-rank">{formatRank(s)}</td>
                   <td className="gl-col-name">{s.name}</td>
-                  <td className="gl-col-rounds">{s.rounds}</td>
+                  <td className="gl-col-rounds">{s.events}</td>
                   <td className="gl-col-points">{formatPoints(s.points)}</td>
                 </tr>
               ))}
