@@ -1,0 +1,279 @@
+{
+  "page": 5,
+  "per_page": 25,
+  "pre_page": 4,
+  "next_page": 6,
+  "total": 187,
+  "total_pages": 8,
+  "data": [
+    {
+      "slug": "mt-spokane",
+      "name": "Mt Spokane",
+      "country": "US",
+      "region": "WA",
+      "location": {
+        "latitude": 47.921261,
+        "longitude": -117.096107
+      },
+      "url": "https://api.skiapi.com/v1/resort/mt-spokane"
+    },
+    {
+      "slug": "mtbachelor",
+      "name": "Mount Bachelor",
+      "country": "US",
+      "region": "OR",
+      "location": {
+        "latitude": 44.003559,
+        "longitude": -121.67865
+      },
+      "url": "https://api.skiapi.com/v1/resort/mtbachelor"
+    },
+    {
+      "slug": "mtbrighton",
+      "name": "Mt Brighton",
+      "country": "US",
+      "region": "MI",
+      "location": {
+        "latitude": 42.540783,
+        "longitude": -83.811553
+      },
+      "url": "https://api.skiapi.com/v1/resort/mtbrighton"
+    },
+    {
+      "slug": "mthigh",
+      "name": "Mountain High",
+      "country": "US",
+      "region": "CA",
+      "location": {
+        "latitude": 34.376888,
+        "longitude": -117.691544
+      },
+      "url": "https://api.skiapi.com/v1/resort/mthigh"
+    },
+    {
+      "slug": "mthood",
+      "name": "Mount Hood",
+      "country": "US",
+      "region": "OR",
+      "location": {
+        "latitude": 45.331936,
+        "longitude": -121.665688
+      },
+      "url": "https://api.skiapi.com/v1/resort/mthood"
+    },
+    {
+      "slug": "mtrose",
+      "name": "Mount Rose",
+      "country": "US",
+      "region": "NV",
+      "location": {
+        "latitude": 39.3283,
+        "longitude": -119.878601
+      },
+      "url": "https://api.skiapi.com/v1/resort/mtrose"
+    },
+    {
+      "slug": "niseko",
+      "name": "Niseko",
+      "country": "JP",
+      "region": "01",
+      "location": {
+        "latitude": 42.8,
+        "longitude": 140.683333
+      },
+      "url": "https://api.skiapi.com/v1/resort/niseko"
+    },
+    {
+      "slug": "northstar",
+      "name": "Northstar",
+      "country": "US",
+      "region": "CA",
+      "location": {
+        "latitude": 39.275173,
+        "longitude": -120.122086
+      },
+      "url": "https://api.skiapi.com/v1/resort/northstar"
+    },
+    {
+      "slug": "okemo",
+      "name": "Okemo",
+      "country": "US",
+      "region": "VT",
+      "location": {
+        "latitude": 43.401806,
+        "longitude": -72.716705
+      },
+      "url": "https://api.skiapi.com/v1/resort/okemo"
+    },
+    {
+      "slug": "ovindoli",
+      "name": "Ovindoli Monte Magnola",
+      "country": "IT",
+      "location": {
+        "latitude": 42.14547624333149,
+        "longitude": 13.496445170136338
+      },
+      "url": "https://api.skiapi.com/v1/resort/ovindoli"
+    },
+    {
+      "slug": "owlshead",
+      "name": "Owl's Head",
+      "country": "CA",
+      "region": "QC",
+      "location": {
+        "latitude": 45.074642,
+        "longitude": -72.297806
+      },
+      "url": "https://api.skiapi.com/v1/resort/owlshead"
+    },
+    {
+      "slug": "paganella",
+      "name": "Paganella",
+      "country": "IT",
+      "location": {
+        "latitude": 11.066667,
+        "longitude": 46.166667
+      },
+      "url": "https://api.skiapi.com/v1/resort/paganella"
+    },
+    {
+      "slug": "palisades",
+      "name": "Palisades Tahoe",
+      "country": "US",
+      "region": "CA",
+      "location": {
+        "latitude": 39.196045,
+        "longitude": -120.233299
+      },
+      "url": "https://api.skiapi.com/v1/resort/palisades"
+    },
+    {
+      "slug": "parkcity",
+      "name": "Park City",
+      "country": "US",
+      "region": "UT",
+      "location": {
+        "latitude": 40.651375,
+        "longitude": -111.508118
+      },
+      "url": "https://api.skiapi.com/v1/resort/parkcity"
+    },
+    {
+      "slug": "pats-peak",
+      "name": "Pats Peak",
+      "country": "US",
+      "region": "NH",
+      "location": {
+        "latitude": 43.180679,
+        "longitude": -71.833412
+      },
+      "url": "https://api.skiapi.com/v1/resort/pats-peak"
+    },
+    {
+      "slug": "peio",
+      "name": "Pejo",
+      "country": "IT",
+      "location": {
+        "latitude": 46.366667,
+        "longitude": 10.666667
+      },
+      "url": "https://api.skiapi.com/v1/resort/peio"
+    },
+    {
+      "slug": "perisher",
+      "name": "Perisher",
+      "country": "AU",
+      "region": "NSW",
+      "location": {
+        "latitude": -36.4,
+        "longitude": 148.41
+      },
+      "url": "https://api.skiapi.com/v1/resort/perisher"
+    },
+    {
+      "slug": "piancavallo",
+      "name": "Piancavallo",
+      "country": "IT",
+      "location": {
+        "latitude": 46.10733,
+        "longitude": 12.51721
+      },
+      "url": "https://api.skiapi.com/v1/resort/piancavallo"
+    },
+    {
+      "slug": "pico",
+      "name": "Pico Mountain",
+      "country": "US",
+      "region": "VT",
+      "location": {
+        "latitude": 43.663277,
+        "longitude": -72.842613
+      },
+      "url": "https://api.skiapi.com/v1/resort/pico"
+    },
+    {
+      "slug": "pinzolo",
+      "name": "Pinzolo",
+      "country": "IT",
+      "region": "32",
+      "location": {
+        "latitude": 46.166667,
+        "longitude": 10.75
+      },
+      "url": "https://api.skiapi.com/v1/resort/pinzolo"
+    },
+    {
+      "slug": "plan-de-corones",
+      "name": "Plan de Corones",
+      "country": "IT",
+      "location": {
+        "latitude": 46.73884,
+        "longitude": 11.95783
+      },
+      "url": "https://api.skiapi.com/v1/resort/plan-de-corones"
+    },
+    {
+      "slug": "pleasant-mountain",
+      "name": "Pleasant Mountain",
+      "country": "US",
+      "region": "ME",
+      "location": {
+        "latitude": 44.053791,
+        "longitude": -70.817528
+      },
+      "url": "https://api.skiapi.com/v1/resort/pleasant-mountain"
+    },
+    {
+      "slug": "pontedilegno-tonale",
+      "name": "Ponte di Legno - Tonale",
+      "country": "IT",
+      "region": "BS",
+      "location": {
+        "latitude": 46.258056,
+        "longitude": 10.580833
+      },
+      "url": "https://api.skiapi.com/v1/resort/pontedilegno-tonale"
+    },
+    {
+      "slug": "ragged-mountain",
+      "name": "Ragged Mountain",
+      "country": "US",
+      "region": "NH",
+      "location": {
+        "latitude": 43.486305,
+        "longitude": -71.842003
+      },
+      "url": "https://api.skiapi.com/v1/resort/ragged-mountain"
+    },
+    {
+      "slug": "ravascletto-zoncolan",
+      "name": "Ravascletto/Zoncolan",
+      "country": "IT",
+      "location": {
+        "latitude": 46.52506,
+        "longitude": 12.92393
+      },
+      "url": "https://api.skiapi.com/v1/resort/ravascletto-zoncolan"
+    }
+  ]
+}

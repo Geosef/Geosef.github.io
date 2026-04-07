@@ -1,0 +1,251 @@
+.travel-coordinator {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.upload-container {
+  display: flex;
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.file-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.data-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.travelers-preview, .resorts-preview {
+  background-color: #1a1e24;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.travelers-preview ul, .resorts-preview ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+.travelers-preview li, .resorts-preview li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #2c3138;
+}
+
+.analysis-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.resort-row {
+  background-color: #1a1e24;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.resort-row:hover {
+  background-color: #22272e;
+}
+
+.resort-row-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.resort-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.resort-name {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.resort-location {
+  color: #8b949e;
+  font-size: 0.9rem;
+}
+
+.analysis-stats {
+  display: flex;
+  gap: 1rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  background-color: #282c34;
+  border-radius: 4px;
+  min-width: 80px;
+}
+
+.expand-icon {
+  margin-left: 1rem;
+  font-size: 1.2rem;
+  transition: transform 0.3s;
+}
+
+.expanded .expand-icon {
+  transform: rotate(180deg);
+}
+
+.detailed-analysis {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease-out;
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
+.expanded .detailed-analysis {
+  max-height: 1000px;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #2c3138;
+  transition: max-height 0.5s ease-in;
+}
+
+.connection-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.connection-group {
+  margin: 1rem 0;
+}
+
+.connection-group h5 {
+  color: #8b949e;
+  margin-bottom: 0.5rem;
+}
+
+.connection-group ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.connection-group li {
+  padding: 0.25rem 0;
+}
+
+.resort-passes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 4px;
+}
+
+.pass-tag {
+  font-size: 0.7rem;
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.pass-tag.epic {
+  background-color: #007bff;
+  color: white;
+}
+
+.pass-tag.ikon {
+  background-color: #ff4500;
+  color: white;
+}
+
+.pass-tag.indy {
+  background-color: #28a745;
+  color: white;
+}
+
+.pass-tag.mountain-collective {
+  background-color: #6c757d;
+  color: white;
+}
+
+.filter-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  background-color: #1a1e24;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.filter-group {
+  min-width: 250px;
+  flex: 1;
+}
+
+.filter-group h4 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+}
+
+.filter-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #282c34;
+}
+
+.filter-option:hover {
+  background-color: #323842;
+}
+
+.filter-label {
+  font-size: 0.9rem;
+}
+
+.filter-label.pass-epic {
+  color: #007bff;
+}
+
+.filter-label.pass-ikon {
+  color: #ff4500;
+}
+
+.filter-label.pass-indy {
+  color: #28a745;
+}
+
+.filter-label.pass-mountain-collective {
+  color: #6c757d;
+}
+
+.results-counter {
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: #8b949e;
+} 

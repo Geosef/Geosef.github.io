@@ -1,0 +1,63 @@
+/* Uses Masters palette variables from GolfLeaderboard.css via :root */
+
+.pd-name {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 500;
+  color: var(--gl-green);
+}
+
+.pd-hcp-current {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--gl-muted);
+  font-family: var(--gl-font-sans);
+  font-weight: 500;
+}
+
+/* ── Handicap history ── */
+.pd-hcp-chart {
+  margin-top: 0.25rem;
+}
+
+.pd-hcp-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0;
+  max-height: 16rem;
+  overflow-y: auto;
+}
+
+.pd-hcp-row {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  font-family: var(--gl-font-sans);
+  font-size: 0.82rem;
+  padding: 0.2rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.pd-hcp-row:last-child {
+  border-bottom: none;
+}
+
+.pd-hcp-date {
+  color: var(--gl-muted);
+  min-width: 5rem;
+}
+
+.pd-hcp-val {
+  font-weight: 500;
+}
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .pd-name {
+    font-size: 1.3rem;
+  }
+
+  .pd-hcp-row {
+    font-size: 0.78rem;
+  }
+}

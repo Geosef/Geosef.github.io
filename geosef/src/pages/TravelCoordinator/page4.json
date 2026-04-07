@@ -1,0 +1,280 @@
+{
+  "page": 4,
+  "per_page": 25,
+  "pre_page": 3,
+  "next_page": 5,
+  "total": 187,
+  "total_pages": 8,
+  "data": [
+    {
+      "slug": "lamolina",
+      "name": "La Molina",
+      "country": "ES",
+      "location": {
+        "latitude": 42.3358,
+        "longitude": 1.94163
+      },
+      "url": "https://api.skiapi.com/v1/resort/lamolina"
+    },
+    {
+      "slug": "laplagne",
+      "name": "La Plagne",
+      "country": "FR",
+      "region": "V",
+      "location": {
+        "latitude": 45.5064,
+        "longitude": 6.6772
+      },
+      "url": "https://api.skiapi.com/v1/resort/laplagne"
+    },
+    {
+      "slug": "larosiere",
+      "name": "La Rosière",
+      "country": "FR",
+      "region": "ARA",
+      "location": {
+        "latitude": 45.6272,
+        "longitude": 6.8492
+      },
+      "url": "https://api.skiapi.com/v1/resort/larosiere"
+    },
+    {
+      "slug": "lavarone",
+      "name": "Lavarone",
+      "country": "IT",
+      "location": {
+        "latitude": 45.933333,
+        "longitude": 11.266667
+      },
+      "url": "https://api.skiapi.com/v1/resort/lavarone"
+    },
+    {
+      "slug": "lesarcs",
+      "name": "Les Arcs",
+      "country": "FR",
+      "region": "ARA",
+      "location": {
+        "latitude": 45.5722,
+        "longitude": 6.8288
+      },
+      "url": "https://api.skiapi.com/v1/resort/lesarcs"
+    },
+    {
+      "slug": "lesmenuires",
+      "name": "Les Menuires",
+      "country": "FR",
+      "region": "ARA",
+      "location": {
+        "latitude": 45.3236,
+        "longitude": 6.5375
+      },
+      "url": "https://api.skiapi.com/v1/resort/lesmenuires"
+    },
+    {
+      "slug": "loon",
+      "name": "Loon Mountain",
+      "country": "US",
+      "region": "NH",
+      "location": {
+        "latitude": 44.056583,
+        "longitude": -71.625809
+      },
+      "url": "https://api.skiapi.com/v1/resort/loon"
+    },
+    {
+      "slug": "loveland",
+      "name": "Loveland",
+      "country": "US",
+      "region": "CO",
+      "location": {
+        "latitude": 39.679993,
+        "longitude": -105.89595
+      },
+      "url": "https://api.skiapi.com/v1/resort/loveland"
+    },
+    {
+      "slug": "mad-river-glen",
+      "name": "Mad River Glen",
+      "country": "US",
+      "region": "VT",
+      "location": {
+        "latitude": 44.201653,
+        "longitude": -72.919006
+      },
+      "url": "https://api.skiapi.com/v1/resort/mad-river-glen"
+    },
+    {
+      "slug": "madonna-di-campiglio",
+      "name": "Madonna di Campiglio",
+      "country": "IT",
+      "region": "32",
+      "location": {
+        "latitude": 46.231944,
+        "longitude": 10.826111
+      },
+      "url": "https://api.skiapi.com/v1/resort/madonna-di-campiglio"
+    },
+    {
+      "slug": "mammoth-lakes",
+      "name": "Mammoth Mountain",
+      "country": "US",
+      "region": "CA",
+      "location": {
+        "latitude": 37.651772,
+        "longitude": -119.037346
+      },
+      "url": "https://api.skiapi.com/v1/resort/mammoth-lakes"
+    },
+    {
+      "slug": "manning-park",
+      "name": "Manning Park",
+      "country": "CA",
+      "region": "BC",
+      "location": {
+        "latitude": 49.06906966124412,
+        "longitude": -120.91434120055804
+      },
+      "url": "https://api.skiapi.com/v1/resort/manning-park"
+    },
+    {
+      "slug": "megeve",
+      "name": "Megève",
+      "country": "FR",
+      "region": "ARA",
+      "location": {
+        "latitude": 45.8578,
+        "longitude": 6.6181
+      },
+      "url": "https://api.skiapi.com/v1/resort/megeve"
+    },
+    {
+      "slug": "meribel",
+      "name": "Meribel",
+      "country": "FR",
+      "region": "ARA",
+      "location": {
+        "latitude": 45.3967,
+        "longitude": 6.5655
+      },
+      "url": "https://api.skiapi.com/v1/resort/meribel"
+    },
+    {
+      "slug": "monarch",
+      "name": "Monarch Mountain",
+      "country": "US",
+      "region": "CO",
+      "location": {
+        "latitude": 38.512714,
+        "longitude": -106.331696
+      },
+      "url": "https://api.skiapi.com/v1/resort/monarch"
+    },
+    {
+      "slug": "monte-amiata",
+      "name": "Monte Amiata",
+      "country": "IL",
+      "location": {
+        "latitude": 42.89159,
+        "longitude": 11.62626
+      },
+      "url": "https://api.skiapi.com/v1/resort/monte-amiata"
+    },
+    {
+      "slug": "monte-bondone",
+      "name": "Monte Bondone",
+      "country": "IL",
+      "location": {
+        "latitude": 46.026944,
+        "longitude": 11.058611
+      },
+      "url": "https://api.skiapi.com/v1/resort/monte-bondone"
+    },
+    {
+      "slug": "montegenevre",
+      "name": "Montgenevre",
+      "country": "FR",
+      "region": "PAC",
+      "location": {
+        "latitude": 44.9316,
+        "longitude": 6.7219
+      },
+      "url": "https://api.skiapi.com/v1/resort/montegenevre"
+    },
+    {
+      "slug": "monterosa",
+      "name": "Monterosa",
+      "country": "IT",
+      "location": {
+        "latitude": 45.833333,
+        "longitude": 7.833333
+      },
+      "url": "https://api.skiapi.com/v1/resort/monterosa"
+    },
+    {
+      "slug": "morzine",
+      "name": "Morzine",
+      "country": "FR",
+      "region": "ARA",
+      "location": {
+        "latitude": 46.1789,
+        "longitude": 6.7089
+      },
+      "url": "https://api.skiapi.com/v1/resort/morzine"
+    },
+    {
+      "slug": "mount-sunapee",
+      "name": "Mount Sunapee",
+      "country": "US",
+      "region": "NH",
+      "location": {
+        "latitude": 43.341194,
+        "longitude": -72.075394
+      },
+      "url": "https://api.skiapi.com/v1/resort/mount-sunapee"
+    },
+    {
+      "slug": "mountsnow",
+      "name": "Mount Snow",
+      "country": "US",
+      "region": "VT",
+      "location": {
+        "latitude": 42.968166,
+        "longitude": -72.8936
+      },
+      "url": "https://api.skiapi.com/v1/resort/mountsnow"
+    },
+    {
+      "slug": "mt-buller",
+      "name": "Mount Buller",
+      "country": "AU",
+      "region": "VIC",
+      "location": {
+        "latitude": -37.1462,
+        "longitude": 146.44982
+      },
+      "url": "https://api.skiapi.com/v1/resort/mt-buller"
+    },
+    {
+      "slug": "mt-hotham",
+      "name": "Mount Hotham",
+      "country": "AU",
+      "region": "VIC",
+      "location": {
+        "latitude": -36.9752,
+        "longitude": 147.1328
+      },
+      "url": "https://api.skiapi.com/v1/resort/mt-hotham"
+    },
+    {
+      "slug": "mt-seymour",
+      "name": "Mount Seymour",
+      "country": "CA",
+      "region": "BC",
+      "location": {
+        "latitude": 49.36557060120715,
+        "longitude": -122.94820807713377
+      },
+      "url": "https://api.skiapi.com/v1/resort/mt-seymour"
+    }
+  ]
+}

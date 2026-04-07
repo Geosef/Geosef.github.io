@@ -1,0 +1,279 @@
+{
+  "page": 2,
+  "per_page": 25,
+  "pre_page": 1,
+  "next_page": 3,
+  "total": 187,
+  "total_pages": 8,
+  "data": [
+    {
+      "slug": "burke-mountain",
+      "name": "Burke Mountain",
+      "country": "US",
+      "region": "VT",
+      "location": {
+        "latitude": 44.587898,
+        "longitude": -71.91745
+      },
+      "url": "https://api.skiapi.com/v1/resort/burke-mountain"
+    },
+    {
+      "slug": "buttermilk",
+      "name": "Buttermilk",
+      "country": "US",
+      "region": "CO",
+      "location": {
+        "latitude": 39.206944,
+        "longitude": -106.860474
+      },
+      "url": "https://api.skiapi.com/v1/resort/buttermilk"
+    },
+    {
+      "slug": "caberfae-peaks",
+      "name": "Caberfae Peaks",
+      "country": "US",
+      "region": "MI",
+      "location": {
+        "latitude": 44.245014,
+        "longitude": -85.719765
+      },
+      "url": "https://api.skiapi.com/v1/resort/caberfae-peaks"
+    },
+    {
+      "slug": "camelback",
+      "name": "Camelback Mountain",
+      "country": "US",
+      "region": "PA",
+      "location": {
+        "latitude": 41.051389,
+        "longitude": -75.355
+      },
+      "url": "https://api.skiapi.com/v1/resort/camelback"
+    },
+    {
+      "slug": "campo-felice",
+      "name": "Campo Felice",
+      "country": "IL",
+      "location": {
+        "latitude": 42.21372813629604,
+        "longitude": 13.460177207717742
+      },
+      "url": "https://api.skiapi.com/v1/resort/campo-felice"
+    },
+    {
+      "slug": "canada-olympic-park",
+      "name": "Canada Olympic Park",
+      "country": "CA",
+      "region": "AB",
+      "location": {
+        "latitude": 51.079722,
+        "longitude": -114.215833
+      },
+      "url": "https://api.skiapi.com/v1/resort/canada-olympic-park"
+    },
+    {
+      "slug": "cannon",
+      "name": "Cannon",
+      "country": "US",
+      "region": "NH",
+      "location": {
+        "latitude": 44.156452,
+        "longitude": -71.698418
+      },
+      "url": "https://api.skiapi.com/v1/resort/cannon"
+    },
+    {
+      "slug": "cataloochee",
+      "name": "Cataloochee",
+      "country": "US",
+      "region": "NC",
+      "location": {
+        "latitude": 35.562656,
+        "longitude": -83.090027
+      },
+      "url": "https://api.skiapi.com/v1/resort/cataloochee"
+    },
+    {
+      "slug": "catedral",
+      "name": "Catedral Alta Patagonia",
+      "country": "IL",
+      "location": {
+        "latitude": -71.44978545296134,
+        "longitude": -41.182686147965306
+      },
+      "url": "https://api.skiapi.com/v1/resort/catedral"
+    },
+    {
+      "slug": "cervino",
+      "name": "Cervino Ski Paradise",
+      "country": "IT",
+      "location": {
+        "latitude": 45.93426991893467,
+        "longitude": 7.632435690816057
+      },
+      "url": "https://api.skiapi.com/v1/resort/cervino"
+    },
+    {
+      "slug": "chamonix",
+      "name": "Chamonix",
+      "country": "FR",
+      "location": {
+        "latitude": 45.92652,
+        "longitude": 6.86787
+      },
+      "url": "https://api.skiapi.com/v1/resort/chamonix"
+    },
+    {
+      "slug": "chinapeak",
+      "name": "China Peak",
+      "country": "US",
+      "region": "CA",
+      "location": {
+        "latitude": 37.228348,
+        "longitude": -119.161705
+      },
+      "url": "https://api.skiapi.com/v1/resort/chinapeak"
+    },
+    {
+      "slug": "civetta",
+      "name": "Civetta",
+      "country": "IT",
+      "location": {
+        "latitude": 46.40658836629695,
+        "longitude": 12.023842219994087
+      },
+      "url": "https://api.skiapi.com/v1/resort/civetta"
+    },
+    {
+      "slug": "claviere",
+      "name": "Cesana Claviere",
+      "country": "IT",
+      "region": "TO",
+      "location": {
+        "latitude": 44.933333,
+        "longitude": 6.75
+      },
+      "url": "https://api.skiapi.com/v1/resort/claviere"
+    },
+    {
+      "slug": "copper",
+      "name": "Copper Mountain",
+      "country": "US",
+      "region": "CO",
+      "location": {
+        "latitude": 39.501125,
+        "longitude": -106.155998
+      },
+      "url": "https://api.skiapi.com/v1/resort/copper"
+    },
+    {
+      "slug": "coronetpeak",
+      "name": "Coronet Peak",
+      "country": "NZ",
+      "region": "OTA",
+      "location": {
+        "latitude": -44.926898,
+        "longitude": 168.736053
+      },
+      "url": "https://api.skiapi.com/v1/resort/coronetpeak"
+    },
+    {
+      "slug": "cortina-d-ampezzo",
+      "name": "Cortina d'Ampezzo",
+      "country": "IT",
+      "location": {
+        "latitude": 46.54056,
+        "longitude": 12.13562
+      },
+      "url": "https://api.skiapi.com/v1/resort/cortina-d-ampezzo"
+    },
+    {
+      "slug": "courchevel",
+      "name": "Courchevel - 3 Vallees",
+      "country": "FR",
+      "region": "ARA",
+      "location": {
+        "latitude": 45.415,
+        "longitude": 6.6339
+      },
+      "url": "https://api.skiapi.com/v1/resort/courchevel"
+    },
+    {
+      "slug": "cranmore-mountain",
+      "name": "Cranmore",
+      "country": "US",
+      "region": "NH",
+      "location": {
+        "latitude": 44.055382,
+        "longitude": -71.116783
+      },
+      "url": "https://api.skiapi.com/v1/resort/cranmore-mountain"
+    },
+    {
+      "slug": "cransmontana",
+      "name": "Crans-Montana",
+      "country": "CH",
+      "region": "VS",
+      "location": {
+        "latitude": 46.3087,
+        "longitude": 7.4674
+      },
+      "url": "https://api.skiapi.com/v1/resort/cransmontana"
+    },
+    {
+      "slug": "crested-butte",
+      "name": "Crested Butte",
+      "country": "US",
+      "region": "CO",
+      "location": {
+        "latitude": 38.899502,
+        "longitude": -106.964821
+      },
+      "url": "https://api.skiapi.com/v1/resort/crested-butte"
+    },
+    {
+      "slug": "crystal-mountain",
+      "name": "Crystal Mountain",
+      "country": "US",
+      "region": "WA",
+      "location": {
+        "latitude": 46.9459,
+        "longitude": -121.5802
+      },
+      "url": "https://api.skiapi.com/v1/resort/crystal-mountain"
+    },
+    {
+      "slug": "cypress-mountain",
+      "name": "Cypress Mountain",
+      "country": "CA",
+      "region": "BC",
+      "location": {
+        "latitude": 49.37141,
+        "longitude": -123.19557
+      },
+      "url": "https://api.skiapi.com/v1/resort/cypress-mountain"
+    },
+    {
+      "slug": "deer-valley",
+      "name": "Deer Valley",
+      "country": "US",
+      "region": "UT",
+      "location": {
+        "latitude": 40.620499,
+        "longitude": -111.489555
+      },
+      "url": "https://api.skiapi.com/v1/resort/deer-valley"
+    },
+    {
+      "slug": "devils-head",
+      "name": "Devil's Head",
+      "country": "US",
+      "region": "WI",
+      "location": {
+        "latitude": 43.4016,
+        "longitude": -89.636703
+      },
+      "url": "https://api.skiapi.com/v1/resort/devils-head"
+    }
+  ]
+}

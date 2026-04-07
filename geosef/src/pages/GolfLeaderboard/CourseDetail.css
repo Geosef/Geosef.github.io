@@ -1,0 +1,236 @@
+/* Uses Masters palette variables from GolfLeaderboard.css via :root */
+
+.cd-name {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 400;
+  color: var(--gl-green);
+}
+
+.cd-meta {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--gl-muted);
+  font-family: var(--gl-font-sans);
+  font-weight: 500;
+}
+
+/* ── Notable Rounds ── */
+.cd-notable-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.cd-notable-label {
+  font-family: var(--gl-font-sans);
+  font-size: 0.72rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: var(--gl-muted);
+  margin-bottom: 0.5rem;
+}
+
+.cd-notable-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.4rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  font-family: var(--gl-font-sans);
+  font-size: 0.82rem;
+}
+
+.cd-notable-row:last-child {
+  border-bottom: none;
+}
+
+.cd-notable-medal {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.cd-notable-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.cd-notable-date {
+  font-size: 0.75rem;
+  color: var(--gl-muted);
+}
+
+.cd-notable-score {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* ── Round History ── */
+.cd-round-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 0.75rem;
+  padding: 0.35rem 0;
+  font-family: var(--gl-font-sans);
+  font-size: 0.82rem;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+}
+
+.cd-round-row:last-child {
+  border-bottom: none;
+}
+
+.cd-round-date {
+  font-weight: 500;
+  min-width: 4rem;
+}
+
+.cd-round-player {
+  flex: 1;
+  min-width: 7rem;
+}
+
+.cd-round-tees {
+  color: var(--gl-muted);
+}
+
+.cd-round-scores {
+  font-weight: 500;
+}
+
+.cd-round-hcp {
+  color: var(--gl-muted);
+}
+
+.cd-player-link {
+  font-weight: 500;
+  color: var(--gl-green-dark);
+  text-decoration: none;
+}
+
+.cd-player-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Course full name ── */
+.cd-fullname {
+  margin: 0.1rem 0 0;
+  font-size: 0.85rem;
+  color: var(--gl-muted);
+  font-family: var(--gl-font-sans);
+  font-style: italic;
+}
+
+/* ── Course Info ── */
+.cd-info-section {
+  background: rgba(0,0,0,0.03);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+}
+
+.cd-info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  align-items: center;
+  font-family: var(--gl-font-sans);
+  font-size: 0.82rem;
+}
+
+.cd-info-link {
+  color: var(--gl-green-dark);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.cd-info-link:hover {
+  text-decoration: underline;
+}
+
+.cd-info-meta {
+  margin-top: 0.4rem;
+  font-family: var(--gl-font-sans);
+  font-size: 0.78rem;
+  color: var(--gl-muted);
+}
+
+/* ── Front/Back section labels in Notable Rounds ── */
+.cd-notable-side-label {
+  font-family: var(--gl-font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gl-muted);
+  margin: 0.75rem 0 0.4rem;
+}
+
+.cd-notable-side-label:first-child {
+  margin-top: 0;
+}
+
+/* ── Front/Back badge on round rows ── */
+.cd-round-fb {
+  font-family: var(--gl-font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gl-muted);
+  background: rgba(0,0,0,0.06);
+  border-radius: 3px;
+  padding: 0.1rem 0.35rem;
+}
+
+/* ── Courses list low gross cell ── */
+.gl-col-lowgross {
+  white-space: nowrap;
+}
+
+/* ── Tee Options table ── */
+.cd-tee-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--gl-font-sans);
+  font-size: 0.85rem;
+}
+
+.cd-tee-table thead th {
+  text-align: left;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--gl-muted);
+  border-bottom: 2px solid var(--gl-border);
+}
+
+.cd-tee-table tbody td {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--gl-border);
+}
+
+.cd-tee-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .cd-name {
+    font-size: 1.3rem;
+  }
+
+  .cd-notable-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .cd-round-row {
+    font-size: 0.78rem;
+  }
+}

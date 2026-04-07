@@ -1,0 +1,139 @@
+{
+  "page": 8,
+  "per_page": 25,
+  "pre_page": 7,
+  "next_page": null,
+  "total": 187,
+  "total_pages": 8,
+  "data": [
+    {
+      "slug": "val-di-fiemme",
+      "name": "Val di Fiemme / Obereggen",
+      "country": "IT",
+      "location": {
+        "latitude": 46.38368199140035,
+        "longitude": 11.526664941511797
+      },
+      "url": "https://api.skiapi.com/v1/resort/val-di-fiemme"
+    },
+    {
+      "slug": "val-gardena",
+      "name": "Val Gardena",
+      "country": "IT",
+      "region": "32",
+      "location": {
+        "latitude": 46.56,
+        "longitude": 11.704722
+      },
+      "url": "https://api.skiapi.com/v1/resort/val-gardena"
+    },
+    {
+      "slug": "valdisere",
+      "name": "Val d'Isere",
+      "country": "FR",
+      "location": {
+        "latitude": 45.44627,
+        "longitude": 6.97732
+      },
+      "url": "https://api.skiapi.com/v1/resort/valdisere"
+    },
+    {
+      "slug": "verbier",
+      "name": "Verbier",
+      "country": "CH",
+      "region": "VS",
+      "location": {
+        "latitude": 46.0935,
+        "longitude": 7.233
+      },
+      "url": "https://api.skiapi.com/v1/resort/verbier"
+    },
+    {
+      "slug": "waterville",
+      "name": "Waterville Valley",
+      "country": "US",
+      "region": "NH",
+      "location": {
+        "latitude": 43.961613,
+        "longitude": -71.519989
+      },
+      "url": "https://api.skiapi.com/v1/resort/waterville"
+    },
+    {
+      "slug": "whistler-blackcomb",
+      "name": "Whistler Blackcomb",
+      "country": "CA",
+      "region": "BC",
+      "location": {
+        "latitude": 50.10693,
+        "longitude": -122.922073
+      },
+      "url": "https://api.skiapi.com/v1/resort/whistler-blackcomb"
+    },
+    {
+      "slug": "whiteface",
+      "name": "Whiteface",
+      "country": "US",
+      "region": "NY",
+      "location": {
+        "latitude": 44.356506,
+        "longitude": -73.870613
+      },
+      "url": "https://api.skiapi.com/v1/resort/whiteface"
+    },
+    {
+      "slug": "whitefish",
+      "name": "Whitefish Mountain",
+      "country": "US",
+      "location": {
+        "latitude": 48.5,
+        "longitude": -114.34
+      },
+      "url": "https://api.skiapi.com/v1/resort/whitefish"
+    },
+    {
+      "slug": "wildcat",
+      "name": "Wildcat",
+      "country": "US",
+      "region": "NH",
+      "location": {
+        "latitude": 44.264626,
+        "longitude": -71.236725
+      },
+      "url": "https://api.skiapi.com/v1/resort/wildcat"
+    },
+    {
+      "slug": "windham",
+      "name": "Windham Mountain",
+      "country": "US",
+      "region": "NY",
+      "location": {
+        "latitude": 42.295597,
+        "longitude": -74.259941
+      },
+      "url": "https://api.skiapi.com/v1/resort/windham"
+    },
+    {
+      "slug": "winter-park",
+      "name": "Winter Park",
+      "country": "US",
+      "region": "CO",
+      "location": {
+        "latitude": 39.891563,
+        "longitude": -105.764267
+      },
+      "url": "https://api.skiapi.com/v1/resort/winter-park"
+    },
+    {
+      "slug": "winterplace",
+      "name": "Winterplace",
+      "country": "US",
+      "region": "WV",
+      "location": {
+        "latitude": 37.59594,
+        "longitude": -81.11824
+      },
+      "url": "https://api.skiapi.com/v1/resort/winterplace"
+    }
+  ]
+}
