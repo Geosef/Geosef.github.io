@@ -1,6 +1,7 @@
 node_modules/
 package-lock.json
 .DS_Store
+.vite/
 
 ## Claude Code local settings
 .claude/settings.local.json
