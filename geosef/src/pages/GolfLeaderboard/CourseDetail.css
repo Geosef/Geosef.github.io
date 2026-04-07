@@ -118,6 +118,81 @@
   text-decoration: underline;
 }
 
+/* ── Course full name ── */
+.cd-fullname {
+  margin: 0.1rem 0 0;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.75);
+  font-family: var(--gl-font-sans);
+  font-style: italic;
+}
+
+/* ── Course Info ── */
+.cd-info-section {
+  background: rgba(0,0,0,0.03);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+}
+
+.cd-info-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  align-items: center;
+  font-family: var(--gl-font-sans);
+  font-size: 0.82rem;
+}
+
+.cd-info-link {
+  color: var(--gl-green-dark);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.cd-info-link:hover {
+  text-decoration: underline;
+}
+
+.cd-info-meta {
+  margin-top: 0.4rem;
+  font-family: var(--gl-font-sans);
+  font-size: 0.78rem;
+  color: var(--gl-muted);
+}
+
+/* ── Front/Back section labels in Notable Rounds ── */
+.cd-notable-side-label {
+  font-family: var(--gl-font-sans);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--gl-muted);
+  margin: 0.75rem 0 0.4rem;
+}
+
+.cd-notable-side-label:first-child {
+  margin-top: 0;
+}
+
+/* ── Front/Back badge on round rows ── */
+.cd-round-fb {
+  font-family: var(--gl-font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gl-muted);
+  background: rgba(0,0,0,0.06);
+  border-radius: 3px;
+  padding: 0.1rem 0.35rem;
+}
+
+/* ── Courses list low gross cell ── */
+.gl-col-lowgross {
+  white-space: nowrap;
+}
+
 /* ── Mobile ── */
 @media (max-width: 480px) {
   .cd-name {

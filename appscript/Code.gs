@@ -65,10 +65,16 @@ var CACHE_TTL_LEADERBOARD = 900; // 15 min
 var CACHE_TTL_MONTHLY = 1800; // 30 min
 var CACHE_TTL_SCORING_LOG = 900; // 15 min (same cadence as leaderboard)
 var CACHE_TTL_HANDICAP = 3600; // 60 min (pulled weekly)
+var CACHE_TTL_COURSES = 3600; // 60 min (course list / info changes rarely)
 
 var TOTAL_POINTS_SHEET = "Total Points";
 var SCORING_LOG_SHEET = "Scoring Log 2026";
 var HANDICAP_INDEX_SHEET = "Handicap Index Log";
+var PLAYING_HANDICAPS_SHEET = "Playing Handicaps";
+var COURSE_INFO_SHEET = "Course Info";
+
+// 9-hole courses — these collapse front/back into a single entry
+var NINE_HOLE_COURSES = ["Ballwin"];
 var DATA_START_ROW = 3; // 0-based index; row 4 in sheet
 
 var COL_RANK = 0;
@@ -149,6 +155,10 @@ function doGet(e) {
     result = getScoringLog();
   } else if (action === "handicapIndex") {
     result = getHandicapIndex();
+  } else if (action === "courses") {
+    result = getCourses();
+  } else if (action === "courseInfo") {
+    result = getCourseInfo();
   } else {
     result = { error: "Unknown action: " + action };
   }
@@ -320,6 +330,112 @@ function getScoringLog() {
   // CacheService limit is 100KB per entry; large logs may exceed it — serve uncached if so
   try {
     cache.put("scoringLog", JSON.stringify(result), CACHE_TTL_SCORING_LOG);
+  } catch (e) {}
+  return result;
+}
+
+// --- Canonical course list (from Playing Handicaps sheet) ---
+
+/**
+ * Reads Playing Handicaps sheet to build the canonical course variant list.
+ * Row 7 (index 6) = column headers: "Player | Current | Course - Tees - Front | ..."
+ * Row 2 (index 1) = par values; Row 3 (index 2) = slope values (course cols start at index 2).
+ * Header format: "Course - Tees - Front" or "Course - Tees - Back".
+ * 9-hole courses (NINE_HOLE_COURSES) are collapsed to a single entry (no front/back).
+ */
+function getCourses() {
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get("courses");
+  if (cached) return JSON.parse(cached);
+
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(PLAYING_HANDICAPS_SHEET);
+  if (!sheet) return { courses: [] };
+
+  // Row 7 (index 6) = "Player | Current | course/tee names..."
+  // Row 2 (index 1) = "| Par | values..." (course cols start at index 2)
+  // Row 3 (index 2) = "| Slope | values..."
+  var maxCols = Math.min(sheet.getLastColumn(), 110);
+  var data = sheet.getRange(1, 1, 7, maxCols).getValues();
+
+  var headerRow = data[6]; // row 7: course/tee column names
+  var parRow = data[1]; // row 2: par values
+  var slopeRow = data[2]; // row 3: slope values
+
+  // Track unique (name, frontBack) pairs to deduplicate across tee colors
+  var seen = {};
+  var courses = [];
+
+  // Course columns start at index 2 (cols 0-1 are "Player" and "Current")
+  for (var c = 2; c < headerRow.length; c++) {
+    var header = String(headerRow[c]).trim();
+    if (!header) continue;
+
+    var parts = header.split(" - ");
+    var courseName = parts[0].trim();
+    var frontBack = parts.length >= 3 ? parts[parts.length - 1].trim() : "";
+
+    var isNineHole = NINE_HOLE_COURSES.indexOf(courseName) >= 0;
+    var key = isNineHole ? courseName : courseName + "|" + frontBack;
+
+    if (seen[key]) continue;
+    seen[key] = true;
+
+    var par = parseInt(parRow[c]) || 0;
+    var slope = parseInt(slopeRow[c]) || 0;
+
+    courses.push({
+      name: courseName,
+      frontBack: isNineHole ? "" : frontBack,
+      par: par,
+      slope: slope,
+    });
+  }
+
+  var result = { courses: courses };
+  try {
+    cache.put("courses", JSON.stringify(result), CACHE_TTL_COURSES);
+  } catch (e) {}
+  return result;
+}
+
+// --- Course info metadata ---
+
+/**
+ * Reads the "Course Info" sheet for static course metadata (address, phone, etc.).
+ * Row 1 = headers, data starts row 2.
+ * Cols: A=Course Name, B=Full Name, C=Address, D=Phone, E=Tee Times URL, F=Architect, G=Year Built
+ */
+function getCourseInfo() {
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get("courseInfo");
+  if (cached) return JSON.parse(cached);
+
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(COURSE_INFO_SHEET);
+  if (!sheet) return { courses: [] };
+
+  var rows = sheet.getDataRange().getValues();
+  var courses = [];
+
+  for (var i = 1; i < rows.length; i++) {
+    var row = rows[i];
+    var name = String(row[0]).trim();
+    if (!name) continue;
+    courses.push({
+      name: name,
+      fullName: String(row[1]).trim(),
+      address: String(row[2]).trim(),
+      phone: String(row[3]).trim(),
+      teeTimesUrl: String(row[4]).trim(),
+      architect: String(row[5]).trim(),
+      yearBuilt: String(row[6]).trim(),
+    });
+  }
+
+  var result = { courses: courses };
+  try {
+    cache.put("courseInfo", JSON.stringify(result), CACHE_TTL_COURSES);
   } catch (e) {}
   return result;
 }

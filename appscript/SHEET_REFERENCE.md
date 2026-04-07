@@ -111,13 +111,32 @@ Notes:
 
 Wide pivot: rows = players + metadata, columns = course/tee combos (101 columns).
 
-Row 1: Title
-Row 2: Par per course
-Row 3: Slope per course
+Row 1: Column headers — `"Course - Tees - Front"` / `"Course - Tees - Back"` format
+Row 2: Par per column
+Row 3: Slope per column
 Row 4+: Player handicaps per course
 
-Use case: look up one player's handicap for a specific course by matching the column header.
-Query by course name, return single value. Never return the full table.
+Column header parsing: `split(" - ")` → `[courseName, tees, frontBack?]`
+
+Used by `?action=courses` to build the canonical course variant list (all courses, even those with no rounds played). 9-hole courses (currently just Ballwin) are collapsed to a single entry with no front/back. Never read the full table — cap at 110 columns.
+
+---
+
+### Course Info
+
+Static course metadata. Row 1 = headers, data starts row 2.
+
+| Col | Index | Field        |
+| --- | ----- | ------------ |
+| A   | 0     | Course Name  |
+| B   | 1     | Full Name    |
+| C   | 2     | Address      |
+| D   | 3     | Phone        |
+| E   | 4     | Tee Times URL|
+| F   | 5     | Architect    |
+| G   | 6     | Year Built   |
+
+Course Name must match exactly the `course` field in Scoring Log. Used by `?action=courseInfo`. Maps link is generated on the frontend from Address (`https://maps.google.com/?q=...`).
 
 ---
 
@@ -149,11 +168,14 @@ Never expose via API.
 
 ## Apps Script Endpoints
 
-| Route                                   | Status | Returns                                                                              |
-| --------------------------------------- | ------ | ------------------------------------------------------------------------------------ |
-| `?action=leaderboard`                   | Live   | `{ standings: [{ rank, name, points, events, isTied }], lastUpdated }`               |
-| `?action=monthly&month=April`           | Live   | `{ month, standings: [{ rank, name, plusMinus, points, isTied }] }`                  |
-| `?action=playerDetail&name=Joe Smith`   | Live   | `{ player, rounds: [...], handicapHistory: [{ date, index }] }`                      |
+| Route                                   | Status | Returns                                                                                              |
+| --------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------- |
+| `?action=leaderboard`                   | Live   | `{ standings: [{ rank, name, points, events, isTied }], lastUpdated }`                               |
+| `?action=monthly&month=April`           | Live   | `{ month, standings: [{ rank, name, plusMinus, points, isTied }] }`                                  |
+| `?action=scoringLog`                    | Live   | `{ rounds: [{ player, course, tees, frontBack, score, netScore, plusMinus, ... }] }`                 |
+| `?action=handicapIndex`                 | Live   | `{ players: [{ player, current, history: [{ date, index }] }] }`                                     |
+| `?action=courses`                       | Live   | `{ courses: [{ name, frontBack, par, slope }] }` — canonical list from Playing Handicaps headers     |
+| `?action=courseInfo`                    | Live   | `{ courses: [{ name, fullName, address, phone, teeTimesUrl, architect, yearBuilt }] }`               |
 
 ## Gotchas
 

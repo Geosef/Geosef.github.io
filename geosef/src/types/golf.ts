@@ -75,6 +75,31 @@ export interface HandicapIndexData {
   players: PlayerHandicap[];
 }
 
+export interface CourseVariant {
+  name: string;
+  frontBack: string;  // "Front", "Back", or "" for 9-hole
+  par: number;
+  slope: number;
+}
+
+export interface CourseVariantData {
+  courses: CourseVariant[];
+}
+
+export interface CourseInfoEntry {
+  name: string;
+  fullName: string;
+  address: string;
+  phone: string;
+  teeTimesUrl: string;
+  architect: string;
+  yearBuilt: string;
+}
+
+export interface CourseInfoData {
+  courses: CourseInfoEntry[];
+}
+
 // --- Shared utilities ---
 
 const MONTH_ORDER = ['April', 'May', 'June', 'July', 'August'];
