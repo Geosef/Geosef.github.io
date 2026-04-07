@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './GolfLeaderboard.css';
-import type { ScoringLogData, Round, CourseVariantData } from '../../types/golf';
+import type { ScoringLogData, Round, CourseVariantData, CourseInfoData } from '../../types/golf';
 import { formatPlusMinus } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
@@ -34,12 +34,14 @@ interface CourseSummary {
   lowGrossBack: number | null;
   lowGrossPlayerBack: string;
   lowGrossPlusMinusBack: number;
+  rate: string | null;
 }
 
 export default function CoursesList() {
   const navigate = useNavigate();
   const [scoringLog, setScoringLog] = useState<ScoringLogData | null>(sessionCache.scoringLog);
   const [variants, setVariants] = useState<CourseVariantData | null>(sessionCache.courseVariants);
+  const [courseInfo, setCourseInfo] = useState<CourseInfoData | null>(sessionCache.courseInfo);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
@@ -63,12 +65,30 @@ export default function CoursesList() {
         })
         .catch(() => {});
     }
+    if (!sessionCache.courseInfo) {
+      fetch(`${APPS_SCRIPT_URL}?action=courseInfo`)
+        .then(r => r.json())
+        .then((d: CourseInfoData) => {
+          sessionCache.courseInfo = d;
+          setCourseInfo(d);
+        })
+        .catch(() => {});
+    }
   }, []);
 
   const courses = useMemo<CourseSummary[]>(() => {
     if (!variants?.courses?.length) return [];
 
     const rounds = scoringLog?.rounds ?? [];
+    const normalize = (s: string) => s.replace(/\./g, '').toLowerCase();
+    const getInfoEntry = (name: string) =>
+      courseInfo?.courses.find(c => c.name === name || normalize(c.name) === normalize(name));
+    const getDisplayName = (name: string) => getInfoEntry(name)?.fullName || name;
+    const getRate = (name: string): string | null => {
+      const r = getInfoEntry(name)?.rate;
+      if (!r) return null;
+      return r === 'Free' ? 'Free' : `$${r}`;
+    };
 
     // Collect unique course names in order, and track which front/back sides each has
     const nameOrder: string[] = [];
@@ -109,7 +129,7 @@ export default function CoursesList() {
 
         result.push({
           name,
-          displayName: name,
+          displayName: getDisplayName(name),
           frontBack: '',
           isSplit: true,
           isNineHole,
@@ -137,6 +157,7 @@ export default function CoursesList() {
           lowGrossBack: bestBack?.score ?? null,
           lowGrossPlayerBack: bestBack?.player ?? '',
           lowGrossPlusMinusBack: bestBack ? bestBack.score - bestBack.coursePar : 0,
+          rate: getRate(name),
         });
       } else {
         // Deduplicate by frontBack — multiple tee options per nine produce duplicate nines
@@ -149,7 +170,7 @@ export default function CoursesList() {
             ? rounds.filter(r => r.course === v.name && r.frontBack === v.frontBack)
             : rounds.filter(r => r.course === v.name);
 
-          const displayName = v.frontBack ? `${v.name} ${v.frontBack}` : v.name;
+          const displayName = v.frontBack ? `${getDisplayName(v.name)} ${v.frontBack}` : getDisplayName(v.name);
           const best = matching.length > 0
             ? matching.reduce((b, r) => r.score < b.score ? r : b)
             : null;
@@ -180,13 +201,14 @@ export default function CoursesList() {
             lowGrossBack: null,
             lowGrossPlayerBack: '',
             lowGrossPlusMinusBack: 0,
+            rate: getRate(v.name),
           });
         }
       }
     }
 
     return result;
-  }, [variants, scoringLog]);
+  }, [variants, scoringLog, courseInfo]);
 
   function handleSort(key: string) {
     if (key === sortKey) {
@@ -201,6 +223,12 @@ export default function CoursesList() {
     ? courses.filter(c => c.displayName.toLowerCase().includes(searchQuery.toLowerCase().trim()))
     : courses;
 
+  const rateToNum = (r: string | null) => {
+    if (!r) return Infinity;
+    if (r === 'Free') return 0;
+    return parseFloat(r.replace('$', '')) || Infinity;
+  };
+
   const display = [...filtered].sort((a, b) => {
     if (sortKey === 'name') {
       const cmp = a.displayName.localeCompare(b.displayName);
@@ -208,10 +236,14 @@ export default function CoursesList() {
     }
     const aVal = sortKey === 'lowGross'
       ? (a.lowGross ?? Infinity)
-      : (a[sortKey as keyof CourseSummary] as number);
+      : sortKey === 'rate'
+        ? rateToNum(a.rate)
+        : (a[sortKey as keyof CourseSummary] as number);
     const bVal = sortKey === 'lowGross'
       ? (b.lowGross ?? Infinity)
-      : (b[sortKey as keyof CourseSummary] as number);
+      : sortKey === 'rate'
+        ? rateToNum(b.rate)
+        : (b[sortKey as keyof CourseSummary] as number);
     if (aVal === bVal) return 0;
     const cmp = aVal < bVal ? -1 : 1;
     return sortDir === 'asc' ? cmp : -cmp;
@@ -235,12 +267,13 @@ export default function CoursesList() {
                   <th className="gl-col-name">Course</th>
                   <th>Rounds</th>
                   <th>Par</th>
+                  <th>Rate</th>
                   <th>Avg +/-</th>
                   <th className="gl-col-lowgross">Low Gross</th>
                 </tr>
               </thead>
               <tbody>
-                <SkeletonTableRows rows={8} cols={5} />
+                <SkeletonTableRows rows={8} cols={6} />
               </tbody>
             </table>
           </div>
@@ -251,6 +284,7 @@ export default function CoursesList() {
                 <SortTh label="Course" sortK="name" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-name" />
                 <SortTh label="Rounds" sortK="rounds" currentKey={sortKey} dir={sortDir} onSort={handleSort} />
                 <th>Par</th>
+                <SortTh label="Rate" sortK="rate" currentKey={sortKey} dir={sortDir} onSort={handleSort} />
                 <SortTh label="Avg +/-" sortK="avgPlusMinus" currentKey={sortKey} dir={sortDir} onSort={handleSort} invertArrow />
                 <th className="gl-col-lowgross">Low Gross</th>
               </tr>
@@ -275,6 +309,7 @@ export default function CoursesList() {
                           ? `${c.frontPar}/${c.backPar}`
                           : c.par || '—'}
                       </td>
+                      <td>{c.rate ?? '—'}</td>
                       <td>
                         {c.avgPlusMinusFront !== null && (
                           <span className={`gl-split-line ${pmScoreClass(Math.round(c.avgPlusMinusFront))}`}>
@@ -334,6 +369,7 @@ export default function CoursesList() {
                     <td className="gl-col-name">{c.displayName}</td>
                     <td>{c.rounds > 0 ? c.rounds : '—'}</td>
                     <td>{c.par || '—'}</td>
+                    <td>{c.rate ?? '—'}</td>
                     <td className={c.rounds > 0 ? pmScoreClass(avgRounded) : ''}>
                       {c.rounds > 0 ? formatPlusMinus(avgRounded) : '—'}
                     </td>

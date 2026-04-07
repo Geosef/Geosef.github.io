@@ -45,10 +45,33 @@
   border-bottom: none;
 }
 
-.cd-notable-medal {
-  font-size: 0.9rem;
+.cd-notable-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  line-height: 1.4;
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 50%;
+  font-family: var(--gl-font-sans);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cd-notable-rank--1 {
+  background: #d4af37;
+  color: #fff;
+}
+
+.cd-notable-rank--2 {
+  background: #a8a9ad;
+  color: #fff;
+}
+
+.cd-notable-rank--3 {
+  background: #a0522d;
+  color: #fff;
 }
 
 .cd-notable-info {
@@ -130,19 +153,33 @@
 .cd-info-section {
   background: rgba(0,0,0,0.03);
   border-radius: 6px;
-  padding: 0.75rem 1rem;
+  overflow: hidden;
+  padding: 0;
 }
 
-.cd-info-row {
+.cd-map {
+  width: 100%;
+  line-height: 0;
+}
+
+.cd-map iframe {
+  display: block;
+  width: 100%;
+}
+
+.cd-info-details {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.5rem;
-  align-items: center;
+  flex-direction: column;
+  gap: 0.45rem;
+  padding: 0.75rem 1rem;
   font-family: var(--gl-font-sans);
   font-size: 0.82rem;
 }
 
 .cd-info-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   color: var(--gl-green-dark);
   text-decoration: none;
   font-weight: 500;
@@ -154,6 +191,9 @@
 
 /* ── Rate ── */
 .cd-info-rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
   font-family: var(--gl-font-sans);
   font-size: 0.82rem;
   font-weight: 600;
@@ -165,7 +205,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.35rem;
-  margin-top: 0.6rem;
 }
 
 .cd-restriction-chip {
@@ -176,13 +215,6 @@
   border-radius: 4px;
   padding: 0.2rem 0.5rem;
   white-space: nowrap;
-}
-
-.cd-info-meta {
-  margin-top: 0.4rem;
-  font-family: var(--gl-font-sans);
-  font-size: 0.78rem;
-  color: var(--gl-muted);
 }
 
 /* ── Front/Back section labels in Notable Rounds ── */

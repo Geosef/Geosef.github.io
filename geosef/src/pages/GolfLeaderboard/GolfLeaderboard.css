@@ -694,7 +694,9 @@
 }
 
 .gl-detail-back {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   color: var(--gl-muted);
   font-family: var(--gl-font-sans);
   font-size: 0.82rem;

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { ArrowLeft, MapPin, Phone, Clock, DollarSign } from 'lucide-react';
 import './GolfLeaderboard.css';
 import './CourseDetail.css';
 import type { Round, ScoringLogData, CourseInfoData, CourseVariantData } from '../../types/golf';
@@ -9,7 +10,11 @@ import { sessionCache } from '../../golf-cache';
 import { pmScoreClass, countBy } from './leaderboard-utils';
 import { SkeletonDetailHeader, SkeletonSection } from './GolfSkeleton';
 
-const MEDALS = ['🥇', '🥈', '🥉'];
+const RANKS = [
+  <span className="cd-notable-rank cd-notable-rank--1">1</span>,
+  <span className="cd-notable-rank cd-notable-rank--2">2</span>,
+  <span className="cd-notable-rank cd-notable-rank--3">3</span>,
+];
 
 function topRoundsByGross(rounds: Round[], n = 3): Round[] {
   return [...rounds].sort((a, b) => a.score - b.score).slice(0, n);
@@ -29,7 +34,7 @@ function NotableCol({ label, rounds, scoreCell }: {
       <div className="cd-notable-label">{label}</div>
       {rounds.map((r, i) => (
         <div key={i} className="cd-notable-row">
-          <span className="cd-notable-medal">{MEDALS[i]}</span>
+          {RANKS[i]}
           <span className="cd-notable-info">
             <Link
               to={`/golf-leaderboard/player/${encodeURIComponent(r.player)}`}
@@ -153,7 +158,7 @@ export default function CourseDetail() {
   if (error || !courseName) {
     return (
       <div className="gl-detail-wrapper">
-        <button onClick={goBack} className="gl-detail-back">← Back</button>
+        <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
         <div className="gl-detail-error">{error ?? 'Course not found.'}</div>
       </div>
     );
@@ -166,14 +171,22 @@ export default function CourseDetail() {
     ? allRounds.filter(r => r.frontBack === side)
     : allRounds;
 
-  const par = allRounds[0]?.coursePar;
+  const allVariantsForCourse = (sessionCache.courseVariants?.courses ?? [])
+    .filter(v => v.name === decoded);
+
+  const par = allRounds[0]?.coursePar
+    ?? (side
+      ? allVariantsForCourse.find(v => v.frontBack === side)?.par
+      : allVariantsForCourse.find(v => !v.frontBack)?.par ?? allVariantsForCourse[0]?.par);
 
   const history = [...rounds].sort(
     (a, b) => new Date(b.datePlayed).getTime() - new Date(a.datePlayed).getTime()
   );
   const players = countBy(rounds, r => r.player);
 
-  const info = sessionCache.courseInfo?.courses.find(c => c.name === decoded);
+  const normalize = (s: string) => s.replace(/\./g, '').toLowerCase();
+  const info = sessionCache.courseInfo?.courses.find(c => c.name === decoded)
+    ?? sessionCache.courseInfo?.courses.find(c => normalize(c.name) === normalize(decoded));
 
   const displayTitle = info?.fullName || decoded;
   const headingTitle = side ? `${displayTitle} — ${side} 9` : displayTitle;
@@ -183,8 +196,8 @@ export default function CourseDetail() {
   const backRounds  = allRounds.filter(r => r.frontBack === 'Back');
 
   // Par display — for combined view, sum front + back par
-  const frontPar = frontRounds[0]?.coursePar;
-  const backPar  = backRounds[0]?.coursePar;
+  const frontPar = frontRounds[0]?.coursePar ?? allVariantsForCourse.find(v => v.frontBack === 'Front')?.par;
+  const backPar  = backRounds[0]?.coursePar  ?? allVariantsForCourse.find(v => v.frontBack === 'Back')?.par;
   const parDisplay = showSplitNotable && frontPar != null && backPar != null
     ? `Par ${frontPar + backPar}`
     : par != null
@@ -197,9 +210,6 @@ export default function CourseDetail() {
     : history;
 
   // Tee options — built from the playing handicaps sheet (courseVariants)
-  const allVariantsForCourse = (sessionCache.courseVariants?.courses ?? [])
-    .filter(v => v.name === decoded);
-
   // When viewing a specific side, filter to just that nine
   const variantsInView = side
     ? allVariantsForCourse.filter(v => v.frontBack === side || v.frontBack === '')
@@ -234,10 +244,12 @@ export default function CourseDetail() {
   return (
     <div className="gl-detail-wrapper">
       <div className="gl-detail-header">
-        <button onClick={goBack} className="gl-detail-back">← Back</button>
+        <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
         <h1 className="cd-name">{headingTitle}</h1>
         <p className="cd-meta">
           {parDisplay} · {rounds.length} round{rounds.length !== 1 ? 's' : ''}
+          {info?.architect && ` · Architect: ${info.architect}`}
+          {info?.yearBuilt && ` · Est. ${info.yearBuilt}`}
         </p>
       </div>
 
@@ -246,7 +258,21 @@ export default function CourseDetail() {
         {/* Course Info */}
         {info && (
           <section className="gl-detail-section cd-info-section">
-            <div className="cd-info-row">
+            {info.address && (
+              <div className="cd-map">
+                <iframe
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(info.address)}&output=embed`}
+                  width="100%"
+                  height="200"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Course location"
+                />
+              </div>
+            )}
+            <div className="cd-info-details">
               {info.address && (
                 <a
                   href={`https://maps.google.com/?q=${encodeURIComponent(info.address)}`}
@@ -254,12 +280,12 @@ export default function CourseDetail() {
                   rel="noopener noreferrer"
                   className="cd-info-link"
                 >
-                  📍 {info.address}
+                  <MapPin size={14} /> {info.address}
                 </a>
               )}
               {info.phone && (
                 <a href={`tel:${info.phone}`} className="cd-info-link">
-                  📞 {info.phone}
+                  <Phone size={14} /> {info.phone}
                 </a>
               )}
               {info.teeTimesUrl && (
@@ -269,28 +295,23 @@ export default function CourseDetail() {
                   rel="noopener noreferrer"
                   className="cd-info-link"
                 >
-                  🕐 Book Tee Times
+                  <Clock size={14} /> Book Tee Times
                 </a>
               )}
               {info.rate && (
-                <span className="cd-info-rate">{info.rate}</span>
+                <span className="cd-info-rate">
+                  {info.rate !== 'Free' && <DollarSign size={14} />}
+                  {info.rate === 'Free' ? info.rate : info.rate}
+                </span>
+              )}
+              {info.restrictions && (
+                <div className="cd-restrictions">
+                  {info.restrictions.split(' | ').map((item, i) => (
+                    <span key={i} className="cd-restriction-chip">{item}</span>
+                  ))}
+                </div>
               )}
             </div>
-            {info.restrictions && (
-              <div className="cd-restrictions">
-                {info.restrictions.split(' | ').map((item, i) => (
-                  <span key={i} className="cd-restriction-chip">{item}</span>
-                ))}
-              </div>
-            )}
-            {(info.architect || info.yearBuilt) && (
-              <div className="cd-info-meta">
-                {[
-                  info.architect && `Architect: ${info.architect}`,
-                  info.yearBuilt && `Est. ${info.yearBuilt}`,
-                ].filter(Boolean).join(' · ')}
-              </div>
-            )}
           </section>
         )}
 

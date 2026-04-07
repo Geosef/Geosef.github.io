@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 import { SkeletonDetailHeader, SkeletonSection } from './GolfSkeleton';
 import {
   ResponsiveContainer, LineChart, Line,
@@ -159,7 +160,7 @@ export default function PlayerDetail() {
   if (error || !playerName) {
     return (
       <div className="gl-detail-wrapper">
-        <button onClick={goBack} className="gl-detail-back">← Back</button>
+        <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
         <div className="gl-detail-error">{error ?? 'Player not found.'}</div>
       </div>
     );
@@ -178,7 +179,7 @@ export default function PlayerDetail() {
   return (
     <div className="gl-detail-wrapper">
       <div className="gl-detail-header">
-        <button onClick={goBack} className="gl-detail-back">← Back</button>
+        <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
         <h1 className="pd-name">{playerName}</h1>
         {handicap?.current != null && (
           <p className="pd-hcp-current">Handicap Index: {handicap.current.toFixed(1)}</p>
