@@ -78,8 +78,10 @@ export interface HandicapIndexData {
 export interface CourseVariant {
   name: string;
   frontBack: string;  // "Front", "Back", or "" for 9-hole
+  tees: string;       // e.g. "White", "Blue", "Gold"
   par: number;
   slope: number;
+  rating: number;
 }
 
 export interface CourseVariantData {

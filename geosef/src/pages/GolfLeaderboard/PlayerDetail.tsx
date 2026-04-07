@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
+import { SkeletonDetailHeader, SkeletonSection } from './GolfSkeleton';
 import {
   ResponsiveContainer, LineChart, Line,
   XAxis, YAxis, Tooltip, ReferenceLine,
@@ -148,7 +149,11 @@ export default function PlayerDetail() {
   if (loading) {
     return (
       <div className="gl-detail-wrapper">
-        <div className="gl-detail-loading">Loading…</div>
+        <SkeletonDetailHeader />
+        <div className="gl-detail-content">
+          <SkeletonSection />
+          <SkeletonSection />
+        </div>
       </div>
     );
   }
@@ -166,15 +171,6 @@ export default function PlayerDetail() {
   const handicap: PlayerHandicap | undefined = sessionCache.handicapIndex?.players.find(
     h => h.player === playerName
   );
-
-  if (rounds.length === 0 && !handicap) {
-    return (
-      <div className="gl-detail-wrapper">
-        <button onClick={goBack} className="gl-detail-back">← Back</button>
-        <div className="gl-detail-error">No data found for {playerName}.</div>
-      </div>
-    );
-  }
 
   const tagged = tagCountingRounds(rounds);
   const groups = groupRoundsByMonth(tagged);
@@ -203,20 +199,22 @@ export default function PlayerDetail() {
         </section>
 
         {/* Handicap History */}
-        {handicap && handicap.history.length > 0 && (
-          <section className="gl-detail-section">
-            <h2 className="gl-detail-section-title">Handicap History</h2>
+        <section className="gl-detail-section">
+          <h2 className="gl-detail-section-title">Handicap History</h2>
+          {handicap && handicap.history.length > 0 ? (
             <div className="pd-hcp-chart">
               <HandicapChart history={handicap.history} />
             </div>
-          </section>
-        )}
+          ) : (
+            <p className="gl-detail-empty">No handicap data available.</p>
+          )}
+        </section>
 
         {/* Courses Played */}
-        {courses.length > 0 && (
-          <section className="gl-detail-section">
-            <h2 className="gl-detail-section-title">Courses Played</h2>
-            {courses.map(({ value: course, count }) => (
+        <section className="gl-detail-section">
+          <h2 className="gl-detail-section-title">Courses Played</h2>
+          {courses.length > 0 ? (
+            courses.map(({ value: course, count }) => (
               <div key={course} className="gl-stat-row">
                 <Link
                   to={`/golf-leaderboard/course/${encodeURIComponent(course)}`}
@@ -226,15 +224,17 @@ export default function PlayerDetail() {
                 </Link>
                 <span className="gl-stat-count">{count} round{count !== 1 ? 's' : ''}</span>
               </div>
-            ))}
-          </section>
-        )}
+            ))
+          ) : (
+            <p className="gl-detail-empty">No courses recorded.</p>
+          )}
+        </section>
 
         {/* Playing Partners */}
-        {partners.length > 0 && (
-          <section className="gl-detail-section">
-            <h2 className="gl-detail-section-title">Playing Partners</h2>
-            {partners.map(({ value: partner, count }) => (
+        <section className="gl-detail-section">
+          <h2 className="gl-detail-section-title">Playing Partners</h2>
+          {partners.length > 0 ? (
+            partners.map(({ value: partner, count }) => (
               <div key={partner} className="gl-stat-row">
                 {partner === NON_MEMBER_PARTNER ? (
                   <span className="gl-stat-name">{partner}</span>
@@ -248,9 +248,11 @@ export default function PlayerDetail() {
                 )}
                 <span className="gl-stat-count">{count} round{count !== 1 ? 's' : ''}</span>
               </div>
-            ))}
-          </section>
-        )}
+            ))
+          ) : (
+            <p className="gl-detail-empty">No playing partners recorded.</p>
+          )}
+        </section>
 
       </div>
     </div>

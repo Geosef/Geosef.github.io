@@ -5,6 +5,7 @@ import type { LeaderboardData } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
 import { SortTh, sortStandings, SortDir, SearchInput } from './leaderboard-utils';
+import { SkeletonTableRows } from './GolfSkeleton';
 
 export default function PlayersList() {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ export default function PlayersList() {
 
   return (
     <div className="gl-wrapper">
-      <div className="gl-header">
+      <div className="gl-header gl-header--list">
         <h1 className="gl-title">All Players</h1>
       </div>
 
@@ -50,17 +51,19 @@ export default function PlayersList() {
       </div>
 
       <div className="gl-content">
-        {display.length > 0 ? (
-          <table className="gl-table">
-            <thead>
-              <tr>
-                <SortTh label="Pos" sortK="rank" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-rank" invertArrow />
-                <SortTh label="Player" sortK="name" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-name" />
-                <SortTh label="Points" sortK="points" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-points" />
-              </tr>
-            </thead>
-            <tbody>
-              {display.map((s, i) => (
+        <table className="gl-table">
+          <thead>
+            <tr>
+              <SortTh label="Pos" sortK="rank" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-rank" invertArrow />
+              <SortTh label="Player" sortK="name" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-name" />
+              <SortTh label="Points" sortK="points" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-points" />
+            </tr>
+          </thead>
+          <tbody>
+            {!data ? (
+              <SkeletonTableRows rows={8} cols={3} />
+            ) : (
+              display.map((s, i) => (
                 <tr
                   key={s.name}
                   className={['gl-row', i % 2 === 0 ? 'gl-row-even' : ''].filter(Boolean).join(' ')}
@@ -78,12 +81,10 @@ export default function PlayersList() {
                   </td>
                   <td className="gl-col-points">{Math.round(s.points)}</td>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        ) : (
-          !data && <div className="gl-loading">Loading players…</div>
-        )}
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

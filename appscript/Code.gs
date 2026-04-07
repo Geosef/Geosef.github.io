@@ -353,17 +353,17 @@ function getCourses() {
   if (!sheet) return { courses: [] };
 
   // Row 7 (index 6) = "Player | Current | course/tee names..."
-  // Row 2 (index 1) = "| Par | values..." (course cols start at index 2)
-  // Row 3 (index 2) = "| Slope | values..."
+  // Row 2 (index 1) = Par values
+  // Row 3 (index 2) = Slope values
+  // Row 4 (index 3) = Rating values
   var maxCols = Math.min(sheet.getLastColumn(), 110);
   var data = sheet.getRange(1, 1, 7, maxCols).getValues();
 
   var headerRow = data[6]; // row 7: course/tee column names
-  var parRow = data[1]; // row 2: par values
-  var slopeRow = data[2]; // row 3: slope values
+  var parRow    = data[1]; // row 2: par
+  var slopeRow  = data[2]; // row 3: slope
+  var ratingRow = data[3]; // row 4: rating
 
-  // Track unique (name, frontBack) pairs to deduplicate across tee colors
-  var seen = {};
   var courses = [];
 
   // Course columns start at index 2 (cols 0-1 are "Player" and "Current")
@@ -371,24 +371,26 @@ function getCourses() {
     var header = String(headerRow[c]).trim();
     if (!header) continue;
 
+    // Header format: "Course Name - Tee Color - Front/Back"
+    //           or:  "Course Name - Tee Color"  (9-hole)
     var parts = header.split(" - ");
     var courseName = parts[0].trim();
-    var frontBack = parts.length >= 3 ? parts[parts.length - 1].trim() : "";
+    var tees = parts.length >= 2 ? parts[1].trim() : "";
 
     var isNineHole = NINE_HOLE_COURSES.indexOf(courseName) >= 0;
-    var key = isNineHole ? courseName : courseName + "|" + frontBack;
+    var frontBack = (!isNineHole && parts.length >= 3) ? parts[parts.length - 1].trim() : "";
 
-    if (seen[key]) continue;
-    seen[key] = true;
-
-    var par = parseInt(parRow[c]) || 0;
-    var slope = parseInt(slopeRow[c]) || 0;
+    var par    = parseInt(parRow[c])    || 0;
+    var slope  = parseInt(slopeRow[c])  || 0;
+    var rating = parseFloat(ratingRow[c]) || 0;
 
     courses.push({
       name: courseName,
-      frontBack: isNineHole ? "" : frontBack,
+      frontBack: frontBack,
+      tees: tees,
       par: par,
       slope: slope,
+      rating: rating,
     });
   }
 

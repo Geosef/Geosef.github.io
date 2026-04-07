@@ -7,6 +7,7 @@ import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
 import { RoundMonthGroup } from './RoundHistory';
 import { SortTh, sortStandings, SortDir, pmScoreClass, SearchInput } from './leaderboard-utils';
+import { SkeletonTableRows } from './GolfSkeleton';
 
 const CUT_LINE_POSITION = 48;
 
@@ -368,8 +369,38 @@ export default function GolfLeaderboard() {
             </tbody>
           </table>
           </div>
-        ) : (
-          !error && <div className="gl-loading">Loading standings…</div>
+        ) : !error && (
+          <div className="gl-table-scroll">
+            <table className="gl-table">
+              <thead>
+                <tr>
+                  <th className="gl-col-rank">Pos</th>
+                  <th className="gl-col-name">Player</th>
+                  {isMonthTab ? (
+                    <>
+                      <th className="gl-col-r1">R1</th>
+                      <th className="gl-col-r2">R2</th>
+                      <th className="gl-col-pm-total">Total</th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="gl-col-month">Apr</th>
+                      <th className="gl-col-month">May</th>
+                      <th className="gl-col-month">Jun</th>
+                      <th className="gl-col-month">Open</th>
+                      <th className="gl-col-month">Jul</th>
+                      <th className="gl-col-month">CC</th>
+                      <th className="gl-col-month">Aug</th>
+                    </>
+                  )}
+                  <th className="gl-col-points">{isMonthTab ? 'Pts' : 'Total'}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <SkeletonTableRows rows={12} cols={colCount} />
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
