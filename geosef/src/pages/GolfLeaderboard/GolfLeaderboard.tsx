@@ -7,7 +7,7 @@ import { tagCountingRounds, groupRoundsByMonth, formatPlusMinus } from '../../ty
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
 import { RoundMonthGroup } from './RoundHistory';
-import { SortTh, sortStandings, SortDir, pmScoreClass, SearchInput } from './leaderboard-utils';
+import { SortTh, sortStandings, SortDir, pmScoreClass, SearchInput, lastName } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 
 const CUT_LINE_POSITION = 48;
@@ -39,10 +39,6 @@ function formatPoints(points: number): string {
   return Math.round(points).toString();
 }
 
-function lastName(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  return parts.slice(1).join(' ');
-}
 
 function getMonthlyR1R2(playerName: string, monthParam: string): { r1: number | null; r2: number | null } {
   const log = sessionCache.scoringLog;

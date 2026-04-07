@@ -12,9 +12,7 @@ import { tagCountingRounds, groupRoundsByMonth, formatDate } from '../../types/g
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
 import { RoundMonthGroup } from './RoundHistory';
-import { countBy } from './leaderboard-utils';
-
-const NON_MEMBER_PARTNER = 'Other (GGC Member)';
+import { countBy, NON_MEMBER_PARTNER } from './leaderboard-utils';
 
 // Fixed weekly pull dates for the full 2026 season (Tuesdays, 3/31 – 8/25)
 const SEASON_WEEKS = [
@@ -194,7 +192,7 @@ export default function PlayerDetail() {
           <h2 className="gl-detail-section-title">Round History</h2>
           {groups.length === 0 && <p className="gl-detail-empty">No rounds recorded.</p>}
           {groups.map(({ month, rounds: monthRounds, monthlyCount }) => (
-            <RoundMonthGroup key={month} month={month} rounds={monthRounds} monthlyCount={monthlyCount} linkCourse />
+            <RoundMonthGroup key={month} month={month} rounds={monthRounds} monthlyCount={monthlyCount} />
           ))}
         </section>
 

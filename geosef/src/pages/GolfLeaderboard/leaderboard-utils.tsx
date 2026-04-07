@@ -1,6 +1,13 @@
 import React from 'react';
 import type { Standing, MonthlyStanding, MonthlyBreakdown } from '../../types/golf';
 
+export const NON_MEMBER_PARTNER = 'Other (GGC Member)';
+
+export function lastName(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  return parts.length > 1 ? parts.slice(1).join(' ') : parts[0];
+}
+
 export function pmScoreClass(pm: number): string {
   return pm < 0 ? 'gl-score-under' : 'gl-score-even';
 }

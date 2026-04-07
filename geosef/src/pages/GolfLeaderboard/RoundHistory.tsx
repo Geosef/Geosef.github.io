@@ -1,22 +1,37 @@
 import { Link } from 'react-router-dom';
 import type { Round } from '../../types/golf';
 import { formatPlusMinus, formatDate } from '../../types/golf';
-import { pmScoreClass } from './leaderboard-utils';
+import { pmScoreClass, NON_MEMBER_PARTNER, lastName } from './leaderboard-utils';
 
-export function RoundRow({ round, linkCourse }: { round: Round; linkCourse?: boolean }) {
+export function RoundRow({ round }: { round: Round }) {
+  const isRealPartner = round.partner && round.partner !== NON_MEMBER_PARTNER;
+
   return (
     <div className={`gl-round-row ${round.counts ? 'gl-round-counting' : 'gl-round-other'}`}>
-      <span className="gl-round-check">{round.counts ? '✓' : '·'}</span>
-      <span className="gl-round-date">{formatDate(round.datePlayed)}</span>
+      <div className="gl-round-left">
+        <span className="gl-round-check">{round.counts ? '✓' : '·'}</span>
+        <span className="gl-round-date">{formatDate(round.datePlayed)}</span>
+        {round.partner && (
+          <span className="gl-round-partner">
+            w/{' '}
+            {isRealPartner ? (
+              <Link
+                to={`/golf-leaderboard/player/${encodeURIComponent(round.partner)}`}
+                className="gl-round-partner-link"
+              >
+                {lastName(round.partner)}
+              </Link>
+            ) : lastName(round.partner)}
+          </span>
+        )}
+      </div>
       <span className="gl-round-course">
-        {linkCourse ? (
-          <Link
-            to={`/golf-leaderboard/course/${encodeURIComponent(round.course)}`}
-            className="gl-round-course-link"
-          >
-            {round.course}
-          </Link>
-        ) : round.course}
+        <Link
+          to={`/golf-leaderboard/course/${encodeURIComponent(round.course)}`}
+          className="gl-round-course-link"
+        >
+          {round.course}
+        </Link>
         {round.tees ? ` (${round.tees})` : ''}
       </span>
       <div className="gl-round-right">
@@ -24,7 +39,6 @@ export function RoundRow({ round, linkCourse }: { round: Round; linkCourse?: boo
           {round.score} / {round.netScore} ({formatPlusMinus(round.plusMinus)})
         </span>
         <span className="gl-round-hcp">HCP {round.playingHandicap}</span>
-        {round.partner && <span className="gl-round-partner">w/ {round.partner}</span>}
       </div>
     </div>
   );
@@ -34,12 +48,10 @@ export function RoundMonthGroup({
   month,
   rounds,
   monthlyCount,
-  linkCourse,
 }: {
   month: string;
   rounds: Round[];
   monthlyCount: number;
-  linkCourse?: boolean;
 }) {
   return (
     <div className="gl-round-group">
@@ -49,7 +61,7 @@ export function RoundMonthGroup({
           · {rounds.length} of 5 scoring rounds
         </span>
       </div>
-      {rounds.map((r, i) => <RoundRow key={i} round={r} linkCourse={linkCourse} />)}
+      {rounds.map((r, i) => <RoundRow key={i} round={r} />)}
     </div>
   );
 }

@@ -229,7 +229,7 @@ export default function CoursesList() {
       <div className="gl-content">
         {loading ? (
           <div className="gl-table-scroll">
-            <table className="gl-table">
+            <table className="gl-table gl-courses-table">
               <thead>
                 <tr>
                   <th className="gl-col-name">Course</th>
@@ -245,7 +245,7 @@ export default function CoursesList() {
             </table>
           </div>
         ) : display.length > 0 ? (
-          <div className="gl-table-scroll"><table className="gl-table">
+          <div className="gl-table-scroll"><table className="gl-table gl-courses-table">
             <thead>
               <tr>
                 <SortTh label="Course" sortK="name" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-name" />
