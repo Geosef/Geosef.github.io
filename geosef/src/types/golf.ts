@@ -96,6 +96,8 @@ export interface CourseInfoEntry {
   teeTimesUrl: string;
   architect: string;
   yearBuilt: string;
+  rate?: string;
+  restrictions?: string;
 }
 
 export interface CourseInfoData {

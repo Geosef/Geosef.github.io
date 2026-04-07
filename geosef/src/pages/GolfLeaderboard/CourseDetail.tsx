@@ -272,7 +272,17 @@ export default function CourseDetail() {
                   🕐 Book Tee Times
                 </a>
               )}
+              {info.rate && (
+                <span className="cd-info-rate">{info.rate}</span>
+              )}
             </div>
+            {info.restrictions && (
+              <div className="cd-restrictions">
+                {info.restrictions.split(' | ').map((item, i) => (
+                  <span key={i} className="cd-restriction-chip">{item}</span>
+                ))}
+              </div>
+            )}
             {(info.architect || info.yearBuilt) && (
               <div className="cd-info-meta">
                 {[

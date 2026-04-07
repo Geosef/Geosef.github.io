@@ -433,6 +433,8 @@ function getCourseInfo() {
       teeTimesUrl: String(row[4]).trim(),
       architect: String(row[5]).trim(),
       yearBuilt: String(row[6]).trim(),
+      rate: String(row[7]).trim(),
+      restrictions: String(row[8]).trim(),
     });
   }
 

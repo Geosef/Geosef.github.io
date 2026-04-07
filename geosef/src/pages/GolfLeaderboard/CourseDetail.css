@@ -152,6 +152,32 @@
   text-decoration: underline;
 }
 
+/* ── Rate ── */
+.cd-info-rate {
+  font-family: var(--gl-font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--gl-green-dark);
+}
+
+/* ── Restrictions ── */
+.cd-restrictions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+}
+
+.cd-restriction-chip {
+  font-family: var(--gl-font-sans);
+  font-size: 0.76rem;
+  color: var(--gl-muted);
+  background: rgba(0,0,0,0.06);
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  white-space: nowrap;
+}
+
 .cd-info-meta {
   margin-top: 0.4rem;
   font-family: var(--gl-font-sans);
