@@ -59,7 +59,8 @@
 
 // --- Config ---
 
-var SPREADSHEET_ID = "1PATbhSmfKVcHa3ffxiqicTidGhV0g2JN18NkhCcq5xc";
+// Set SPREADSHEET_ID in Apps Script editor: Project Settings → Script Properties
+var SPREADSHEET_ID = PropertiesService.getScriptProperties().getProperty('SPREADSHEET_ID');
 
 var CACHE_TTL_LEADERBOARD = 900; // 15 min
 var CACHE_TTL_MONTHLY = 1800; // 30 min
