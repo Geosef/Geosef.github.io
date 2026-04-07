@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import './GolfLeaderboard.css';
+import { useNavRight } from './NavRightContext';
 import type { LeaderboardData, MonthlyData, Round, ScoringLogData, HandicapIndexData, Standing, MonthlyStanding } from '../../types/golf';
 import { tagCountingRounds, groupRoundsByMonth, formatPlusMinus } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
@@ -129,6 +130,8 @@ export default function GolfLeaderboard() {
     }
   }
 
+  const { setNavRight } = useNavRight();
+
   const [seasonData, setSeasonData] = useState<LeaderboardData | null>(sessionCache.season);
   const [monthlyCache, setMonthlyCache] = useState(new Map(sessionCache.monthly));
   const [, setScoringLogLoaded] = useState(sessionCache.scoringLog !== null);
@@ -156,6 +159,19 @@ export default function GolfLeaderboard() {
   useEffect(() => {
     if (!sessionCache.season) fetchSeason();
   }, [fetchSeason]);
+
+  useEffect(() => {
+    setNavRight(
+      <div className="gl-nav-refresh">
+        {isLive && <span className="gl-live-badge">● LIVE</span>}
+        {seasonData?.lastUpdated && (
+          <span className="gl-updated">Updated {seasonData.lastUpdated}</span>
+        )}
+        <button className="gl-refresh-btn" onClick={fetchSeason} title="Refresh">↻</button>
+      </div>
+    );
+    return () => setNavRight(null);
+  }, [isLive, seasonData?.lastUpdated, fetchSeason, setNavRight]);
 
   useEffect(() => {
     if (sessionCache.scoringLog) return;
@@ -226,16 +242,7 @@ export default function GolfLeaderboard() {
   return (
     <div className="gl-wrapper">
       <div className="gl-header">
-        <div className="gl-header-top">
-          <h1 className="gl-title">GGC League Leader Board</h1>
-        </div>
-        <div className="gl-meta">
-          {isLive && <span className="gl-live-badge">● LIVE</span>}
-          {seasonData?.lastUpdated && (
-            <span className="gl-updated">Updated {seasonData.lastUpdated}</span>
-          )}
-          <button className="gl-refresh-btn" onClick={fetchSeason} title="Refresh">↻</button>
-        </div>
+        <h1 className="gl-title">Leader Board</h1>
       </div>
 
       <div className="gl-controls-bar">

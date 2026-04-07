@@ -221,11 +221,8 @@ export default function CoursesList() {
 
   return (
     <div className="gl-wrapper">
-      <div className="gl-header gl-header--list">
+      <div className="gl-header gl-header--with-search">
         <h1 className="gl-title">All Courses</h1>
-      </div>
-
-      <div className="gl-controls-bar">
         <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Filter courses…" />
       </div>
 

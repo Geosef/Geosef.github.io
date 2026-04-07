@@ -42,11 +42,8 @@ export default function PlayersList() {
 
   return (
     <div className="gl-wrapper">
-      <div className="gl-header gl-header--list">
+      <div className="gl-header gl-header--with-search">
         <h1 className="gl-title">All Players</h1>
-      </div>
-
-      <div className="gl-controls-bar">
         <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Filter players…" />
       </div>
 

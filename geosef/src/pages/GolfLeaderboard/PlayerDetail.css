@@ -4,13 +4,13 @@
   margin: 0;
   font-size: 1.6rem;
   font-weight: 500;
-  color: var(--gl-white);
+  color: var(--gl-green);
 }
 
 .pd-hcp-current {
   margin: 0.35rem 0 0;
   font-size: 0.8rem;
-  color: var(--gl-white);
+  color: var(--gl-muted);
   font-family: var(--gl-font-sans);
   font-weight: 500;
 }

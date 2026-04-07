@@ -4,13 +4,13 @@
   margin: 0;
   font-size: 1.6rem;
   font-weight: 400;
-  color: white;
+  color: var(--gl-green);
 }
 
 .cd-meta {
   margin: 0.35rem 0 0;
   font-size: 0.8rem;
-  color: var(--gl-white);
+  color: var(--gl-muted);
   font-family: var(--gl-font-sans);
   font-weight: 500;
 }
@@ -121,7 +121,7 @@
 .cd-fullname {
   margin: 0.1rem 0 0;
   font-size: 0.85rem;
-  color: rgba(255,255,255,0.75);
+  color: var(--gl-muted);
   font-family: var(--gl-font-sans);
   font-style: italic;
 }
