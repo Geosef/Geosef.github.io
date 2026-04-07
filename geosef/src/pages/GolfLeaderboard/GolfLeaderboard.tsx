@@ -314,9 +314,9 @@ export default function GolfLeaderboard() {
                         'gl-row',
                         i === 0 ? 'gl-row-leader' : '',
                         i % 2 === 0 ? 'gl-row-even' : '',
-                        expandedPlayer === s.name ? 'gl-row-is-expanded' : '',
+                        isMonthTab && expandedPlayer === s.name ? 'gl-row-is-expanded' : '',
                       ].filter(Boolean).join(' ')}
-                      onClick={() => handleRowClick(s.name)}
+                      onClick={isMonthTab ? () => handleRowClick(s.name) : undefined}
                     >
                       <td className="gl-col-rank">{formatRank(s.isTied, s.rank)}</td>
                       <td className="gl-col-name">
@@ -359,7 +359,7 @@ export default function GolfLeaderboard() {
                       <td className="gl-col-points">{formatPoints(s.points)}</td>
                     </tr>
 
-                    {expandedPlayer === s.name && (
+                    {isMonthTab && expandedPlayer === s.name && (
                       <tr className="gl-row-detail">
                         <td colSpan={colCount}>
                           {loadingDetail ? (

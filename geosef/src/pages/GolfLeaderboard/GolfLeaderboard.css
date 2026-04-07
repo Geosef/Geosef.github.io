@@ -639,6 +639,14 @@
   font-style: italic;
 }
 
+.gl-round-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  margin-left: auto;
+}
+
 .gl-round-empty {
   font-family: var(--gl-font-sans);
   font-size: 0.82rem;

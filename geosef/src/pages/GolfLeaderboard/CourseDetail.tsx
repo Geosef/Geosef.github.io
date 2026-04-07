@@ -48,10 +48,11 @@ function NotableCol({ label, rounds, scoreCell }: {
   );
 }
 
-function GrossScore({ score, plusMinus }: { score: number; plusMinus: number }) {
+function GrossScore({ score, coursePar }: { score: number; coursePar: number }) {
+  const grossPM = score - coursePar;
   return (
-    <span className={pmScoreClass(plusMinus)}>
-      {score} ({formatPlusMinus(plusMinus)})
+    <span className={pmScoreClass(grossPM)}>
+      {score} ({formatPlusMinus(grossPM)})
     </span>
   );
 }
@@ -348,7 +349,7 @@ export default function CourseDetail() {
                     <NotableCol
                       label="Low Gross"
                       rounds={topRoundsByGross(frontRounds)}
-                      scoreCell={r => <GrossScore score={r.score} plusMinus={r.plusMinus} />}
+                      scoreCell={r => <GrossScore score={r.score} coursePar={r.coursePar} />}
                     />
                     <NotableCol
                       label="Low Net"
@@ -365,7 +366,7 @@ export default function CourseDetail() {
                     <NotableCol
                       label="Low Gross"
                       rounds={topRoundsByGross(backRounds)}
-                      scoreCell={r => <GrossScore score={r.score} plusMinus={r.plusMinus} />}
+                      scoreCell={r => <GrossScore score={r.score} coursePar={r.coursePar} />}
                     />
                     <NotableCol
                       label="Low Net"
@@ -385,7 +386,7 @@ export default function CourseDetail() {
                 <NotableCol
                   label="Low Gross"
                   rounds={topRoundsByGross(rounds)}
-                  scoreCell={r => <GrossScore score={r.score} plusMinus={r.plusMinus} />}
+                  scoreCell={r => <GrossScore score={r.score} coursePar={r.coursePar} />}
                 />
                 <NotableCol
                   label="Low Net"

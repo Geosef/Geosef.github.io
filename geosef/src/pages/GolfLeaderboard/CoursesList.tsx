@@ -130,13 +130,13 @@ export default function CoursesList() {
             : null,
           lowGross: bestAll?.score ?? null,
           lowGrossPlayer: bestAll?.player ?? '',
-          lowGrossPlusMinus: bestAll?.plusMinus ?? 0,
+          lowGrossPlusMinus: bestAll ? bestAll.score - bestAll.coursePar : 0,
           lowGrossFront: bestFront?.score ?? null,
           lowGrossPlayerFront: bestFront?.player ?? '',
-          lowGrossPlusMinusFront: bestFront?.plusMinus ?? 0,
+          lowGrossPlusMinusFront: bestFront ? bestFront.score - bestFront.coursePar : 0,
           lowGrossBack: bestBack?.score ?? null,
           lowGrossPlayerBack: bestBack?.player ?? '',
-          lowGrossPlusMinusBack: bestBack?.plusMinus ?? 0,
+          lowGrossPlusMinusBack: bestBack ? bestBack.score - bestBack.coursePar : 0,
         });
       } else {
         // Deduplicate by frontBack — multiple tee options per nine produce duplicate nines
@@ -173,7 +173,7 @@ export default function CoursesList() {
             avgPlusMinusBack: null,
             lowGross: best?.score ?? null,
             lowGrossPlayer: best?.player ?? '',
-            lowGrossPlusMinus: best?.plusMinus ?? 0,
+            lowGrossPlusMinus: best ? best.score - best.coursePar : 0,
             lowGrossFront: null,
             lowGrossPlayerFront: '',
             lowGrossPlusMinusFront: 0,
@@ -228,22 +228,24 @@ export default function CoursesList() {
 
       <div className="gl-content">
         {loading ? (
-          <table className="gl-table">
-            <thead>
-              <tr>
-                <th className="gl-col-name">Course</th>
-                <th>Rounds</th>
-                <th>Par</th>
-                <th>Avg +/-</th>
-                <th className="gl-col-lowgross">Low Gross</th>
-              </tr>
-            </thead>
-            <tbody>
-              <SkeletonTableRows rows={8} cols={5} />
-            </tbody>
-          </table>
+          <div className="gl-table-scroll">
+            <table className="gl-table">
+              <thead>
+                <tr>
+                  <th className="gl-col-name">Course</th>
+                  <th>Rounds</th>
+                  <th>Par</th>
+                  <th>Avg +/-</th>
+                  <th className="gl-col-lowgross">Low Gross</th>
+                </tr>
+              </thead>
+              <tbody>
+                <SkeletonTableRows rows={8} cols={5} />
+              </tbody>
+            </table>
+          </div>
         ) : display.length > 0 ? (
-          <table className="gl-table">
+          <div className="gl-table-scroll"><table className="gl-table">
             <thead>
               <tr>
                 <SortTh label="Course" sortK="name" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-name" />
@@ -356,7 +358,7 @@ export default function CoursesList() {
                 );
               })}
             </tbody>
-          </table>
+          </table></div>
         ) : (
           <div className="gl-loading">No courses found.</div>
         )}
