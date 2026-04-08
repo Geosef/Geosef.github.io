@@ -14,6 +14,29 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  deploy-apps-script:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install clasp
+        run: npm install -g @google/clasp
+
+      - name: Authenticate clasp
+        env:
+          CLASP_CREDENTIALS: ${{ secrets.CLASP_CREDENTIALS }}
+        run: echo "$CLASP_CREDENTIALS" > ~/.clasprc.json
+
+      - name: Push to Apps Script
+        working-directory: appscript
+        run: clasp push --force
+
+      - name: Update deployment
+        working-directory: appscript
+        env:
+          DEPLOYMENT_ID: ${{ secrets.VITE_APPS_SCRIPT_DEPLOYMENT }}
+        run: clasp deploy -i "$DEPLOYMENT_ID"
+
   build:
     runs-on: ubuntu-latest
     steps:
