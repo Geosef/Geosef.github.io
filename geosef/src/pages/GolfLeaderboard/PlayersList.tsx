@@ -1,25 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './GolfLeaderboard.css';
-import type { LeaderboardData } from '../../types/golf';
+import type { MonthlyData } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
-import { SortTh, sortStandings, SortDir, SearchInput } from './leaderboard-utils';
+import { SortTh, sortStandings, SortDir, SearchInput, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 
+// TODO: Temporary — sourcing from April monthly sheet while "Total Points" is stale.
+// Revert to `?action=leaderboard` / `sessionCache.season` once Total Points is caught up.
 export default function PlayersList() {
   const navigate = useNavigate();
-  const [data, setData] = useState<LeaderboardData | null>(sessionCache.season);
+  const [data, setData] = useState<MonthlyData | null>(sessionCache.monthly.get('April') ?? null);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState('rank');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
-    if (sessionCache.season) return;
-    fetch(`${APPS_SCRIPT_URL}?action=leaderboard`)
+    if (sessionCache.monthly.get('April')) return;
+    fetch(`${APPS_SCRIPT_URL}?action=monthly&month=April`)
       .then(r => r.json())
-      .then((d: LeaderboardData) => {
-        sessionCache.season = d;
+      .then((d: MonthlyData) => {
+        sessionCache.monthly.set('April', d);
         setData(d);
       })
       .catch(() => {});
@@ -39,6 +42,7 @@ export default function PlayersList() {
     ? standings.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase().trim()))
     : standings;
   const display = sortStandings(filtered, sortKey, sortDir, 'season');
+  const visible = showAll ? display : display.slice(0, PAGE_SIZE);
 
   return (
     <div className="gl-wrapper">
@@ -60,7 +64,7 @@ export default function PlayersList() {
             {!data ? (
               <SkeletonTableRows rows={8} cols={3} />
             ) : (
-              display.map((s, i) => (
+              visible.map((s, i) => (
                 <tr
                   key={s.name}
                   className={['gl-row', i % 2 === 0 ? 'gl-row-even' : ''].filter(Boolean).join(' ')}
@@ -79,6 +83,9 @@ export default function PlayersList() {
                   <td className="gl-col-points">{Math.round(s.points)}</td>
                 </tr>
               ))
+            )}
+            {data && !showAll && display.length > PAGE_SIZE && (
+              <ShowAllRow total={display.length} shown={visible.length} colSpan={3} onShowAll={() => setShowAll(true)} />
             )}
           </tbody>
         </table>

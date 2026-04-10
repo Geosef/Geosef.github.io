@@ -3,6 +3,25 @@ import type { Standing, MonthlyStanding, MonthlyBreakdown } from '../../types/go
 
 export const NON_MEMBER_PARTNER = 'Other (GGC Member)';
 
+export const PAGE_SIZE = 25;
+
+export function ShowAllRow({
+  total,
+  shown,
+  colSpan,
+  onShowAll,
+}: { total: number; shown: number; colSpan: number; onShowAll: () => void }) {
+  return (
+    <tr className="gl-show-all-row">
+      <td colSpan={colSpan}>
+        <button className="gl-show-all-btn" onClick={onShowAll}>
+          Show all {total} <span className="gl-show-all-meta">(showing {shown})</span>
+        </button>
+      </td>
+    </tr>
+  );
+}
+
 export function lastName(name: string): string {
   const parts = name.trim().split(/\s+/);
   return parts.length > 1 ? parts.slice(1).join(' ') : parts[0];
@@ -68,7 +87,7 @@ export function sortStandings<T extends { rank: number; name: string; points: nu
   }
   return [...rows].sort((a, b) => {
     if (key === 'name') {
-      const cmp = a.name.localeCompare(b.name);
+      const cmp = lastName(a.name).localeCompare(lastName(b.name));
       return dir === 'asc' ? cmp : -cmp;
     }
     let aVal: number;

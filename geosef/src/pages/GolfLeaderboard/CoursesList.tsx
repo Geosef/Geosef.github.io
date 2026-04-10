@@ -5,7 +5,7 @@ import type { ScoringLogData, Round, CourseVariantData, CourseInfoData } from '.
 import { formatPlusMinus } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
-import { SortTh, SortDir, pmScoreClass, SearchInput, Chip } from './leaderboard-utils';
+import { SortTh, SortDir, pmScoreClass, SearchInput, Chip, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 
 const NINE_HOLE_COURSES = ['Ballwin'];
@@ -45,6 +45,7 @@ export default function CoursesList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     if (!sessionCache.scoringLog) {
@@ -238,6 +239,7 @@ export default function CoursesList() {
     return sortDir === 'asc' ? cmp : -cmp;
   });
 
+  const visible = showAll ? display : display.slice(0, PAGE_SIZE);
   const loading = !variants;
 
   return (
@@ -279,7 +281,7 @@ export default function CoursesList() {
               </tr>
             </thead>
             <tbody>
-              {display.map((c, i) => {
+              {visible.map((c, i) => {
                 const rowClass = ['gl-row', i % 2 === 0 ? 'gl-row-even' : ''].filter(Boolean).join(' ');
                 const courseUrl = `/golf-leaderboard/course/${encodeURIComponent(c.name)}${c.frontBack ? `?side=${c.frontBack}` : ''}`;
                 const avgHasAny = c.avgCells.some(a => a.value !== null);
@@ -337,6 +339,9 @@ export default function CoursesList() {
                   </tr>
                 );
               })}
+              {!showAll && display.length > PAGE_SIZE && (
+                <ShowAllRow total={display.length} shown={visible.length} colSpan={6} onShowAll={() => setShowAll(true)} />
+              )}
             </tbody>
           </table></div>
         ) : (

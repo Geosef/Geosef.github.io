@@ -7,7 +7,7 @@ import { tagCountingRounds, groupRoundsByMonth, formatPlusMinus } from '../../ty
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
 import { RoundMonthGroup } from './RoundHistory';
-import { SortTh, sortStandings, SortDir, pmScoreClass, SearchInput, lastName } from './leaderboard-utils';
+import { SortTh, sortStandings, SortDir, pmScoreClass, SearchInput, lastName, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 
 const CUT_LINE_POSITION = 48;
@@ -104,12 +104,14 @@ export default function GolfLeaderboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState('rank');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
+  const [showAll, setShowAll] = useState(false);
 
   function handleTabChange(tab: ActiveTab) {
     setActiveTab(tab);
     setSortKey('rank');
     setSortDir('asc');
     setSearchQuery('');
+    setShowAll(false);
     if (tab === 'season') {
       setSearchParams({}, { replace: true });
     } else {
@@ -234,6 +236,7 @@ export default function GolfLeaderboard() {
     ? standings.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase().trim()))
     : standings;
   const displayStandings = sortStandings(filtered, sortKey, sortDir, activeTab);
+  const visibleStandings = showAll ? displayStandings : displayStandings.slice(0, PAGE_SIZE);
 
   return (
     <div className="gl-wrapper">
@@ -253,7 +256,7 @@ export default function GolfLeaderboard() {
                 {m.label} 2026
               </option>
             ))}
-            <option value="season">Season</option>
+            <option value="season" disabled>Season</option>
           </select>
         </div>
         <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Filter players…" />
@@ -290,7 +293,7 @@ export default function GolfLeaderboard() {
               </tr>
             </thead>
             <tbody>
-              {displayStandings.map((s, i) => {
+              {visibleStandings.map((s, i) => {
                 const expandedRounds = expandedPlayer === s.name && sessionCache.scoringLog
                   ? sessionCache.scoringLog.rounds.filter(r => r.player === s.name)
                   : null;
@@ -369,6 +372,14 @@ export default function GolfLeaderboard() {
                   </React.Fragment>
                 );
               })}
+              {!showAll && displayStandings.length > PAGE_SIZE && (
+                <ShowAllRow
+                  total={displayStandings.length}
+                  shown={visibleStandings.length}
+                  colSpan={colCount}
+                  onShowAll={() => setShowAll(true)}
+                />
+              )}
             </tbody>
           </table>
           </div>

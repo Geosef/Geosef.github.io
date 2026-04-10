@@ -33,6 +33,7 @@ function ScrollManager() {
 
 function GolfLayoutInner() {
   const { navRight } = useNavRight();
+
   return (
     <div className="gl-layout">
       <ScrollManager />
@@ -44,6 +45,12 @@ function GolfLayoutInner() {
             className={({ isActive }) => `gl-subnav-link${isActive ? ' gl-subnav-active' : ''}`}
           >
             Leader Board
+          </NavLink>
+          <NavLink
+            to="/golf-leaderboard/scores"
+            className={({ isActive }) => `gl-subnav-link${isActive ? ' gl-subnav-active' : ''}`}
+          >
+            Scores
           </NavLink>
           <NavLink
             to="/golf-leaderboard/players"

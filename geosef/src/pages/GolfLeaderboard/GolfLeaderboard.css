@@ -399,8 +399,9 @@
 
 /* ── Footer ── */
 .gl-footer {
-  background-color: var(--gl-green-dark);
-  border-top: 1px solid rgba(255,255,255,0.1);
+  background-color: var(--gl-white);
+  border-top: 1px solid var(--gl-border);
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 .gl-footer-inner {
@@ -415,11 +416,11 @@
 .gl-footer-credit {
   font-size: 0.78rem;
   font-family: var(--gl-font-sans);
-  color: rgba(255,255,255,0.4);
+  color: var(--gl-muted);
 }
 
 .gl-footer-link {
-  color: #c0dc8f;
+  color: var(--gl-green-dark);
   font-size: 0.78rem;
   font-family: var(--gl-font-sans);
   text-decoration: none;
@@ -428,7 +429,7 @@
 }
 
 .gl-footer-link:hover {
-  color: white;
+  color: var(--gl-green);
 }
 
 .gl-search-row {
@@ -834,6 +835,80 @@
 
 .gl-courses-table .gl-col-lowgross {
   min-width: 14rem;
+}
+
+/* ── Recent Scores table ── */
+.gl-scores-table {
+  min-width: 36rem;
+}
+
+.gl-scores-table .gl-col-name {
+  left: 0;
+}
+
+.gl-scores-table .gl-col-date {
+  width: 4.5rem;
+  min-width: 4.5rem;
+  white-space: nowrap;
+}
+
+.gl-scores-table tbody td.gl-col-date {
+  font-family: var(--gl-font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--gl-muted);
+}
+
+.gl-scores-table .gl-col-course {
+  min-width: 10rem;
+}
+
+.gl-scores-table tbody td.gl-col-course {
+  text-align: left;
+  font-family: var(--gl-font-sans);
+  font-size: 0.85rem;
+}
+
+.gl-scores-table .gl-col-gross,
+.gl-scores-table .gl-col-net {
+  width: 3.5rem;
+  min-width: 3.5rem;
+}
+
+.gl-scores-table tbody td.gl-col-gross,
+.gl-scores-table tbody td.gl-col-net {
+  font-family: var(--gl-font-sans);
+  font-weight: 500;
+}
+
+/* ── "Show all" pagination row ── */
+.gl-show-all-row td {
+  padding: 0 !important;
+  background-color: var(--gl-white);
+  border-right: none !important;
+}
+
+.gl-show-all-btn {
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 0.75rem 1rem;
+  font-family: var(--gl-font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--gl-green-dark);
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+
+.gl-show-all-btn:hover {
+  background-color: var(--gl-row-alt);
+}
+
+.gl-show-all-meta {
+  color: var(--gl-muted);
+  font-weight: 400;
+  margin-left: 0.3rem;
 }
 
 /* ── List page header (left-aligned) ── */
