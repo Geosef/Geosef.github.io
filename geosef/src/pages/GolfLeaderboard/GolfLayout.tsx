@@ -1,7 +1,17 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Outlet, NavLink, useLocation, useNavigationType } from 'react-router-dom';
+import { Menu, X, ArrowUpRight } from 'lucide-react';
 import { NavRightProvider, useNavRight } from './NavRightContext';
 import './GolfLeaderboard.css';
+
+const LEAGUE_RULES_URL = 'https://docs.google.com/document/d/1hg-nl49_QdqyBlWsAYHjgmQYnvClTUHDigqLMRerrsI';
+
+const NAV_LINKS: { to: string; label: string; end?: boolean }[] = [
+  { to: '/golf-leaderboard', label: 'Leader Board', end: true },
+  { to: '/golf-leaderboard/scores', label: 'Scores' },
+  { to: '/golf-leaderboard/players', label: 'Players' },
+  { to: '/golf-leaderboard/courses', label: 'Courses' },
+];
 
 // Module-level so scroll positions survive re-renders
 const scrollPositions = new Map<string, number>();
@@ -33,54 +43,90 @@ function ScrollManager() {
 
 function GolfLayoutInner() {
   const { navRight } = useNavRight();
+  const { pathname } = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Close menu on route change
+  useEffect(() => { setMenuOpen(false); }, [pathname]);
+
+  // Lock body scroll + close on Escape when menu is open
+  useEffect(() => {
+    if (!menuOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuOpen(false); };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
 
   return (
     <div className="gl-layout">
       <ScrollManager />
       <header className="gl-subnav">
-        <nav className="gl-subnav-links">
-          <NavLink
-            to="/golf-leaderboard"
-            end
-            className={({ isActive }) => `gl-subnav-link${isActive ? ' gl-subnav-active' : ''}`}
-          >
-            Leader Board
-          </NavLink>
-          <NavLink
-            to="/golf-leaderboard/scores"
-            className={({ isActive }) => `gl-subnav-link${isActive ? ' gl-subnav-active' : ''}`}
-          >
-            Scores
-          </NavLink>
-          <NavLink
-            to="/golf-leaderboard/players"
-            className={({ isActive }) => `gl-subnav-link${isActive ? ' gl-subnav-active' : ''}`}
-          >
-            Players
-          </NavLink>
-          <NavLink
-            to="/golf-leaderboard/courses"
-            className={({ isActive }) => `gl-subnav-link${isActive ? ' gl-subnav-active' : ''}`}
-          >
-            Courses
-          </NavLink>
-        </nav>
+        <button
+          className="gl-subnav-menu-btn"
+          aria-label="Open menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(true)}
+        >
+          <Menu size={22} />
+        </button>
         <div className="gl-subnav-title">GGC League</div>
         <div className="gl-subnav-right">{navRight}</div>
       </header>
+
+      {menuOpen && (
+        <div className="gl-menu-backdrop" onClick={() => setMenuOpen(false)}>
+          <div
+            className="gl-menu-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="gl-menu-header">
+              <div className="gl-menu-title">GGC League</div>
+              <button
+                className="gl-menu-close"
+                aria-label="Close menu"
+                onClick={() => setMenuOpen(false)}
+              >
+                <X size={22} />
+              </button>
+            </div>
+            <nav className="gl-menu-nav">
+              {NAV_LINKS.map(l => (
+                <NavLink
+                  key={l.to}
+                  to={l.to}
+                  end={l.end}
+                  className={({ isActive }) => `gl-menu-link${isActive ? ' gl-menu-link--active' : ''}`}
+                >
+                  {l.label}
+                </NavLink>
+              ))}
+              <div className="gl-menu-divider" />
+              <a
+                href={LEAGUE_RULES_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="gl-menu-link gl-menu-link--external"
+              >
+                <span>League Rules</span>
+                <ArrowUpRight size={18} />
+              </a>
+            </nav>
+          </div>
+        </div>
+      )}
 
       <Outlet />
 
       <footer className="gl-footer">
         <div className="gl-footer-inner">
-          <a
-            href="https://docs.google.com/document/d/1hg-nl49_QdqyBlWsAYHjgmQYnvClTUHDigqLMRerrsI"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="gl-footer-link"
-          >
-            League Rules
-          </a>
           <span className="gl-footer-credit">
             Built by <a href="/" className="gl-footer-link">Joe Carroll</a>
           </span>

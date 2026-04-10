@@ -4,7 +4,7 @@ import './GolfLeaderboard.css';
 import type { MonthlyData } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
-import { SortTh, sortStandings, SortDir, SearchInput, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
+import { SortTh, sortStandings, SortDir, StickyListHeader, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 
 // TODO: Temporary — sourcing from April monthly sheet while "Total Points" is stale.
@@ -46,10 +46,10 @@ export default function PlayersList() {
 
   return (
     <div className="gl-wrapper">
-      <div className="gl-header gl-header--with-search">
-        <h1 className="gl-title">All Players</h1>
-        <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Filter players…" />
-      </div>
+      <StickyListHeader
+        title="All Players"
+        search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Filter players…' }}
+      />
 
       <div className="gl-content">
         <table className="gl-table">

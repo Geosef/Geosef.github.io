@@ -5,7 +5,7 @@ import type { ScoringLogData, Round, CourseVariantData, CourseInfoData } from '.
 import { formatPlusMinus } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
-import { SortTh, SortDir, pmScoreClass, SearchInput, Chip, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
+import { SortTh, SortDir, pmScoreClass, StickyListHeader, Chip, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 
 const NINE_HOLE_COURSES = ['Ballwin'];
@@ -244,10 +244,10 @@ export default function CoursesList() {
 
   return (
     <div className="gl-wrapper">
-      <div className="gl-header gl-header--with-search">
-        <h1 className="gl-title">All Courses</h1>
-        <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Filter courses…" />
-      </div>
+      <StickyListHeader
+        title="All Courses"
+        search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Filter courses…' }}
+      />
 
       <div className="gl-content">
         {loading ? (

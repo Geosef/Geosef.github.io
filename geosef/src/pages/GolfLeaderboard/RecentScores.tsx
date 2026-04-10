@@ -5,7 +5,7 @@ import type { ScoringLogData, Round } from '../../types/golf';
 import { formatPlusMinus, formatDate } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
-import { SortTh, SortDir, SearchInput, pmScoreClass, lastName, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
+import { SortTh, SortDir, StickyListHeader, pmScoreClass, lastName, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 
 type SortKey = 'date' | 'player' | 'course' | 'gross' | 'net' | 'plusMinus';
@@ -79,10 +79,10 @@ export default function RecentScores() {
 
   return (
     <div className="gl-wrapper">
-      <div className="gl-header gl-header--with-search">
-        <h1 className="gl-title">Recent Scores</h1>
-        <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Filter player or course…" />
-      </div>
+      <StickyListHeader
+        title="Recent Scores"
+        search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Filter player or course…' }}
+      />
 
       <div className="gl-content">
         <div className="gl-table-scroll">

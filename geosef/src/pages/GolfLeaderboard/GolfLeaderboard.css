@@ -42,9 +42,16 @@
   border-bottom: 1px solid var(--gl-border);
 }
 
-.gl-subnav-links {
-  display: flex;
-  align-items: stretch;
+.gl-subnav-menu-btn {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0 1rem;
+  cursor: pointer;
+  color: var(--gl-green);
 }
 
 .gl-subnav-title {
@@ -67,34 +74,134 @@
   padding: 0 0.75rem;
 }
 
-.gl-subnav-link {
-  color: var(--gl-green);
-  text-decoration: none;
-  font-family: var(--gl-font-sans);
-  font-size: 0.8rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  padding: 0 1.25rem;
+/* Hide "updated" text on narrow screens — the refresh button stays */
+@media (max-width: 480px) {
+  .gl-updated { display: none; }
+}
+
+/* ── Menu: backdrop + sliding panel ── */
+.gl-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background-color: var(--gl-white);
+  animation: gl-menu-fade 0.15s ease-out;
+}
+
+.gl-menu-panel {
+  background-color: var(--gl-white);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+  box-sizing: border-box;
+  animation: gl-menu-slide 0.2s ease-out;
+}
+
+/* Desktop: slide-in panel on the left with dim backdrop */
+@media (min-width: 901px) {
+  .gl-menu-backdrop {
+    background-color: rgba(0, 0, 0, 0.35);
+  }
+  .gl-menu-panel {
+    width: 320px;
+    max-width: 85%;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+@keyframes gl-menu-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes gl-menu-slide {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+.gl-menu-header {
   display: flex;
   align-items: center;
-  border-bottom: 2px solid transparent;
-  transition: opacity 0.15s;
+  justify-content: space-between;
+  min-height: var(--app-header-height);
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--gl-border);
+  box-sizing: border-box;
 }
 
-.gl-subnav-link:hover {
-  opacity: 0.85;
+.gl-menu-title {
+  font-family: var(--gl-font-sc);
+  font-size: 0.95rem;
+  color: var(--gl-green);
+  letter-spacing: 0.06em;
 }
 
-.gl-subnav-active {
-  border-bottom-color: var(--gl-green);
+.gl-menu-close {
+  background: none;
+  border: none;
+  color: var(--gl-green);
+  cursor: pointer;
+  padding: 0.4rem 0.6rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Mobile: hide center title, collapse to 2-col */
-@media (max-width: 480px) {
-  .gl-subnav { grid-template-columns: 1fr auto; }
-  .gl-subnav-title { display: none; }
-  .gl-updated { display: none; }
+.gl-menu-nav {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0;
+  box-sizing: border-box;
+}
+
+.gl-menu-link {
+  font-family: var(--gl-font-sans);
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--gl-green-dark);
+  text-decoration: none;
+  padding: 1rem 1.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-left: 3px solid transparent;
+}
+
+.gl-menu-link--active {
+  color: var(--gl-green);
+  border-left-color: var(--gl-green);
+  background-color: var(--gl-row-alt);
+}
+
+@media (hover: hover) {
+  .gl-menu-link {
+    transition: background-color 0.15s, color 0.15s;
+  }
+  .gl-menu-link:hover {
+    background-color: var(--gl-row-alt);
+    color: var(--gl-green);
+  }
+  .gl-menu-link--active:hover {
+    background-color: #e8f0e8;
+  }
+}
+
+.gl-menu-divider {
+  height: 1px;
+  background-color: var(--gl-border);
+  margin: 0.5rem 1.5rem;
+}
+
+.gl-menu-link--external {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--gl-muted);
+  text-transform: none;
+  letter-spacing: 0;
 }
 
 .gl-wrapper {
@@ -102,6 +209,14 @@
   background-color: var(--gl-white);
   color: var(--gl-text);
   font-family: var(--gl-font-serif);
+}
+
+/* ── Sticky list-page header wrapper ── */
+.gl-sticky-list-header {
+  position: sticky;
+  top: var(--app-header-height, 40px);
+  z-index: 90;
+  background-color: var(--gl-white);
 }
 
 /* ── Header ── */
@@ -409,7 +524,7 @@
   margin: 0 auto;
   padding: 0.85rem 1rem;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
 }
 

@@ -7,7 +7,7 @@ import { tagCountingRounds, groupRoundsByMonth, formatPlusMinus } from '../../ty
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
 import { RoundMonthGroup } from './RoundHistory';
-import { SortTh, sortStandings, SortDir, pmScoreClass, SearchInput, lastName, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
+import { SortTh, sortStandings, SortDir, pmScoreClass, SearchInput, lastName, PAGE_SIZE, ShowAllRow, StickyListHeader } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 
 const CUT_LINE_POSITION = 48;
@@ -240,27 +240,25 @@ export default function GolfLeaderboard() {
 
   return (
     <div className="gl-wrapper">
-      <div className="gl-header">
-        <h1 className="gl-title">Leader Board</h1>
-      </div>
-
-      <div className="gl-controls-bar">
-        <div className="gl-month-selector">
-          <select
-            className="gl-month-select"
-            value={activeTab}
-            onChange={e => handleTabChange(e.target.value as ActiveTab)}
-          >
-            {MONTH_TABS.map(m => (
-              <option key={m.key} value={m.key} disabled={isFutureMonth(m)}>
-                {m.label} 2026
-              </option>
-            ))}
-            <option value="season" disabled>Season</option>
-          </select>
+      <StickyListHeader title="Leader Board">
+        <div className="gl-controls-bar">
+          <div className="gl-month-selector">
+            <select
+              className="gl-month-select"
+              value={activeTab}
+              onChange={e => handleTabChange(e.target.value as ActiveTab)}
+            >
+              {MONTH_TABS.map(m => (
+                <option key={m.key} value={m.key} disabled={isFutureMonth(m)}>
+                  {m.label} 2026
+                </option>
+              ))}
+              <option value="season" disabled>Season</option>
+            </select>
+          </div>
+          <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Filter players…" />
         </div>
-        <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Filter players…" />
-      </div>
+      </StickyListHeader>
 
       <div className="gl-content">
         {error && <div className="gl-error">{error}</div>}

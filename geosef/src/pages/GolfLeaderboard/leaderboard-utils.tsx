@@ -5,6 +5,26 @@ export const NON_MEMBER_PARTNER = 'Other (GGC Member)';
 
 export const PAGE_SIZE = 25;
 
+interface StickyListHeaderProps {
+  title: string;
+  search?: { value: string; onChange: (v: string) => void; placeholder?: string };
+  children?: React.ReactNode;
+}
+
+export function StickyListHeader({ title, search, children }: StickyListHeaderProps) {
+  return (
+    <div className="gl-sticky-list-header">
+      <div className={`gl-header${search ? ' gl-header--with-search' : ''}`}>
+        <h1 className="gl-title">{title}</h1>
+        {search && (
+          <SearchInput value={search.value} onChange={search.onChange} placeholder={search.placeholder} />
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
 export function ShowAllRow({
   total,
   shown,
