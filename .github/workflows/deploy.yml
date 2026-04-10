@@ -18,24 +18,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Check for appscript changes
+        id: changes
+        run: |
+          if git diff --name-only HEAD~1 -- appscript/ | grep -q .; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Install clasp
+        if: steps.changes.outputs.changed == 'true'
         run: npm install -g @google/clasp
 
       - name: Authenticate clasp
+        if: steps.changes.outputs.changed == 'true'
         env:
           CLASP_CREDENTIALS: ${{ secrets.CLASP_CREDENTIALS }}
         run: echo "$CLASP_CREDENTIALS" > ~/.clasprc.json
 
       - name: Push to Apps Script
+        if: steps.changes.outputs.changed == 'true'
         working-directory: appscript
         run: clasp push --force
 
       - name: Update deployment
+        if: steps.changes.outputs.changed == 'true'
         working-directory: appscript
-        env:
-          DEPLOYMENT_ID: ${{ secrets.VITE_APPS_SCRIPT_DEPLOYMENT }}
-        run: clasp deploy -i "$DEPLOYMENT_ID"
+        run: clasp deploy -i "$(cat deployment-id.txt)"
 
   build:
     runs-on: ubuntu-latest
@@ -52,11 +65,15 @@ jobs:
         run: npm ci
         working-directory: geosef
 
+      - name: Read deployment ID
+        id: appscript
+        run: echo "deployment_id=$(cat appscript/deployment-id.txt)" >> "$GITHUB_OUTPUT"
+
       - name: Build
         run: npm run build
         working-directory: geosef
         env:
-          VITE_APPS_SCRIPT_DEPLOYMENT: ${{ secrets.VITE_APPS_SCRIPT_DEPLOYMENT }}
+          VITE_APPS_SCRIPT_DEPLOYMENT: ${{ steps.appscript.outputs.deployment_id }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
