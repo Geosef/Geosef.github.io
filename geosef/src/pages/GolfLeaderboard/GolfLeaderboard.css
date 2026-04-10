@@ -930,26 +930,42 @@
 /* ── Courses table overrides ── */
 /* No rank column, so name sticks at left:0 and fixed columns need explicit sizing */
 .gl-courses-table {
-  min-width: 34rem;
+  min-width: 40rem;
 }
 
 .gl-courses-table .gl-col-name {
   left: 0;
+  min-width: 9rem;
+  white-space: nowrap;
+}
+
+.gl-courses-table thead th {
+  white-space: nowrap;
 }
 
 .gl-courses-table th:nth-child(2),
 .gl-courses-table td:nth-child(2),
 .gl-courses-table th:nth-child(3),
-.gl-courses-table td:nth-child(3),
-.gl-courses-table th:nth-child(4),
-.gl-courses-table td:nth-child(4) {
+.gl-courses-table td:nth-child(3) {
   width: 4.5rem;
   min-width: 4.5rem;
   white-space: nowrap;
 }
 
+.gl-courses-table th:nth-child(4),
+.gl-courses-table td:nth-child(4) {
+  width: 5rem;
+  min-width: 5rem;
+  white-space: nowrap;
+}
+
 .gl-courses-table .gl-col-lowgross {
   min-width: 14rem;
+}
+
+/* Consistent row height regardless of split stats or chip */
+.gl-courses-table tbody td {
+  height: 3.6rem;
 }
 
 /* ── Recent Scores table ── */
@@ -1103,5 +1119,6 @@
   display: block;
   font-family: var(--gl-font-sans);
   font-size: 0.8rem;
-  line-height: 1.4;
+  line-height: 1.35;
+  white-space: nowrap;
 }
