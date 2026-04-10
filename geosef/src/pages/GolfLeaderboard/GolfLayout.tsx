@@ -49,6 +49,34 @@ function GolfLayoutInner() {
   // Close menu on route change
   useEffect(() => { setMenuOpen(false); }, [pathname]);
 
+  // Set page title + favicon to golf theme while on /golf-leaderboard routes
+  useEffect(() => {
+    const prevTitle = document.title;
+    document.title = 'GGC League';
+
+    // Remove any existing favicon links (including the default /favicon.ico)
+    // and install a fresh SVG emoji favicon. Browsers cache aggressively, so
+    // swapping href on the existing link often doesn't take effect.
+    const prevLinks = Array.from(
+      document.querySelectorAll<HTMLLinkElement>('link[rel~="icon"]'),
+    );
+    prevLinks.forEach(l => l.remove());
+
+    const svg =
+      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⛳</text></svg>";
+    const golfLink = document.createElement('link');
+    golfLink.rel = 'icon';
+    golfLink.type = 'image/svg+xml';
+    golfLink.href = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    document.head.appendChild(golfLink);
+
+    return () => {
+      document.title = prevTitle;
+      golfLink.remove();
+      prevLinks.forEach(l => document.head.appendChild(l));
+    };
+  }, []);
+
   // Lock body scroll + close on Escape when menu is open
   useEffect(() => {
     if (!menuOpen) return;
