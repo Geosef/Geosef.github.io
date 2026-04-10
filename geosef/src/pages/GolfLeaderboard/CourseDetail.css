@@ -207,16 +207,6 @@
   gap: 0.35rem;
 }
 
-.cd-restriction-chip {
-  font-family: var(--gl-font-sans);
-  font-size: 0.76rem;
-  color: var(--gl-muted);
-  background: rgba(0,0,0,0.06);
-  border-radius: 4px;
-  padding: 0.2rem 0.5rem;
-  white-space: nowrap;
-}
-
 /* ── Front/Back section labels in Notable Rounds ── */
 .cd-notable-side-label {
   font-family: var(--gl-font-sans);

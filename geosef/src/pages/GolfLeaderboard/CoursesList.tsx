@@ -5,36 +5,36 @@ import type { ScoringLogData, Round, CourseVariantData, CourseInfoData } from '.
 import { formatPlusMinus } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
-import { SortTh, SortDir, pmScoreClass, SearchInput } from './leaderboard-utils';
+import { SortTh, SortDir, pmScoreClass, SearchInput, Chip } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 
 const NINE_HOLE_COURSES = ['Ballwin'];
+
+interface AvgCell {
+  label?: string;
+  value: number | null;
+}
+
+interface LowGrossCell {
+  label?: string;
+  player: string;
+  score: number;
+  plusMinus: number;
+}
 
 interface CourseSummary {
   name: string;
   displayName: string;
   frontBack: string;
-  isSplit: boolean;
   isNineHole: boolean;
   rounds: number;
-  frontRounds: number;
-  backRounds: number;
   par: number;
-  frontPar: number;
-  backPar: number;
-  avgPlusMinus: number;
-  avgPlusMinusFront: number | null;
-  avgPlusMinusBack: number | null;
-  lowGross: number | null;
-  lowGrossPlayer: string;
-  lowGrossPlusMinus: number;
-  lowGrossFront: number | null;
-  lowGrossPlayerFront: string;
-  lowGrossPlusMinusFront: number;
-  lowGrossBack: number | null;
-  lowGrossPlayerBack: string;
-  lowGrossPlusMinusBack: number;
   rate: string | null;
+  avgPlusMinus: number;
+  lowGross: number | null;
+  parCell: string;
+  avgCells: AvgCell[];
+  lowGrossCells: (LowGrossCell | null)[];
 }
 
 export default function CoursesList() {
@@ -127,37 +127,34 @@ export default function CoursesList() {
         const fp = frontParByName.get(name) ?? 0;
         const bp = backParByName.get(name) ?? 0;
 
+        const avgFront = frontArr.length > 0
+          ? frontArr.reduce((s, r) => s + r.plusMinus, 0) / frontArr.length
+          : null;
+        const avgBack = backArr.length > 0
+          ? backArr.reduce((s, r) => s + r.plusMinus, 0) / backArr.length
+          : null;
+
         result.push({
           name,
           displayName: getDisplayName(name),
           frontBack: '',
-          isSplit: true,
           isNineHole,
           rounds: allArr.length,
-          frontRounds: frontArr.length,
-          backRounds: backArr.length,
           par: fp + bp,
-          frontPar: fp,
-          backPar: bp,
+          rate: getRate(name),
           avgPlusMinus: allArr.length > 0
             ? allArr.reduce((s, r) => s + r.plusMinus, 0) / allArr.length
             : 0,
-          avgPlusMinusFront: frontArr.length > 0
-            ? frontArr.reduce((s, r) => s + r.plusMinus, 0) / frontArr.length
-            : null,
-          avgPlusMinusBack: backArr.length > 0
-            ? backArr.reduce((s, r) => s + r.plusMinus, 0) / backArr.length
-            : null,
           lowGross: bestAll?.score ?? null,
-          lowGrossPlayer: bestAll?.player ?? '',
-          lowGrossPlusMinus: bestAll ? bestAll.score - bestAll.coursePar : 0,
-          lowGrossFront: bestFront?.score ?? null,
-          lowGrossPlayerFront: bestFront?.player ?? '',
-          lowGrossPlusMinusFront: bestFront ? bestFront.score - bestFront.coursePar : 0,
-          lowGrossBack: bestBack?.score ?? null,
-          lowGrossPlayerBack: bestBack?.player ?? '',
-          lowGrossPlusMinusBack: bestBack ? bestBack.score - bestBack.coursePar : 0,
-          rate: getRate(name),
+          parCell: fp > 0 && bp > 0 ? `${fp}/${bp}` : String(fp + bp || '—'),
+          avgCells: [
+            { label: 'F', value: avgFront },
+            { label: 'B', value: avgBack },
+          ],
+          lowGrossCells: [
+            bestFront ? { label: 'F', player: bestFront.player, score: bestFront.score, plusMinus: bestFront.score - bestFront.coursePar } : null,
+            bestBack  ? { label: 'B', player: bestBack.player,  score: bestBack.score,  plusMinus: bestBack.score  - bestBack.coursePar  } : null,
+          ],
         });
       } else {
         // Deduplicate by frontBack — multiple tee options per nine produce duplicate nines
@@ -175,33 +172,25 @@ export default function CoursesList() {
             ? matching.reduce((b, r) => r.score < b.score ? r : b)
             : null;
 
+          const avg = matching.length > 0
+            ? matching.reduce((s, r) => s + r.plusMinus, 0) / matching.length
+            : 0;
+
           result.push({
             name: v.name,
             displayName,
             frontBack: v.frontBack,
-            isSplit: false,
-            isNineHole: false,
+            isNineHole,
             rounds: matching.length,
-            frontRounds: 0,
-            backRounds: 0,
             par: v.par,
-            frontPar: 0,
-            backPar: 0,
-            avgPlusMinus: matching.length > 0
-              ? matching.reduce((s, r) => s + r.plusMinus, 0) / matching.length
-              : 0,
-            avgPlusMinusFront: null,
-            avgPlusMinusBack: null,
-            lowGross: best?.score ?? null,
-            lowGrossPlayer: best?.player ?? '',
-            lowGrossPlusMinus: best ? best.score - best.coursePar : 0,
-            lowGrossFront: null,
-            lowGrossPlayerFront: '',
-            lowGrossPlusMinusFront: 0,
-            lowGrossBack: null,
-            lowGrossPlayerBack: '',
-            lowGrossPlusMinusBack: 0,
             rate: getRate(v.name),
+            avgPlusMinus: avg,
+            lowGross: best?.score ?? null,
+            parCell: v.par ? String(v.par) : '—',
+            avgCells: [{ value: matching.length > 0 ? avg : null }],
+            lowGrossCells: [
+              best ? { player: best.player, score: best.score, plusMinus: best.score - best.coursePar } : null,
+            ],
           });
         }
       }
@@ -292,103 +281,58 @@ export default function CoursesList() {
             <tbody>
               {display.map((c, i) => {
                 const rowClass = ['gl-row', i % 2 === 0 ? 'gl-row-even' : ''].filter(Boolean).join(' ');
-
-                if (c.isSplit) {
-                  const courseUrl = `/golf-leaderboard/course/${encodeURIComponent(c.name)}`;
-                  return (
-                    <tr key={`${c.name}|split`} className={rowClass} onClick={() => navigate(courseUrl)}>
-                      <td className="gl-col-name">
-                        {c.name}
-                        {c.isNineHole && (
-                          <span className="gl-col-nine-badge">(9 holes)</span>
-                        )}
-                      </td>
-                      <td>{c.rounds > 0 ? c.rounds : '—'}</td>
-                      <td>
-                        {c.frontPar > 0 && c.backPar > 0
-                          ? `${c.frontPar}/${c.backPar}`
-                          : c.par || '—'}
-                      </td>
-                      <td>{c.rate ?? '—'}</td>
-                      <td>
-                        {c.avgPlusMinusFront !== null && (
-                          <span className={`gl-split-line ${pmScoreClass(Math.round(c.avgPlusMinusFront))}`}>
-                            F {formatPlusMinus(Math.round(c.avgPlusMinusFront))}
-                          </span>
-                        )}
-                        {c.avgPlusMinusBack !== null && (
-                          <span className={`gl-split-line ${pmScoreClass(Math.round(c.avgPlusMinusBack))}`}>
-                            B {formatPlusMinus(Math.round(c.avgPlusMinusBack))}
-                          </span>
-                        )}
-                        {c.avgPlusMinusFront === null && c.avgPlusMinusBack === null && '—'}
-                      </td>
-                      <td className="gl-col-lowgross">
-                        {c.lowGrossFront !== null && (
-                          <span className="gl-split-line">
-                            F:{' '}
-                            <Link
-                              to={`/golf-leaderboard/player/${encodeURIComponent(c.lowGrossPlayerFront)}`}
-                              className="cd-player-link"
-                              onClick={e => e.stopPropagation()}
-                            >
-                              {c.lowGrossPlayerFront}
-                            </Link>
-                            {' '}
-                            <span className={pmScoreClass(c.lowGrossPlusMinusFront)}>
-                              {c.lowGrossFront} ({formatPlusMinus(c.lowGrossPlusMinusFront)})
-                            </span>
-                          </span>
-                        )}
-                        {c.lowGrossBack !== null && (
-                          <span className="gl-split-line">
-                            B:{' '}
-                            <Link
-                              to={`/golf-leaderboard/player/${encodeURIComponent(c.lowGrossPlayerBack)}`}
-                              className="cd-player-link"
-                              onClick={e => e.stopPropagation()}
-                            >
-                              {c.lowGrossPlayerBack}
-                            </Link>
-                            {' '}
-                            <span className={pmScoreClass(c.lowGrossPlusMinusBack)}>
-                              {c.lowGrossBack} ({formatPlusMinus(c.lowGrossPlusMinusBack)})
-                            </span>
-                          </span>
-                        )}
-                        {c.lowGrossFront === null && c.lowGrossBack === null && '—'}
-                      </td>
-                    </tr>
-                  );
-                }
-
-                const avgRounded = Math.round(c.avgPlusMinus);
                 const courseUrl = `/golf-leaderboard/course/${encodeURIComponent(c.name)}${c.frontBack ? `?side=${c.frontBack}` : ''}`;
+                const avgHasAny = c.avgCells.some(a => a.value !== null);
+                const lowHasAny = c.lowGrossCells.some(l => l !== null);
+
                 return (
-                  <tr key={`${c.name}|${c.frontBack}`} className={rowClass} onClick={() => navigate(courseUrl)}>
-                    <td className="gl-col-name">{c.displayName}</td>
+                  <tr key={`${c.name}|${c.frontBack || 'split'}`} className={rowClass} onClick={() => navigate(courseUrl)}>
+                    <td className="gl-col-name">
+                      {c.name}
+                      {c.isNineHole && <Chip className="gl-chip--inline">9 holes</Chip>}
+                    </td>
                     <td>{c.rounds > 0 ? c.rounds : '—'}</td>
-                    <td>{c.par || '—'}</td>
+                    <td>{c.parCell}</td>
                     <td>{c.rate ?? '—'}</td>
-                    <td className={c.rounds > 0 ? pmScoreClass(avgRounded) : ''}>
-                      {c.rounds > 0 ? formatPlusMinus(avgRounded) : '—'}
+                    <td>
+                      {avgHasAny ? c.avgCells.map((cell, idx) => {
+                        if (cell.value === null) return null;
+                        const rounded = Math.round(cell.value);
+                        const cls = pmScoreClass(rounded);
+                        return cell.label ? (
+                          <span key={idx} className={`gl-split-line ${cls}`}>
+                            {cell.label} {formatPlusMinus(rounded)}
+                          </span>
+                        ) : (
+                          <span key={idx} className={cls}>{formatPlusMinus(rounded)}</span>
+                        );
+                      }) : '—'}
                     </td>
                     <td className="gl-col-lowgross">
-                      {c.lowGross !== null ? (
-                        <>
-                          <Link
-                            to={`/golf-leaderboard/player/${encodeURIComponent(c.lowGrossPlayer)}`}
-                            className="cd-player-link"
-                            onClick={e => e.stopPropagation()}
-                          >
-                            {c.lowGrossPlayer}
-                          </Link>
-                          {' '}
-                          <span className={pmScoreClass(c.lowGrossPlusMinus)}>
-                            {c.lowGross} ({formatPlusMinus(c.lowGrossPlusMinus)})
-                          </span>
-                        </>
-                      ) : '—'}
+                      {lowHasAny ? c.lowGrossCells.map((cell, idx) => {
+                        if (!cell) return null;
+                        const inner = (
+                          <>
+                            {cell.label ? `${cell.label}: ` : null}
+                            <Link
+                              to={`/golf-leaderboard/player/${encodeURIComponent(cell.player)}`}
+                              className="cd-player-link"
+                              onClick={e => e.stopPropagation()}
+                            >
+                              {cell.player}
+                            </Link>
+                            {' '}
+                            <span className={pmScoreClass(cell.plusMinus)}>
+                              {cell.score} ({formatPlusMinus(cell.plusMinus)})
+                            </span>
+                          </>
+                        );
+                        return cell.label ? (
+                          <span key={idx} className="gl-split-line">{inner}</span>
+                        ) : (
+                          <React.Fragment key={idx}>{inner}</React.Fragment>
+                        );
+                      }) : '—'}
                     </td>
                   </tr>
                 );

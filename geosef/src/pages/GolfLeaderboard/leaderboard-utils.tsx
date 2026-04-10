@@ -12,6 +12,10 @@ export function pmScoreClass(pm: number): string {
   return pm < 0 ? 'gl-score-under' : 'gl-score-even';
 }
 
+export function Chip({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  return <span className={`gl-chip ${className}`.trim()}>{children}</span>;
+}
+
 /** Generic frequency counter — maps items to a sorted [{value, count}] array. */
 export function countBy<T>(items: T[], key: (item: T) => string | null | undefined): { value: string; count: number }[] {
   const map = new Map<string, number>();

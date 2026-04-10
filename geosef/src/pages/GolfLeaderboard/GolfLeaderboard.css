@@ -890,14 +890,22 @@
   letter-spacing: 0.05em;
 }
 
-/* ── Nine-hole course badge ── */
-.gl-col-nine-badge {
+/* ── Shared chip ── */
+.gl-chip {
   display: inline-block;
-  margin-left: 0.4rem;
-  font-size: 0.65rem;
   font-family: var(--gl-font-sans);
+  font-size: 0.76rem;
+  text-transform: initial;
   color: var(--gl-muted);
-  vertical-align: middle;
+  background: rgba(0,0,0,0.06);
+  border-radius: 4px;
+  border-width: 0;
+  padding: 0.2rem 0.5rem;
+  white-space: nowrap;
+}
+
+.gl-chip--inline {
+  margin-left: 0.5rem;
 }
 
 /* ── Split stats (stacked per-nine) ── */

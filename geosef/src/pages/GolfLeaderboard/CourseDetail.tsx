@@ -7,7 +7,7 @@ import type { Round, ScoringLogData, CourseInfoData, CourseVariantData } from '.
 import { formatPlusMinus, formatDate } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
-import { pmScoreClass, countBy } from './leaderboard-utils';
+import { pmScoreClass, countBy, Chip } from './leaderboard-utils';
 import { SkeletonDetailHeader, SkeletonSection } from './GolfSkeleton';
 
 const RANKS = [
@@ -174,10 +174,17 @@ export default function CourseDetail() {
   const allVariantsForCourse = (sessionCache.courseVariants?.courses ?? [])
     .filter(v => v.name === decoded);
 
-  const par = allRounds[0]?.coursePar
-    ?? (side
-      ? allVariantsForCourse.find(v => v.frontBack === side)?.par
-      : allVariantsForCourse.find(v => !v.frontBack)?.par ?? allVariantsForCourse[0]?.par);
+  const frontVariantPar = allVariantsForCourse.find(v => v.frontBack === 'Front')?.par;
+  const backVariantPar  = allVariantsForCourse.find(v => v.frontBack === 'Back')?.par;
+  const singleVariantPar = allVariantsForCourse.find(v => !v.frontBack)?.par;
+
+  const par = side === 'Front'
+    ? frontVariantPar
+    : side === 'Back'
+      ? backVariantPar
+      : (frontVariantPar != null && backVariantPar != null
+          ? frontVariantPar + backVariantPar
+          : singleVariantPar ?? allRounds[0]?.coursePar);
 
   const history = [...rounds].sort(
     (a, b) => new Date(b.datePlayed).getTime() - new Date(a.datePlayed).getTime()
@@ -195,14 +202,7 @@ export default function CourseDetail() {
   const frontRounds = allRounds.filter(r => r.frontBack === 'Front');
   const backRounds  = allRounds.filter(r => r.frontBack === 'Back');
 
-  // Par display — for combined view, sum front + back par
-  const frontPar = frontRounds[0]?.coursePar ?? allVariantsForCourse.find(v => v.frontBack === 'Front')?.par;
-  const backPar  = backRounds[0]?.coursePar  ?? allVariantsForCourse.find(v => v.frontBack === 'Back')?.par;
-  const parDisplay = showSplitNotable && frontPar != null && backPar != null
-    ? `Par ${frontPar + backPar}`
-    : par != null
-      ? `Par ${par}`
-      : 'Par —';
+  const parDisplay = par != null ? `Par ${par}` : 'Par —';
 
   // Round history with optional F/B filter
   const historyRounds = showSplitNotable && historyFilter !== 'All'
@@ -307,7 +307,7 @@ export default function CourseDetail() {
               {info.restrictions && (
                 <div className="cd-restrictions">
                   {info.restrictions.split(' | ').map((item, i) => (
-                    <span key={i} className="cd-restriction-chip">{item}</span>
+                    <Chip key={i}>{item}</Chip>
                   ))}
                 </div>
               )}
