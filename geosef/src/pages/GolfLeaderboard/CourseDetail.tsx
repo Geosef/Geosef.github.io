@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, Phone, Clock, DollarSign } from 'lucide-react';
+import FavoriteStar from '../../components/FavoriteStar';
+import { useUserPrefs } from '../../hooks/useUserPrefs';
 import './GolfLeaderboard.css';
 import './CourseDetail.css';
 import type { Round, ScoringLogData, CourseInfoData, CourseVariantData } from '../../types/golf';
@@ -86,6 +88,7 @@ export default function CourseDetail() {
   const side = searchParams.get('side'); // "Front", "Back", or null
   const navigate = useNavigate();
   const location = useLocation();
+  const { prefs, toggleFavoriteCourse } = useUserPrefs();
 
   function goBack() {
     if (location.key !== 'default') {
@@ -245,7 +248,16 @@ export default function CourseDetail() {
     <div className="gl-detail-wrapper">
       <div className="gl-detail-header">
         <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
-        <h1 className="cd-name">{headingTitle}</h1>
+        <div className="gl-detail-title-row">
+          <h1 className="cd-name">{headingTitle}</h1>
+          {prefs && decoded && (
+            <FavoriteStar
+              isFavorite={prefs.favoriteCourses.includes(decoded)}
+              onToggle={() => toggleFavoriteCourse(decoded)}
+              label={decoded}
+            />
+          )}
+        </div>
         <p className="cd-meta">
           {parDisplay} · {rounds.length} round{rounds.length !== 1 ? 's' : ''}
           {info?.architect && ` · Architect: ${info.architect}`}

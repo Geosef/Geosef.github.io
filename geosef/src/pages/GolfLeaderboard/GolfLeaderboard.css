@@ -1122,3 +1122,150 @@
   line-height: 1.35;
   white-space: nowrap;
 }
+
+
+/* ── Favorite star ── */
+.fav-star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: var(--gl-muted);
+  transition: color 0.15s, transform 0.1s;
+  vertical-align: middle;
+  line-height: 0;
+}
+.fav-star:hover {
+  color: var(--gl-yellow);
+  transform: scale(1.1);
+}
+.fav-star--active {
+  color: var(--gl-yellow);
+}
+.fav-star--active svg {
+  fill: var(--gl-yellow);
+}
+
+/* ── Auth button ── */
+/* Google-rendered sign-in button container */
+.gl-auth-gbutton {
+  margin-left: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.gl-auth-avatar-wrap {
+  position: relative;
+  margin-left: 0.5rem;
+}
+.gl-auth-avatar-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+}
+.gl-auth-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--gl-green);
+  display: block;
+}
+.gl-auth-dropdown-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+.gl-auth-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 201;
+  background: var(--gl-white);
+  border: 1px solid var(--gl-border);
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  min-width: 180px;
+  padding: 0.5rem 0;
+}
+.gl-auth-dropdown-name {
+  padding: 0.4rem 0.85rem 0.1rem;
+  font-family: var(--gl-font-sans);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--gl-text);
+}
+.gl-auth-dropdown-email {
+  padding: 0 0.85rem 0.5rem;
+  font-family: var(--gl-font-sans);
+  font-size: 0.75rem;
+  color: var(--gl-muted);
+}
+.gl-auth-dropdown-signout {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  border-top: 1px solid var(--gl-border);
+  padding: 0.5rem 0.85rem;
+  text-align: left;
+  font-family: var(--gl-font-sans);
+  font-size: 0.85rem;
+  color: var(--gl-red);
+  cursor: pointer;
+}
+.gl-auth-dropdown-signout:hover {
+  background: var(--gl-error-bg);
+}
+
+/* ── Detail header title row (name + star) ── */
+.gl-detail-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.gl-detail-title-row .fav-star {
+  flex-shrink: 0;
+  padding: 0.35rem;
+}
+
+/* ── FAV column in tables ── */
+/* ── Name cell with inline star ── */
+.gl-name-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+.gl-name-cell > span {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  min-width: 0;
+}
+
+/* Desktop: hide star unless favorited or row hovered */
+.gl-row .gl-name-cell .fav-star {
+  opacity: 0;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+.gl-row .gl-name-cell .fav-star--active,
+.gl-row:hover .gl-name-cell .fav-star {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Touch devices: always show */
+@media (hover: none) {
+  .gl-row .gl-name-cell .fav-star {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
