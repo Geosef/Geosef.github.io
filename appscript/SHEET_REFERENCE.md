@@ -42,12 +42,12 @@ Per-month standings. All five sheets share the same layout.
 
 Row 4 = first data row (index 3).
 
-| Col | Index | Field                       |
-| --- | ----- | --------------------------- |
-| A   | 0     | Rank (sheet-computed)       |
-| B   | 1     | Player Name                 |
-| D   | 3     | +/- from Best 2 Rounds      |
-| G   | 6     | Points                      |
+| Col | Index | Field                  |
+| --- | ----- | ---------------------- |
+| A   | 0     | Rank (sheet-computed)  |
+| B   | 1     | Player Name            |
+| D   | 3     | +/- from Best 2 Rounds |
+| G   | 6     | Points                 |
 
 Notes:
 
@@ -126,15 +126,15 @@ Used by `?action=courses` to build the canonical course variant list (all course
 
 Static course metadata. Row 1 = headers, data starts row 2.
 
-| Col | Index | Field        |
-| --- | ----- | ------------ |
-| A   | 0     | Course Name  |
-| B   | 1     | Full Name    |
-| C   | 2     | Address      |
-| D   | 3     | Phone        |
-| E   | 4     | Tee Times URL|
-| F   | 5     | Architect    |
-| G   | 6     | Year Built   |
+| Col | Index | Field         |
+| --- | ----- | ------------- |
+| A   | 0     | Course Name   |
+| B   | 1     | Full Name     |
+| C   | 2     | Address       |
+| D   | 3     | Phone         |
+| E   | 4     | Tee Times URL |
+| F   | 5     | Architect     |
+| G   | 6     | Year Built    |
 
 Course Name must match exactly the `course` field in Scoring Log. Used by `?action=courseInfo`. Maps link is generated on the frontend from Address (`https://maps.google.com/?q=...`).
 
@@ -168,14 +168,14 @@ Never expose via API.
 
 ## Apps Script Endpoints
 
-| Route                                   | Status | Returns                                                                                              |
-| --------------------------------------- | ------ | ---------------------------------------------------------------------------------------------------- |
-| `?action=leaderboard`                   | Live   | `{ standings: [{ rank, name, points, events, isTied }], lastUpdated }`                               |
-| `?action=monthly&month=April`           | Live   | `{ month, standings: [{ rank, name, plusMinus, points, isTied }] }`                                  |
-| `?action=scoringLog`                    | Live   | `{ rounds: [{ player, course, tees, frontBack, score, netScore, plusMinus, ... }] }`                 |
-| `?action=handicapIndex`                 | Live   | `{ players: [{ player, current, history: [{ date, index }] }] }`                                     |
-| `?action=courses`                       | Live   | `{ courses: [{ name, frontBack, par, slope }] }` — canonical list from Playing Handicaps headers     |
-| `?action=courseInfo`                    | Live   | `{ courses: [{ name, fullName, address, phone, teeTimesUrl, architect, yearBuilt }] }`               |
+| Route                         | Status | Returns                                                                                          |
+| ----------------------------- | ------ | ------------------------------------------------------------------------------------------------ |
+| `?action=leaderboard`         | Live   | `{ standings: [{ rank, name, points, events, isTied }], lastUpdated }`                           |
+| `?action=monthly&month=April` | Live   | `{ month, standings: [{ rank, name, plusMinus, points, isTied }] }`                              |
+| `?action=scoringLog`          | Live   | `{ rounds: [{ player, course, tees, frontBack, score, netScore, plusMinus, ... }] }`             |
+| `?action=handicapIndex`       | Live   | `{ players: [{ player, current, history: [{ date, index }] }] }`                                 |
+| `?action=courses`             | Live   | `{ courses: [{ name, frontBack, par, slope }] }` — canonical list from Playing Handicaps headers |
+| `?action=courseInfo`          | Live   | `{ courses: [{ name, fullName, address, phone, teeTimesUrl, architect, yearBuilt }] }`           |
 
 ## Gotchas
 

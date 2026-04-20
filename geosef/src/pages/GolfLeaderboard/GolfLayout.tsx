@@ -5,6 +5,7 @@ import { NavRightProvider, useNavRight } from './NavRightContext';
 import './GolfLeaderboard.css';
 
 const LEAGUE_RULES_URL = 'https://docs.google.com/document/d/1hg-nl49_QdqyBlWsAYHjgmQYnvClTUHDigqLMRerrsI';
+const SUBMIT_SCORES_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSeChh3is0Cgeh4Hph2msTn4n31s75n3WA3IqU74ti-BxdIumg/viewform';
 
 const NAV_LINKS: { to: string; label: string; end?: boolean }[] = [
   { to: '/golf-leaderboard', label: 'Leader Board', end: true },
@@ -137,6 +138,15 @@ function GolfLayoutInner() {
                 </NavLink>
               ))}
               <div className="gl-menu-divider" />
+              <a
+                href={SUBMIT_SCORES_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="gl-menu-link gl-menu-link--external"
+              >
+                <span>Submit Scores</span>
+                <ArrowUpRight size={18} />
+              </a>
               <a
                 href={LEAGUE_RULES_URL}
                 target="_blank"
