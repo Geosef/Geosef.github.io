@@ -7,6 +7,9 @@ import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
 import { SortTh, SortDir, pmScoreClass, StickyListHeader, Chip, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
+import { useUserPrefs } from '../../hooks/useUserPrefs';
+import { sortByFavorites } from '../../lib/sortByFavorites';
+import FavoriteStar from '../../components/FavoriteStar';
 
 const NINE_HOLE_COURSES = ['Ballwin'];
 
@@ -39,6 +42,7 @@ interface CourseSummary {
 
 export default function CoursesList() {
   const navigate = useNavigate();
+  const { prefs, toggleFavoriteCourse } = useUserPrefs();
   const [scoringLog, setScoringLog] = useState<ScoringLogData | null>(sessionCache.scoringLog);
   const [variants, setVariants] = useState<CourseVariantData | null>(sessionCache.courseVariants);
   const [courseInfo, setCourseInfo] = useState<CourseInfoData | null>(sessionCache.courseInfo);
@@ -239,7 +243,8 @@ export default function CoursesList() {
     return sortDir === 'asc' ? cmp : -cmp;
   });
 
-  const visible = showAll ? display : display.slice(0, PAGE_SIZE);
+  const displayFaved = sortByFavorites(display, prefs?.favoriteCourses ?? [], c => c.name);
+  const visible = showAll ? displayFaved : displayFaved.slice(0, PAGE_SIZE);
   const loading = !variants;
 
   return (
@@ -290,8 +295,19 @@ export default function CoursesList() {
                 return (
                   <tr key={`${c.name}|${c.frontBack || 'split'}`} className={rowClass} onClick={() => navigate(courseUrl)}>
                     <td className="gl-col-name">
-                      {c.name}
-                      {c.isNineHole && <Chip className="gl-chip--inline">9 holes</Chip>}
+                      <div className="gl-name-cell">
+                        <span>
+                          {c.name}
+                          {c.isNineHole && <Chip className="gl-chip--inline">9 holes</Chip>}
+                        </span>
+                        {prefs && (
+                          <FavoriteStar
+                            isFavorite={prefs.favoriteCourses.includes(c.name)}
+                            onToggle={() => toggleFavoriteCourse(c.name)}
+                            label={c.name}
+                          />
+                        )}
+                      </div>
                     </td>
                     <td>{c.rounds > 0 ? c.rounds : '—'}</td>
                     <td>{c.parCell}</td>
@@ -339,8 +355,8 @@ export default function CoursesList() {
                   </tr>
                 );
               })}
-              {!showAll && display.length > PAGE_SIZE && (
-                <ShowAllRow total={display.length} shown={visible.length} colSpan={6} onShowAll={() => setShowAll(true)} />
+              {!showAll && displayFaved.length > PAGE_SIZE && (
+                <ShowAllRow total={displayFaved.length} shown={visible.length} colSpan={6} onShowAll={() => setShowAll(true)} />
               )}
             </tbody>
           </table></div>

@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Outlet, NavLink, useLocation, useNavigationType } from 'react-router-dom';
 import { Menu, X, ArrowUpRight } from 'lucide-react';
 import { NavRightProvider, useNavRight } from './NavRightContext';
+import { useAuth } from '../../context/AuthContext';
 import './GolfLeaderboard.css';
 
 const LEAGUE_RULES_URL = 'https://docs.google.com/document/d/1hg-nl49_QdqyBlWsAYHjgmQYnvClTUHDigqLMRerrsI';
@@ -40,6 +41,66 @@ function ScrollManager() {
   }, [pathname, navType]);
 
   return null;
+}
+
+function AuthButton() {
+  const { user, signOut } = useAuth();
+  const [open, setOpen] = useState(false);
+  const gBtnRef = useRef<HTMLDivElement>(null);
+
+  // renderButton is more reliable than prompt() — Google never suppresses it
+  const renderGoogleButton = useCallback(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const g = (window as any).google;
+    if (g?.accounts?.id && gBtnRef.current) {
+      g.accounts.id.renderButton(gBtnRef.current, {
+        theme: 'outline',
+        size: 'medium',
+        text: 'signin_with',
+        shape: 'rectangular',
+      });
+      return true;
+    }
+    return false;
+  }, []);
+
+  useEffect(() => {
+    if (user) return;
+    if (renderGoogleButton()) return;
+    // GIS not loaded yet — poll until ready
+    const t = setInterval(() => {
+      if (renderGoogleButton()) clearInterval(t);
+    }, 200);
+    return () => clearInterval(t);
+  }, [user, renderGoogleButton]);
+
+  if (!user) {
+    return <div ref={gBtnRef} className="gl-auth-gbutton" />;
+  }
+
+  return (
+    <div className="gl-auth-avatar-wrap">
+      <button
+        className="gl-auth-avatar-btn"
+        onClick={() => setOpen(o => !o)}
+        aria-label={`Signed in as ${user.name}`}
+      >
+        <img src={user.picture} alt={user.name} className="gl-auth-avatar" referrerPolicy="no-referrer" />
+      </button>
+      {open && (
+        <>
+          <div className="gl-auth-dropdown-backdrop" onClick={() => setOpen(false)} />
+          <div className="gl-auth-dropdown">
+            <div className="gl-auth-dropdown-name">{user.name}</div>
+            <div className="gl-auth-dropdown-email">{user.email}</div>
+            <button className="gl-auth-dropdown-signout" onClick={() => { signOut(); setOpen(false); }}>
+              Sign out
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
 }
 
 function GolfLayoutInner() {
@@ -104,7 +165,7 @@ function GolfLayoutInner() {
           <Menu size={22} />
         </button>
         <div className="gl-subnav-title">GGC League</div>
-        <div className="gl-subnav-right">{navRight}</div>
+        <div className="gl-subnav-right">{navRight}<AuthButton /></div>
       </header>
 
       {menuOpen && (

@@ -73,6 +73,8 @@ var SCORING_LOG_SHEET = "Scoring Log 2026";
 var HANDICAP_INDEX_SHEET = "Handicap Index Log";
 var PLAYING_HANDICAPS_SHEET = "Playing Handicaps";
 var COURSE_INFO_SHEET = "Course Info";
+var LEAGUE_ROSTER_SHEET = "League Roster 2026";
+var USER_PREFS_SHEET = "User Preferences";
 
 // 9-hole courses — these collapse front/back into a single entry
 var NINE_HOLE_COURSES = ["Ballwin"];
@@ -160,6 +162,9 @@ function doGet(e) {
     result = getCourses();
   } else if (action === "courseInfo") {
     result = getCourseInfo();
+  } else if (action === "getPrefs") {
+    var token = e.parameter && e.parameter.token ? e.parameter.token : "";
+    result = getPrefsHandler(token);
   } else {
     result = { error: "Unknown action: " + action };
   }
@@ -499,4 +504,129 @@ function getHandicapIndex() {
     cache.put("handicapIndex", JSON.stringify(result), CACHE_TTL_HANDICAP);
   } catch (e) {}
   return result;
+}
+
+// --- Token verification (shared by getPrefs + score submission) ---
+
+/**
+ * Verifies a Google ID token via the tokeninfo endpoint.
+ * Returns the token payload (with email) if valid and in the roster, null otherwise.
+ * Set OAUTH_CLIENT_ID in Script Properties to enforce audience check.
+ */
+function verifyToken(token) {
+  if (!token) return null;
+  try {
+    var resp = UrlFetchApp.fetch(
+      'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(token),
+      { muteHttpExceptions: true }
+    );
+    if (resp.getResponseCode() !== 200) return null;
+    var payload = JSON.parse(resp.getContentText());
+    if (!payload.email_verified) return null;
+    var clientId = PropertiesService.getScriptProperties().getProperty('OAUTH_CLIENT_ID');
+    if (clientId && payload.aud !== clientId) return null;
+    if (!isInRoster(payload.email)) return null;
+    return payload;
+  } catch (e) {
+    return null;
+  }
+}
+
+function isInRoster(email) {
+  if (!email) return false;
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(LEAGUE_ROSTER_SHEET);
+  if (!sheet) return false;
+  var data = sheet.getDataRange().getValues();
+  var lower = email.toLowerCase();
+  // Email is in column E (index 4); row 1 is header
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][4]).trim().toLowerCase() === lower) return true;
+  }
+  return false;
+}
+
+// --- User Preferences ---
+
+function getPrefsHandler(token) {
+  var payload = verifyToken(token);
+  if (!payload) return { error: 'Unauthorized', status: 403 };
+
+  var email = payload.email;
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(USER_PREFS_SHEET);
+  if (!sheet) return { favoritePlayers: [], favoriteCourses: [] };
+
+  var rows = sheet.getDataRange().getValues();
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]).trim().toLowerCase() === email.toLowerCase()) {
+      var fpRaw = String(rows[i][1]).trim();
+      var fcRaw = String(rows[i][2]).trim();
+      return {
+        favoritePlayers: fpRaw ? fpRaw.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [],
+        favoriteCourses: fcRaw ? fcRaw.split(',').map(function(s) { return s.trim(); }).filter(Boolean) : [],
+      };
+    }
+  }
+  return { favoritePlayers: [], favoriteCourses: [] };
+}
+
+function setPrefsHandler(body) {
+  var payload = verifyToken(body.token);
+  if (!payload) return { error: 'Unauthorized', status: 403 };
+
+  var email = payload.email;
+  var favPlayers = Array.isArray(body.favoritePlayers) ? body.favoritePlayers : [];
+  var favCourses = Array.isArray(body.favoriteCourses) ? body.favoriteCourses : [];
+
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(USER_PREFS_SHEET);
+
+  if (!sheet) {
+    sheet = ss.insertSheet(USER_PREFS_SHEET);
+    sheet.getRange(1, 1, 1, 4).setValues([['Email', 'FavoritePlayers', 'FavoriteCourses', 'UpdatedAt']]);
+  }
+
+  var rows = sheet.getDataRange().getValues();
+  var rowIdx = -1;
+  for (var i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]).trim().toLowerCase() === email.toLowerCase()) {
+      rowIdx = i + 1; // 1-based sheet row
+      break;
+    }
+  }
+
+  var newRow = [email, favPlayers.join(','), favCourses.join(','), new Date().toISOString()];
+
+  if (rowIdx > 0) {
+    sheet.getRange(rowIdx, 1, 1, 4).setValues([newRow]);
+  } else {
+    sheet.appendRow(newRow);
+  }
+
+  return { favoritePlayers: favPlayers, favoriteCourses: favCourses };
+}
+
+// --- POST handler (first doPost — score submission will also route here) ---
+
+function doPost(e) {
+  var body;
+  try {
+    body = JSON.parse(e.postData.contents);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ error: 'Invalid JSON body' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  var action = body.action;
+  var result;
+
+  if (action === 'setPrefs') {
+    result = setPrefsHandler(body);
+  } else {
+    result = { error: 'Unknown action: ' + action };
+  }
+
+  return ContentService.createTextOutput(JSON.stringify(result))
+    .setMimeType(ContentService.MimeType.JSON);
 }

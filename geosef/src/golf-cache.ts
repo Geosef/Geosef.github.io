@@ -5,7 +5,7 @@
  * Architecture: cache the two raw data sheets (scoringLog + handicapIndex) once,
  * then all player detail views are pure client-side computation — no per-player fetches.
  */
-import type { LeaderboardData, MonthlyData, ScoringLogData, HandicapIndexData, CourseVariantData, CourseInfoData } from './types/golf';
+import type { LeaderboardData, MonthlyData, ScoringLogData, HandicapIndexData, CourseVariantData, CourseInfoData, UserPrefs } from './types/golf';
 
 export const sessionCache = {
   season:         null as LeaderboardData | null,
@@ -14,4 +14,5 @@ export const sessionCache = {
   handicapIndex:  null as HandicapIndexData | null,
   courseVariants: null as CourseVariantData | null,
   courseInfo:     null as CourseInfoData | null,
+  userPrefs:      null as UserPrefs | null,
 };

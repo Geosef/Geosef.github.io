@@ -104,6 +104,11 @@ export interface CourseInfoData {
   courses: CourseInfoEntry[];
 }
 
+export interface UserPrefs {
+  favoritePlayers: string[];
+  favoriteCourses: string[];
+}
+
 // --- Shared utilities ---
 
 const MONTH_ORDER = ['April', 'May', 'June', 'July', 'August'];
