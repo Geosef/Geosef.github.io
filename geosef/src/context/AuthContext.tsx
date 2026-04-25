@@ -42,6 +42,10 @@ function loadGIS(): Promise<void> {
   });
 }
 
+// Module-level guard so React StrictMode's double-mount in dev doesn't trigger
+// "google.accounts.id.initialize() is called multiple times" warnings.
+let gisInitialized = false;
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -72,6 +76,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!OAUTH_CLIENT_ID) return;
 
     loadGIS().then(() => {
+      if (gisInitialized) return;
+      gisInitialized = true;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).google.accounts.id.initialize({
         client_id: OAUTH_CLIENT_ID,

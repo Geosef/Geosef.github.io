@@ -4,7 +4,14 @@ import type { UserPrefs } from '../types/golf';
 export function loadCachedPrefs(email: string): UserPrefs | null {
   try {
     const raw = localStorage.getItem(`prefs:${email}`);
-    return raw ? JSON.parse(raw) : null;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Validate shape — stale entries from earlier versions could be malformed
+    if (!Array.isArray(parsed?.favoritePlayers) || !Array.isArray(parsed?.favoriteCourses)) {
+      localStorage.removeItem(`prefs:${email}`);
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }
