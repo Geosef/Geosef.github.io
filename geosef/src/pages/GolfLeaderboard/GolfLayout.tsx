@@ -75,11 +75,14 @@ function AuthButton() {
   }, [user, renderGoogleButton]);
 
   if (!user) {
-    return <div ref={gBtnRef} className="gl-auth-gbutton" />;
+    // key forces a full unmount when user signs in — without it, React
+    // reuses this div and leaves the GIS-injected iframe behind alongside
+    // the avatar branch's children.
+    return <div key="signin" ref={gBtnRef} className="gl-auth-gbutton" />;
   }
 
   return (
-    <div className="gl-auth-avatar-wrap">
+    <div key="avatar" className="gl-auth-avatar-wrap">
       <button
         className="gl-auth-avatar-btn"
         onClick={() => setOpen(o => !o)}
