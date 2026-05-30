@@ -21,10 +21,14 @@ export function saveCachedPrefs(email: string, prefs: UserPrefs) {
   localStorage.setItem(`prefs:${email}`, JSON.stringify(prefs));
 }
 
+// Apps Script returns errors as HTTP 200 with { error, status } in the body,
+// so we have to inspect the JSON to detect failures.
 export async function getPrefs(token: string): Promise<UserPrefs> {
   const res = await fetch(`${APPS_SCRIPT_URL}?action=getPrefs&token=${encodeURIComponent(token)}`);
   if (!res.ok) throw new Error(`getPrefs ${res.status}`);
-  return res.json();
+  const data = await res.json();
+  if (data?.error) throw new Error(`getPrefs: ${data.error}`);
+  return data;
 }
 
 export async function setPrefs(token: string, prefs: UserPrefs): Promise<void> {
@@ -35,4 +39,6 @@ export async function setPrefs(token: string, prefs: UserPrefs): Promise<void> {
     body: JSON.stringify({ action: 'setPrefs', token, ...prefs }),
   });
   if (!res.ok) throw new Error(`setPrefs ${res.status}`);
+  const data = await res.json();
+  if (data?.error) throw new Error(`setPrefs: ${data.error}`);
 }

@@ -22,12 +22,12 @@ export function useUserPrefs() {
 
     getPrefs(token)
       .then(fresh => {
-        // Ignore error responses (e.g. { error: 'Unauthorized' })
-        if (!Array.isArray(fresh.favoritePlayers)) return;
         setPrefsState(fresh);
         saveCachedPrefs(user.email, fresh);
       })
-      .catch(() => {})
+      .catch(err => {
+        console.warn('[favorites] sync failed:', err.message);
+      })
       .finally(() => setIsLoaded(true));
   }, [user?.email, token]);
 
@@ -45,7 +45,8 @@ export function useUserPrefs() {
     saveCachedPrefs(user.email, updated);
     try {
       await setPrefs(token, updated);
-    } catch {
+    } catch (err) {
+      console.warn('[favorites] save failed:', (err as Error).message);
       setPrefsState(prev);
       saveCachedPrefs(user.email, prev);
     }
@@ -65,7 +66,8 @@ export function useUserPrefs() {
     saveCachedPrefs(user.email, updated);
     try {
       await setPrefs(token, updated);
-    } catch {
+    } catch (err) {
+      console.warn('[favorites] save failed:', (err as Error).message);
       setPrefsState(prev);
       saveCachedPrefs(user.email, prev);
     }
