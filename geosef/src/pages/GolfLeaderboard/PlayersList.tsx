@@ -2,8 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './GolfLeaderboard.css';
 import type { LeaderboardData } from '../../types/golf';
-import { APPS_SCRIPT_URL } from '../../config';
-import { sessionCache } from '../../golf-cache';
+import { sessionCache, loadAction } from '../../golf-cache';
 import { SortTh, sortStandings, SortDir, StickyListHeader, PAGE_SIZE, ShowAllRow, ListError, EmptyRow, FavoritesToggle } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
@@ -24,16 +23,7 @@ export default function PlayersList() {
 
   const load = useCallback(() => {
     setError(false);
-    fetch(`${APPS_SCRIPT_URL}?action=leaderboard`)
-      .then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((d: LeaderboardData) => {
-        sessionCache.season = d;
-        setData(d);
-      })
-      .catch(() => setError(true));
+    loadAction('season').then(setData).catch(() => setError(true));
   }, []);
 
   useEffect(() => {

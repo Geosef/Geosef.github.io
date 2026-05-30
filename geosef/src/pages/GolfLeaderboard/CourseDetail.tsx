@@ -7,10 +7,9 @@ import ShareButton from '../../components/ShareButton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
 import './GolfLeaderboard.css';
 import './CourseDetail.css';
-import type { Round, ScoringLogData, CourseInfoData, CourseVariantData } from '../../types/golf';
+import type { Round } from '../../types/golf';
 import { formatPlusMinus, formatDate } from '../../types/golf';
-import { APPS_SCRIPT_URL } from '../../config';
-import { sessionCache } from '../../golf-cache';
+import { sessionCache, loadAction } from '../../golf-cache';
 import { pmScoreClass, countBy, Chip } from './leaderboard-utils';
 import { SkeletonDetailHeader, SkeletonSection } from './GolfSkeleton';
 
@@ -108,44 +107,20 @@ export default function CourseDetail() {
   useEffect(() => {
     if (!courseName) return;
 
-    const fetches: Promise<void>[] = [];
+    // Course variants enrich the view but don't gate it — load independently.
+    loadAction('courseVariants')
+      .then(() => forceUpdate(n => n + 1))
+      .catch(() => {});
 
-    if (!sessionCache.scoringLog) {
-      fetches.push(
-        fetch(`${APPS_SCRIPT_URL}?action=scoringLog`)
-          .then(r => r.json())
-          .then((data: ScoringLogData) => { sessionCache.scoringLog = data; })
-          .catch(() => { setError('Could not load course data.'); })
-      );
-    }
-
-    if (!sessionCache.courseInfo) {
-      fetches.push(
-        fetch(`${APPS_SCRIPT_URL}?action=courseInfo`)
-          .then(r => r.json())
-          .then((data: CourseInfoData) => { sessionCache.courseInfo = data; })
-          .catch(() => {})
-      );
-    }
-
-    if (!sessionCache.courseVariants) {
-      fetch(`${APPS_SCRIPT_URL}?action=courses`)
-        .then(r => r.json())
-        .then((data: CourseVariantData) => {
-          sessionCache.courseVariants = data;
-          forceUpdate(n => n + 1);
-        })
-        .catch(() => {});
-    }
-
-    if (fetches.length > 0) {
-      Promise.all(fetches).then(() => {
-        setLoading(false);
-        forceUpdate(n => n + 1);
-      });
-    } else {
+    // scoringLog + courseInfo gate the loading state; only a scoringLog failure
+    // is surfaced (courseInfo is supplementary).
+    Promise.all([
+      loadAction('scoringLog').catch(() => { setError('Could not load course data.'); }),
+      loadAction('courseInfo').catch(() => {}),
+    ]).then(() => {
       setLoading(false);
-    }
+      forceUpdate(n => n + 1);
+    });
   }, [courseName]);
 
   if (loading) {

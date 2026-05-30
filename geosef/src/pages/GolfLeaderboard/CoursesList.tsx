@@ -3,8 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import './GolfLeaderboard.css';
 import type { ScoringLogData, Round, CourseVariantData, CourseInfoData } from '../../types/golf';
 import { formatPlusMinus } from '../../types/golf';
-import { APPS_SCRIPT_URL } from '../../config';
-import { sessionCache } from '../../golf-cache';
+import { sessionCache, loadAction } from '../../golf-cache';
 import { SortTh, SortDir, pmScoreClass, StickyListHeader, Chip, PAGE_SIZE, ShowAllRow, ListError, FavoritesToggle } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
@@ -56,38 +55,11 @@ export default function CoursesList() {
 
   const load = useCallback(() => {
     setError(false);
-    if (!sessionCache.scoringLog) {
-      fetch(`${APPS_SCRIPT_URL}?action=scoringLog`)
-        .then(r => r.json())
-        .then((d: ScoringLogData) => {
-          sessionCache.scoringLog = d;
-          setScoringLog(d);
-        })
-        .catch(() => {});
-    }
-    // The courses variant feed is what gates the page out of its loading
-    // state, so a failure here is the one users must be able to recover from.
-    if (!sessionCache.courseVariants) {
-      fetch(`${APPS_SCRIPT_URL}?action=courses`)
-        .then(r => {
-          if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          return r.json();
-        })
-        .then((d: CourseVariantData) => {
-          sessionCache.courseVariants = d;
-          setVariants(d);
-        })
-        .catch(() => setError(true));
-    }
-    if (!sessionCache.courseInfo) {
-      fetch(`${APPS_SCRIPT_URL}?action=courseInfo`)
-        .then(r => r.json())
-        .then((d: CourseInfoData) => {
-          sessionCache.courseInfo = d;
-          setCourseInfo(d);
-        })
-        .catch(() => {});
-    }
+    loadAction('scoringLog').then(setScoringLog).catch(() => {});
+    // The courses variant feed gates the page out of its loading state, so a
+    // failure here is the one users must be able to recover from.
+    loadAction('courseVariants').then(setVariants).catch(() => setError(true));
+    loadAction('courseInfo').then(setCourseInfo).catch(() => {});
   }, []);
 
   useEffect(() => { load(); }, [load]);

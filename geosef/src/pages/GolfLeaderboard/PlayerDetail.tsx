@@ -13,10 +13,9 @@ import {
 } from 'recharts';
 import './GolfLeaderboard.css';
 import './PlayerDetail.css';
-import type { Round, HandicapPoint, ScoringLogData, HandicapIndexData, PlayerHandicap } from '../../types/golf';
+import type { Round, HandicapPoint, PlayerHandicap } from '../../types/golf';
 import { tagCountingRounds, groupRoundsByMonth, formatDate } from '../../types/golf';
-import { APPS_SCRIPT_URL } from '../../config';
-import { sessionCache } from '../../golf-cache';
+import { sessionCache, loadAction } from '../../golf-cache';
 import { RoundMonthGroup } from './RoundHistory';
 import { countBy, NON_MEMBER_PARTNER } from './leaderboard-utils';
 
@@ -135,30 +134,14 @@ export default function PlayerDetail() {
   useEffect(() => {
     if (!playerName) return;
 
-    const fetches: Promise<void>[] = [];
-
-    if (!sessionCache.scoringLog) {
-      fetches.push(
-        fetch(`${APPS_SCRIPT_URL}?action=scoringLog`)
-          .then(r => r.json())
-          .then((data: ScoringLogData) => { sessionCache.scoringLog = data; })
-      );
-    }
-
-    if (!sessionCache.handicapIndex) {
-      fetches.push(
-        fetch(`${APPS_SCRIPT_URL}?action=handicapIndex`)
-          .then(r => r.json())
-          .then((data: HandicapIndexData) => { sessionCache.handicapIndex = data; })
-      );
-    }
-
-    if (fetches.length === 0) {
+    if (sessionCache.scoringLog && sessionCache.handicapIndex) {
       setLoading(false);
       return;
     }
 
-    Promise.all(fetches)
+    setLoading(true);
+    setError(null);
+    Promise.all([loadAction('scoringLog'), loadAction('handicapIndex')])
       .then(() => {
         setLoading(false);
         forceUpdate(n => n + 1);

@@ -3,8 +3,7 @@ import { Link } from 'react-router-dom';
 import './GolfLeaderboard.css';
 import type { ScoringLogData, Round } from '../../types/golf';
 import { formatPlusMinus, formatDate } from '../../types/golf';
-import { APPS_SCRIPT_URL } from '../../config';
-import { sessionCache } from '../../golf-cache';
+import { sessionCache, loadAction } from '../../golf-cache';
 import { SortTh, SortDir, StickyListHeader, pmScoreClass, lastName, PAGE_SIZE, ShowAllRow, ListError, EmptyRow } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 
@@ -48,16 +47,7 @@ export default function RecentScores() {
 
   const load = useCallback(() => {
     setError(false);
-    fetch(`${APPS_SCRIPT_URL}?action=scoringLog`)
-      .then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then((d: ScoringLogData) => {
-        sessionCache.scoringLog = d;
-        setData(d);
-      })
-      .catch(() => setError(true));
+    loadAction('scoringLog').then(setData).catch(() => setError(true));
   }, []);
 
   useEffect(() => {
