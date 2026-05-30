@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import FavoriteStar from '../../components/FavoriteStar';
 import FavoritesToast from '../../components/FavoritesToast';
+import ShareButton from '../../components/ShareButton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
 import { useTheme } from '../../hooks/useTheme';
 import { SkeletonDetailHeader, SkeletonSection } from './GolfSkeleton';
@@ -205,15 +206,18 @@ export default function PlayerDetail() {
         <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
         <div className="gl-detail-title-row">
           <h1 className="pd-name">{playerName}</h1>
-          {isSignedIn && prefs ? (
-            <FavoriteStar
-              isFavorite={prefs.favoritePlayers.includes(playerName)}
-              onToggle={() => toggleFavoritePlayer(playerName)}
-              label={playerName}
-            />
-          ) : (
-            <FavoriteStar isFavorite={false} promptSignIn onToggle={signIn} label={playerName} />
-          )}
+          <div className="gl-detail-actions">
+            {isSignedIn && prefs ? (
+              <FavoriteStar
+                isFavorite={prefs.favoritePlayers.includes(playerName)}
+                onToggle={() => toggleFavoritePlayer(playerName)}
+                label={playerName}
+              />
+            ) : (
+              <FavoriteStar isFavorite={false} promptSignIn onToggle={signIn} label={playerName} />
+            )}
+            <ShareButton title={`${playerName} — GGC League`} />
+          </div>
         </div>
         {handicap?.current != null && (
           <p className="pd-hcp-current">Handicap Index: {handicap.current.toFixed(1)}</p>

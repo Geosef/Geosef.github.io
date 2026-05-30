@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'reac
 import { ArrowLeft, MapPin, Phone, Clock, DollarSign } from 'lucide-react';
 import FavoriteStar from '../../components/FavoriteStar';
 import FavoritesToast from '../../components/FavoritesToast';
+import ShareButton from '../../components/ShareButton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
 import './GolfLeaderboard.css';
 import './CourseDetail.css';
@@ -251,17 +252,20 @@ export default function CourseDetail() {
         <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
         <div className="gl-detail-title-row">
           <h1 className="cd-name">{headingTitle}</h1>
-          {decoded && (
-            isSignedIn && prefs ? (
-              <FavoriteStar
-                isFavorite={prefs.favoriteCourses.includes(decoded)}
-                onToggle={() => toggleFavoriteCourse(decoded)}
-                label={decoded}
-              />
-            ) : (
-              <FavoriteStar isFavorite={false} promptSignIn onToggle={signIn} label={decoded} />
-            )
-          )}
+          <div className="gl-detail-actions">
+            {decoded && (
+              isSignedIn && prefs ? (
+                <FavoriteStar
+                  isFavorite={prefs.favoriteCourses.includes(decoded)}
+                  onToggle={() => toggleFavoriteCourse(decoded)}
+                  label={decoded}
+                />
+              ) : (
+                <FavoriteStar isFavorite={false} promptSignIn onToggle={signIn} label={decoded} />
+              )
+            )}
+            <ShareButton title={`${headingTitle} — GGC League`} />
+          </div>
         </div>
         <p className="cd-meta">
           {parDisplay} · {rounds.length} round{rounds.length !== 1 ? 's' : ''}
