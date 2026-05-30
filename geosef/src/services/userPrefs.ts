@@ -27,7 +27,7 @@ export async function getPrefs(token: string): Promise<UserPrefs> {
   const res = await fetch(`${APPS_SCRIPT_URL}?action=getPrefs&token=${encodeURIComponent(token)}`);
   if (!res.ok) throw new Error(`getPrefs ${res.status}`);
   const data = await res.json();
-  if (data?.error) throw new Error(`getPrefs: ${data.error}`);
+  if (data?.error) throw new Error(`getPrefs: ${data.error}${data.reason ? ` (${data.reason})` : ''}`);
   return data;
 }
 
@@ -40,5 +40,5 @@ export async function setPrefs(token: string, prefs: UserPrefs): Promise<void> {
   });
   if (!res.ok) throw new Error(`setPrefs ${res.status}`);
   const data = await res.json();
-  if (data?.error) throw new Error(`setPrefs: ${data.error}`);
+  if (data?.error) throw new Error(`setPrefs: ${data.error}${data.reason ? ` (${data.reason})` : ''}`);
 }

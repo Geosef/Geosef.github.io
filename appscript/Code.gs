@@ -514,21 +514,28 @@ function getHandicapIndex() {
  * Set OAUTH_CLIENT_ID in Script Properties to enforce audience check.
  */
 function verifyToken(token) {
-  if (!token) return null;
+  return verifyTokenDetailed(token).payload;
+}
+
+// Returns { payload, reason } so callers can surface a specific failure cause.
+function verifyTokenDetailed(token) {
+  if (!token) return { payload: null, reason: 'no_token' };
   try {
     var resp = UrlFetchApp.fetch(
       'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(token),
       { muteHttpExceptions: true }
     );
-    if (resp.getResponseCode() !== 200) return null;
+    if (resp.getResponseCode() !== 200) return { payload: null, reason: 'tokeninfo_' + resp.getResponseCode() };
     var payload = JSON.parse(resp.getContentText());
-    if (!payload.email_verified) return null;
+    if (!payload.email_verified || payload.email_verified === 'false') {
+      return { payload: null, reason: 'email_unverified' };
+    }
     var clientId = PropertiesService.getScriptProperties().getProperty('OAUTH_CLIENT_ID');
-    if (clientId && payload.aud !== clientId) return null;
-    if (!isInRoster(payload.email)) return null;
-    return payload;
+    if (clientId && payload.aud !== clientId) return { payload: null, reason: 'aud_mismatch' };
+    if (!isInRoster(payload.email)) return { payload: null, reason: 'not_in_roster:' + payload.email };
+    return { payload: payload, reason: null };
   } catch (e) {
-    return null;
+    return { payload: null, reason: 'exception:' + String(e) };
   }
 }
 
@@ -549,10 +556,10 @@ function isInRoster(email) {
 // --- User Preferences ---
 
 function getPrefsHandler(token) {
-  var payload = verifyToken(token);
-  if (!payload) return { error: 'Unauthorized', status: 403 };
+  var v = verifyTokenDetailed(token);
+  if (!v.payload) return { error: 'Unauthorized', reason: v.reason, status: 403 };
 
-  var email = payload.email;
+  var email = v.payload.email;
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   var sheet = ss.getSheetByName(USER_PREFS_SHEET);
   if (!sheet) return { favoritePlayers: [], favoriteCourses: [] };
@@ -572,10 +579,10 @@ function getPrefsHandler(token) {
 }
 
 function setPrefsHandler(body) {
-  var payload = verifyToken(body.token);
-  if (!payload) return { error: 'Unauthorized', status: 403 };
+  var v = verifyTokenDetailed(body.token);
+  if (!v.payload) return { error: 'Unauthorized', reason: v.reason, status: 403 };
 
-  var email = payload.email;
+  var email = v.payload.email;
   var favPlayers = Array.isArray(body.favoritePlayers) ? body.favoritePlayers : [];
   var favCourses = Array.isArray(body.favoriteCourses) ? body.favoriteCourses : [];
 
