@@ -159,6 +159,7 @@ function GolfLayoutInner() {
   return (
     <div className="gl-layout">
       <ScrollManager />
+      <a href="#gl-main" className="gl-skip-link">Skip to content</a>
       <header className="gl-subnav">
         <button
           className="gl-subnav-menu-btn"
@@ -231,7 +232,9 @@ function GolfLayoutInner() {
         </div>
       )}
 
-      <Outlet />
+      <main id="gl-main" tabIndex={-1} className="gl-main">
+        <Outlet />
+      </main>
 
       <footer className="gl-footer">
         <div className="gl-footer-inner">
