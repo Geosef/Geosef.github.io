@@ -1,4 +1,5 @@
 import React from 'react';
+import { Star } from 'lucide-react';
 import type { Standing, MonthlyStanding, MonthlyBreakdown } from '../../types/golf';
 
 export const NON_MEMBER_PARTNER = 'Other (GGC Member)';
@@ -21,6 +22,36 @@ export function StickyListHeader({ title, search, children }: StickyListHeaderPr
         )}
       </div>
       {children}
+    </div>
+  );
+}
+
+/** Segmented "All | ★ Favorites (N)" control for list pages. */
+export function FavoritesToggle({
+  favOnly,
+  onChange,
+  count,
+}: { favOnly: boolean; onChange: (v: boolean) => void; count: number }) {
+  return (
+    <div className="gl-fav-filter-row">
+      <div className="gl-fav-filter" role="group" aria-label="Filter by favorites">
+        <button
+          type="button"
+          className={`gl-fav-filter-btn${!favOnly ? ' gl-fav-filter-btn--active' : ''}`}
+          aria-pressed={!favOnly}
+          onClick={() => onChange(false)}
+        >
+          All
+        </button>
+        <button
+          type="button"
+          className={`gl-fav-filter-btn${favOnly ? ' gl-fav-filter-btn--active' : ''}`}
+          aria-pressed={favOnly}
+          onClick={() => onChange(true)}
+        >
+          <Star size={13} /> Favorites {count}
+        </button>
+      </div>
     </div>
   );
 }

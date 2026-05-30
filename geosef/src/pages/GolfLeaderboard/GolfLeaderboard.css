@@ -1272,16 +1272,15 @@
   min-width: 0;
 }
 
-/* Desktop: hide star unless favorited or row hovered */
+/* Desktop: muted star at rest (signals it's favoritable), full on hover/active */
 .gl-row .gl-name-cell .fav-star {
-  opacity: 0;
-  pointer-events: none;
+  opacity: 0.35;
   flex-shrink: 0;
 }
 .gl-row .gl-name-cell .fav-star--active,
-.gl-row:hover .gl-name-cell .fav-star {
+.gl-row:hover .gl-name-cell .fav-star,
+.gl-row .gl-name-cell .fav-star:focus-visible {
   opacity: 1;
-  pointer-events: auto;
 }
 
 /* Touch devices: always show */
@@ -1377,7 +1376,102 @@
     background: #e8f0e8;
   }
   .fav-star,
-  .fav-star:hover {
+  .fav-star:hover,
+  .fav-star:active {
     transform: none;
   }
+}
+
+/* ── Favorite star: sign-in prompt + press feedback ── */
+.fav-star--prompt {
+  opacity: 0.4;
+}
+.fav-star--prompt:hover {
+  opacity: 1;
+  color: var(--gl-green);
+  transform: none;
+}
+.fav-star:active svg {
+  transform: scale(0.85);
+}
+
+/* ── Favorites filter (segmented All | ★ Favorites N) ── */
+.gl-fav-filter-row {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 1rem 0.75rem;
+}
+.gl-fav-filter {
+  display: inline-flex;
+  border: 1px solid var(--gl-border);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--gl-white);
+}
+.gl-fav-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  padding: 0.4rem 0.9rem;
+  font-family: var(--gl-font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--gl-muted);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+.gl-fav-filter-btn + .gl-fav-filter-btn {
+  border-left: 1px solid var(--gl-border);
+}
+.gl-fav-filter-btn--active {
+  background: var(--gl-green);
+  color: #fff;
+}
+.gl-fav-filter-btn--active svg {
+  fill: var(--gl-yellow);
+  color: var(--gl-yellow);
+}
+
+/* ── Save-failure toast ── */
+.gl-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: min(90vw, 420px);
+  background: var(--gl-text);
+  color: #fff;
+  font-family: var(--gl-font-sans);
+  font-size: 0.85rem;
+  padding: 0.7rem 0.9rem 0.7rem 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--gl-red-light);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.25);
+  animation: gl-toast-in 0.2s ease-out;
+}
+.gl-toast-close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.2rem 0.3rem;
+  line-height: 1;
+}
+.gl-toast-close:hover {
+  color: #fff;
+}
+@keyframes gl-toast-in {
+  from { opacity: 0; transform: translate(-50%, 0.5rem); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gl-toast { animation: none; }
 }

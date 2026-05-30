@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, Phone, Clock, DollarSign } from 'lucide-react';
 import FavoriteStar from '../../components/FavoriteStar';
+import FavoritesToast from '../../components/FavoritesToast';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
 import './GolfLeaderboard.css';
 import './CourseDetail.css';
@@ -88,7 +89,7 @@ export default function CourseDetail() {
   const side = searchParams.get('side'); // "Front", "Back", or null
   const navigate = useNavigate();
   const location = useLocation();
-  const { prefs, toggleFavoriteCourse } = useUserPrefs();
+  const { prefs, toggleFavoriteCourse, isSignedIn, signIn, saveError, clearSaveError } = useUserPrefs();
 
   function goBack() {
     if (location.key !== 'default') {
@@ -250,12 +251,16 @@ export default function CourseDetail() {
         <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
         <div className="gl-detail-title-row">
           <h1 className="cd-name">{headingTitle}</h1>
-          {prefs && decoded && (
-            <FavoriteStar
-              isFavorite={prefs.favoriteCourses.includes(decoded)}
-              onToggle={() => toggleFavoriteCourse(decoded)}
-              label={decoded}
-            />
+          {decoded && (
+            isSignedIn && prefs ? (
+              <FavoriteStar
+                isFavorite={prefs.favoriteCourses.includes(decoded)}
+                onToggle={() => toggleFavoriteCourse(decoded)}
+                label={decoded}
+              />
+            ) : (
+              <FavoriteStar isFavorite={false} promptSignIn onToggle={signIn} label={decoded} />
+            )
           )}
         </div>
         <p className="cd-meta">
@@ -503,6 +508,7 @@ export default function CourseDetail() {
         </section>
 
       </div>
+      <FavoritesToast show={saveError} onDismiss={clearSaveError} />
     </div>
   );
 }

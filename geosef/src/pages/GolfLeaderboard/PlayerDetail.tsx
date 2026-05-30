@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import FavoriteStar from '../../components/FavoriteStar';
+import FavoritesToast from '../../components/FavoritesToast';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
 import { SkeletonDetailHeader, SkeletonSection } from './GolfSkeleton';
 import {
@@ -94,7 +95,7 @@ export default function PlayerDetail() {
   const { playerName } = useParams<{ playerName: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { prefs, toggleFavoritePlayer } = useUserPrefs();
+  const { prefs, toggleFavoritePlayer, isSignedIn, signIn, saveError, clearSaveError } = useUserPrefs();
 
   // Go back in history if we have it; fall back to leaderboard for direct-URL visits
   function goBack() {
@@ -185,12 +186,14 @@ export default function PlayerDetail() {
         <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
         <div className="gl-detail-title-row">
           <h1 className="pd-name">{playerName}</h1>
-          {prefs && (
+          {isSignedIn && prefs ? (
             <FavoriteStar
               isFavorite={prefs.favoritePlayers.includes(playerName)}
               onToggle={() => toggleFavoritePlayer(playerName)}
               label={playerName}
             />
+          ) : (
+            <FavoriteStar isFavorite={false} promptSignIn onToggle={signIn} label={playerName} />
           )}
         </div>
         {handicap?.current != null && (
@@ -266,6 +269,7 @@ export default function PlayerDetail() {
         </section>
 
       </div>
+      <FavoritesToast show={saveError} onDismiss={clearSaveError} />
     </div>
   );
 }

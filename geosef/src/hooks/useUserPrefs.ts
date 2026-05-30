@@ -3,10 +3,14 @@ import { useAuth } from '../context/AuthContext';
 import { getPrefs, setPrefs, loadCachedPrefs, saveCachedPrefs } from '../services/userPrefs';
 import type { UserPrefs } from '../types/golf';
 
+type FavKey = 'favoritePlayers' | 'favoriteCourses';
+
 export function useUserPrefs() {
-  const { user, token } = useAuth();
+  const { user, token, signIn } = useAuth();
   const [prefs, setPrefsState] = useState<UserPrefs | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  const isSignedIn = !!(user && token);
 
   useEffect(() => {
     if (!user || !token) {
@@ -31,15 +35,13 @@ export function useUserPrefs() {
       .finally(() => setIsLoaded(true));
   }, [user?.email, token]);
 
-  const toggleFavoritePlayer = useCallback(async (name: string) => {
+  const toggleFavorite = useCallback(async (key: FavKey, name: string) => {
     if (!user || !token || !prefs) return;
     const prev = prefs;
-    const inList = prev.favoritePlayers.includes(name);
+    const inList = prev[key].includes(name);
     const updated: UserPrefs = {
       ...prev,
-      favoritePlayers: inList
-        ? prev.favoritePlayers.filter(p => p !== name)
-        : [name, ...prev.favoritePlayers],
+      [key]: inList ? prev[key].filter(n => n !== name) : [name, ...prev[key]],
     };
     setPrefsState(updated);
     saveCachedPrefs(user.email, updated);
@@ -47,31 +49,31 @@ export function useUserPrefs() {
       await setPrefs(token, updated);
     } catch (err) {
       console.warn('[favorites] save failed:', (err as Error).message);
+      // Roll the optimistic change back and surface it to the user.
       setPrefsState(prev);
       saveCachedPrefs(user.email, prev);
+      setSaveError(true);
     }
   }, [user, token, prefs]);
 
-  const toggleFavoriteCourse = useCallback(async (name: string) => {
-    if (!user || !token || !prefs) return;
-    const prev = prefs;
-    const inList = prev.favoriteCourses.includes(name);
-    const updated: UserPrefs = {
-      ...prev,
-      favoriteCourses: inList
-        ? prev.favoriteCourses.filter(c => c !== name)
-        : [name, ...prev.favoriteCourses],
-    };
-    setPrefsState(updated);
-    saveCachedPrefs(user.email, updated);
-    try {
-      await setPrefs(token, updated);
-    } catch (err) {
-      console.warn('[favorites] save failed:', (err as Error).message);
-      setPrefsState(prev);
-      saveCachedPrefs(user.email, prev);
-    }
-  }, [user, token, prefs]);
+  const toggleFavoritePlayer = useCallback(
+    (name: string) => toggleFavorite('favoritePlayers', name),
+    [toggleFavorite],
+  );
+  const toggleFavoriteCourse = useCallback(
+    (name: string) => toggleFavorite('favoriteCourses', name),
+    [toggleFavorite],
+  );
+  const clearSaveError = useCallback(() => setSaveError(false), []);
 
-  return { prefs, toggleFavoritePlayer, toggleFavoriteCourse, isLoaded };
+  return {
+    prefs,
+    isLoaded,
+    isSignedIn,
+    signIn,
+    toggleFavoritePlayer,
+    toggleFavoriteCourse,
+    saveError,
+    clearSaveError,
+  };
 }
