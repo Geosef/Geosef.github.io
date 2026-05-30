@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GGC Outdoor League — Leaderboard Architecture</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1e1e1e;
+    --muted: #5c5f66;
+    --rule: #e3e6ea;
+    --code-bg: #f3f4f6;
+    --accent: #0c8599;
+    --link: #1971c2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115;
+      --fg: #e6e6e6;
+      --muted: #9aa0a6;
+      --rule: #2a2e36;
+      --code-bg: #1b1f27;
+      --accent: #6dd5e6;
+      --link: #7fb1ff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--fg);
+    font: 16px/1.65 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+  h1 {
+    font-size: 1.9rem;
+    line-height: 1.2;
+    margin: 0 0 .15em;
+    letter-spacing: -.01em;
+  }
+  .subtitle { color: var(--muted); margin: 0 0 2rem; }
+  h2 {
+    font-size: 1.3rem;
+    margin: 2.6rem 0 .6rem;
+    padding-bottom: .3rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  h3 { font-size: 1.05rem; margin: 1.8rem 0 .4rem; }
+  p, li { color: var(--fg); }
+  a { color: var(--link); }
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .87em;
+    background: var(--code-bg);
+    padding: .12em .4em;
+    border-radius: 4px;
+  }
+  ul, ol { padding-left: 1.4em; }
+  li { margin: .3em 0; }
+  strong { font-weight: 650; }
+  figure { margin: 1.8rem 0; }
+  .diagram {
+    overflow-x: auto;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 16px;
+    background: var(--bg);
+    -webkit-overflow-scrolling: touch;
+  }
+  .diagram svg { display: block; height: 380px; width: auto; max-width: none; }
+  figcaption { color: var(--muted); font-size: .9rem; margin-top: .7rem; }
+  .scroll-hint { color: var(--muted); font-size: .8rem; margin: .5rem 0 0; font-style: italic; }
+</style>
+</head>
+<body>
+<main>
+  <h1>GGC Outdoor League — Leaderboard Architecture</h1>
+  <p class="subtitle">How a Google Sheet + Apps Script web app back the leaderboard, and how data flows to the app and back.</p>
+
+  <h2>Overview</h2>
+  <p>The "GGC Outdoor League" leaderboard has no conventional backend server. A single <strong>Google Sheet is the database</strong>, and a <strong>Google Apps Script web app</strong> (<code>appscript/Code.gs</code>) deployed at a stable <code>/exec</code> URL is the only API in front of it. The Apps Script does <strong>not</strong> compute any scoring — net score, plus-minus, monthly points, ranks, and best-2-of-N round selection all live in <strong>sheet formulas</strong>. The script only reads cells via <code>SpreadsheetApp</code> and reshapes rows into JSON. The frontend (<code>geosef/</code>) is a static React SPA hosted on GitHub Pages that fetches those JSON blobs and renders them.</p>
+
+  <figure>
+    <div class="diagram">
+<svg xmlns="http://www.w3.org/2000/svg" class="tg-svg" viewBox="8 8 3422.2 431.8" font-family="ui-sans-serif, system-ui, -apple-system, sans-serif">
+<style>
+  .tg-svg {
+    color-scheme: light dark;
+    --tg-stroke-black: #1e1e1e;
+    --tg-stroke-gray: #5c5f66;
+    --tg-stroke-red: #e03131;
+    --tg-stroke-orange: #f08c00;
+    --tg-stroke-yellow: #f59f00;
+    --tg-stroke-green: #2f9e44;
+    --tg-stroke-teal: #0c8599;
+    --tg-stroke-blue: #1971c2;
+    --tg-stroke-violet: #6741d9;
+    --tg-stroke-pink: #c2255c;
+    --tg-halo: #ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    .tg-svg {
+      --tg-stroke-black: #e6e6e6;
+      --tg-stroke-gray: #9aa0a6;
+      --tg-stroke-red: #ff8585;
+      --tg-stroke-orange: #ffb066;
+      --tg-stroke-yellow: #ffd966;
+      --tg-stroke-green: #7fd28f;
+      --tg-stroke-teal: #6dd5e6;
+      --tg-stroke-blue: #7fb1ff;
+      --tg-stroke-violet: #bda3ff;
+      --tg-stroke-pink: #ff8fb6;
+      --tg-halo: #0f1115;
+    }
+  }
+  .tg-svg .tg-stroke-black { stroke: var(--tg-stroke-black); }
+  .tg-svg .tg-stroke-gray { stroke: var(--tg-stroke-gray); }
+  .tg-svg .tg-stroke-red { stroke: var(--tg-stroke-red); }
+  .tg-svg .tg-stroke-orange { stroke: var(--tg-stroke-orange); }
+  .tg-svg .tg-stroke-yellow { stroke: var(--tg-stroke-yellow); }
+  .tg-svg .tg-stroke-green { stroke: var(--tg-stroke-green); }
+  .tg-svg .tg-stroke-teal { stroke: var(--tg-stroke-teal); }
+  .tg-svg .tg-stroke-blue { stroke: var(--tg-stroke-blue); }
+  .tg-svg .tg-stroke-violet { stroke: var(--tg-stroke-violet); }
+  .tg-svg .tg-stroke-pink { stroke: var(--tg-stroke-pink); }
+  .tg-svg .tg-text-black { fill: var(--tg-stroke-black); }
+  .tg-svg .tg-text-gray { fill: var(--tg-stroke-gray); }
+  .tg-svg .tg-text-red { fill: var(--tg-stroke-red); }
+  .tg-svg .tg-text-orange { fill: var(--tg-stroke-orange); }
+  .tg-svg .tg-text-yellow { fill: var(--tg-stroke-yellow); }
+  .tg-svg .tg-text-green { fill: var(--tg-stroke-green); }
+  .tg-svg .tg-text-teal { fill: var(--tg-stroke-teal); }
+  .tg-svg .tg-text-blue { fill: var(--tg-stroke-blue); }
+  .tg-svg .tg-text-violet { fill: var(--tg-stroke-violet); }
+  .tg-svg .tg-text-pink { fill: var(--tg-stroke-pink); }
+  .tg-svg .tg-fill-gray-light { fill: color-mix(in srgb, var(--tg-stroke-gray) 18%, transparent); }
+  .tg-svg .tg-fill-red-light { fill: color-mix(in srgb, var(--tg-stroke-red) 18%, transparent); }
+  .tg-svg .tg-fill-orange-light { fill: color-mix(in srgb, var(--tg-stroke-orange) 18%, transparent); }
+  .tg-svg .tg-fill-yellow-light { fill: color-mix(in srgb, var(--tg-stroke-yellow) 18%, transparent); }
+  .tg-svg .tg-fill-green-light { fill: color-mix(in srgb, var(--tg-stroke-green) 18%, transparent); }
+  .tg-svg .tg-fill-teal-light { fill: color-mix(in srgb, var(--tg-stroke-teal) 18%, transparent); }
+  .tg-svg .tg-fill-blue-light { fill: color-mix(in srgb, var(--tg-stroke-blue) 18%, transparent); }
+  .tg-svg .tg-fill-violet-light { fill: color-mix(in srgb, var(--tg-stroke-violet) 18%, transparent); }
+  .tg-svg .tg-fill-pink-light { fill: color-mix(in srgb, var(--tg-stroke-pink) 18%, transparent); }
+  .tg-svg .tg-fill-transparent { fill: transparent; }
+  .tg-svg .tg-fill-none { fill: none; }
+  .tg-svg .tg-halo-stroke { stroke: var(--tg-halo); }
+  .tg-svg .tg-halo-fill { fill: var(--tg-halo); }
+</style>
+<defs><marker id="m-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs>
+<ellipse cx="789.3" cy="88" rx="173.5" ry="60" class="tg-stroke-teal tg-fill-teal-light" fill="#99e9f2" stroke="#0c8599" stroke-width="2"/>
+<rect x="1263.6" y="45" width="312" height="69" rx="6" ry="6" class="tg-stroke-blue tg-fill-blue-light" fill="#a5d8ff" stroke="#1971c2" stroke-width="2"/>
+<rect x="1906.6" y="281.3" width="163" height="69" rx="6" ry="6" class="tg-stroke-violet tg-fill-violet-light" fill="#d0bfff" stroke="#6741d9" stroke-width="2"/>
+<ellipse cx="2755.9" cy="315.8" rx="180.5" ry="44" class="tg-stroke-gray tg-fill-gray-light" fill="#e9ecef" stroke="#5c5f66" stroke-width="2" stroke-dasharray="8 4"/>
+<ellipse cx="3303.7000000000003" cy="315.8" rx="110.5" ry="60" class="tg-stroke-violet tg-fill-violet-light" fill="#d0bfff" stroke="#6741d9" stroke-width="2"/>
+<ellipse cx="2027.1" cy="187.3" rx="159.5" ry="44" class="tg-stroke-gray tg-fill-gray-light" fill="#e9ecef" stroke="#5c5f66" stroke-width="2" stroke-dasharray="8 4"/>
+<ellipse cx="169.5" cy="68" rx="145.5" ry="44" class="tg-stroke-green tg-fill-green-light" fill="#b2f2bb" stroke="#2f9e44" stroke-width="2"/>
+<ellipse cx="190.5" cy="206" rx="124.5" ry="44" class="tg-stroke-green tg-fill-green-light" fill="#b2f2bb" stroke="#2f9e44" stroke-width="2"/>
+<ellipse cx="1465.1" cy="379.8" rx="110.5" ry="44" class="tg-stroke-green tg-fill-green-light" fill="#b2f2bb" stroke="#2f9e44" stroke-width="2"/>
+<rect x="1867.6" y="24.299999999999997" width="232" height="69" rx="6" ry="6" class="tg-stroke-orange tg-fill-orange-light" fill="#ffd8a8" stroke="#f08c00" stroke-width="2"/>
+<path class="tg-stroke-black" d="M 962.8 68 L 1263.6 68" fill="none" stroke="#1e1e1e" stroke-width="2" marker-end="url(#m-arrow)"/>
+<path class="tg-stroke-black" d="M 1575.6 86.4 L 1595.6 86.4 L 1595.6 294.3 L 1797.6 294.3 L 1797.6 298.55 L 1906.6 298.55" fill="none" stroke="#1e1e1e" stroke-width="2" marker-end="url(#m-arrow)"/>
+<path class="tg-stroke-black" d="M 2069.6 315.8 L 2575.4 315.8" fill="none" stroke="#1e1e1e" stroke-width="2" marker-end="url(#m-arrow)"/>
+<path class="tg-stroke-black" d="M 2936.4 315.8 L 3193.2000000000003 315.8" fill="none" stroke="#1e1e1e" stroke-width="2" marker-end="url(#m-arrow)"/>
+<path class="tg-stroke-black" d="M 1575.6 72.6 L 1605.6 72.6 L 1605.6 187.3 L 1867.6 187.3" fill="none" stroke="#1e1e1e" stroke-width="2" stroke-dasharray="8 4" marker-start="url(#m-arrow)" marker-end="url(#m-arrow)"/>
+<path class="tg-stroke-black" d="M 315 68 L 615.8 68" fill="none" stroke="#1e1e1e" stroke-width="2" marker-end="url(#m-arrow)"/>
+<path class="tg-stroke-black" d="M 315 206 L 545.8 206 L 545.8 108 L 615.8 108" fill="none" stroke="#1e1e1e" stroke-width="2" marker-end="url(#m-arrow)"/>
+<path class="tg-stroke-black" d="M 1575.6 379.8 L 1797.6 379.8 L 1797.6 333.05 L 1906.6 333.05" fill="none" stroke="#1e1e1e" stroke-width="2" marker-end="url(#m-arrow)"/>
+<path class="tg-stroke-black" d="M 1906.6 315.8 L 1585.6 315.8 L 1585.6 100.2 L 1575.6 100.2" fill="none" stroke="#1e1e1e" stroke-width="2" marker-end="url(#m-arrow)"/>
+<path class="tg-stroke-black" d="M 1263.6 91 L 1193.6 91 L 1193.6 108 L 962.8 108" fill="none" stroke="#1e1e1e" stroke-width="2" marker-end="url(#m-arrow)"/>
+<path class="tg-stroke-black" d="M 1575.6 58.8 L 1867.6 58.8" fill="none" stroke="#1e1e1e" stroke-width="2" marker-end="url(#m-arrow)"/>
+<text x="789.3" y="65.5" font-size="18" class="tg-text-teal" fill="#0c8599" text-anchor="middle" dominant-baseline="central"><tspan x="789.3" dominant-baseline="central">Google Sheet</tspan><tspan x="789.3" dy="22.5" dominant-baseline="central">(database — all scoring</tspan><tspan x="789.3" dy="22.5" dominant-baseline="central">math in cell formulas)</tspan></text>
+<text x="1419.6" y="68.25" font-size="18" class="tg-text-blue" fill="#1971c2" text-anchor="middle" dominant-baseline="central"><tspan x="1419.6" dominant-baseline="central">Apps Script Web App /exec</tspan><tspan x="1419.6" dy="22.5" dominant-baseline="central">doGet (read) · doPost (write)</tspan></text>
+<text x="1988.1" y="304.55" font-size="18" class="tg-text-violet" fill="#6741d9" text-anchor="middle" dominant-baseline="central"><tspan x="1988.1" dominant-baseline="central">React SPA</tspan><tspan x="1988.1" dy="22.5" dominant-baseline="central">(GitHub Pages)</tspan></text>
+<text x="2755.9" y="304.55" font-size="18" class="tg-text-gray" fill="#5c5f66" text-anchor="middle" dominant-baseline="central"><tspan x="2755.9" dominant-baseline="central">Browser sessionCache</tspan><tspan x="2755.9" dy="22.5" dominant-baseline="central">(raw blobs, per session)</tspan></text>
+<text x="3303.7000000000003" y="293.3" font-size="18" class="tg-text-violet" fill="#6741d9" text-anchor="middle" dominant-baseline="central"><tspan x="3303.7000000000003" dominant-baseline="central">Leaderboard UI</tspan><tspan x="3303.7000000000003" dy="22.5" dominant-baseline="central">(+ client-side</tspan><tspan x="3303.7000000000003" dy="22.5" dominant-baseline="central">player detail)</tspan></text>
+<text x="2027.1" y="176.05" font-size="18" class="tg-text-gray" fill="#5c5f66" text-anchor="middle" dominant-baseline="central"><tspan x="2027.1" dominant-baseline="central">CacheService</tspan><tspan x="2027.1" dy="22.5" dominant-baseline="central">(server cache 15–60m)</tspan></text>
+<text x="169.5" y="56.75" font-size="18" class="tg-text-green" fill="#2f9e44" text-anchor="middle" dominant-baseline="central"><tspan x="169.5" dominant-baseline="central">Google Form</tspan><tspan x="169.5" dy="22.5" dominant-baseline="central">(score submissions)</tspan></text>
+<text x="190.5" y="194.75" font-size="18" class="tg-text-green" fill="#2f9e44" text-anchor="middle" dominant-baseline="central"><tspan x="190.5" dominant-baseline="central">League admin</tspan><tspan x="190.5" dy="22.5" dominant-baseline="central">(majors, manual)</tspan></text>
+<text x="1465.1" y="368.55" font-size="18" class="tg-text-green" fill="#2f9e44" text-anchor="middle" dominant-baseline="central"><tspan x="1465.1" dominant-baseline="central">Signed-in user</tspan><tspan x="1465.1" dy="22.5" dominant-baseline="central">(favorites)</tspan></text>
+<text x="1983.6" y="47.55" font-size="18" class="tg-text-orange" fill="#f08c00" text-anchor="middle" dominant-baseline="central"><tspan x="1983.6" dominant-baseline="central">Google tokeninfo</tspan><tspan x="1983.6" dy="22.5" dominant-baseline="central">(verify JWT + roster)</tspan></text>
+<text x="1113.2" y="35" font-size="16" fill="#1e1e1e" class="tg-text-black tg-halo-stroke" stroke="white" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="middle" dominant-baseline="central"><tspan x="1113.2" dominant-baseline="central">rows via</tspan><tspan x="1113.2" dy="20" dominant-baseline="central">getValues()</tspan></text>
+<text x="1721.6" y="261.3" font-size="16" fill="#1e1e1e" class="tg-text-black tg-halo-stroke" stroke="white" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="middle" dominant-baseline="central"><tspan x="1721.6" dominant-baseline="central">JSON</tspan><tspan x="1721.6" dy="20" dominant-baseline="central">(per ?action)</tspan></text>
+<text x="2381" y="328.8" font-size="16" fill="#1e1e1e" class="tg-text-black tg-halo-stroke" stroke="white" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="middle" dominant-baseline="central"><tspan x="2381" dominant-baseline="central">store raw</tspan><tspan x="2381" dy="20" dominant-baseline="central">scoringLog + handicapIndex</tspan></text>
+<text x="3064.8" y="328.8" font-size="16" fill="#1e1e1e" class="tg-text-black tg-halo-stroke" stroke="white" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="middle" dominant-baseline="central"><tspan x="3064.8" dominant-baseline="central">client-side</tspan><tspan x="3064.8" dy="20" dominant-baseline="central">compute</tspan></text>
+<text x="1721.6" y="200.3" font-size="16" fill="#1e1e1e" class="tg-text-black tg-halo-stroke" stroke="white" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="middle" dominant-baseline="central"><tspan x="1721.6" dominant-baseline="central">lookaside</tspan><tspan x="1721.6" dy="20" dominant-baseline="central">(TTL 15–60m)</tspan></text>
+<text x="465.4" y="35" font-size="16" fill="#1e1e1e" class="tg-text-black tg-halo-stroke" stroke="white" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="middle" dominant-baseline="central"><tspan x="465.4" dominant-baseline="central">round →</tspan><tspan x="465.4" dy="20" dominant-baseline="central">Scoring Log 2026</tspan></text>
+<text x="465.4" y="219" font-size="16" fill="#1e1e1e" class="tg-text-black tg-halo-stroke" stroke="white" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="middle" dominant-baseline="central"><tspan x="465.4" dominant-baseline="central">majors</tspan><tspan x="465.4" dy="20" dominant-baseline="central">(manual)</tspan></text>
+<text x="1721.6" y="392.8" font-size="16" fill="#1e1e1e" class="tg-text-black tg-halo-stroke" stroke="white" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="middle" dominant-baseline="central"><tspan x="1721.6" dominant-baseline="central">sign in +</tspan><tspan x="1721.6" dy="20" dominant-baseline="central">toggle favorite</tspan></text>
+<text x="1721.6" y="328.8" font-size="16" fill="#1e1e1e" class="tg-text-black tg-halo-stroke" stroke="white" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="middle" dominant-baseline="central"><tspan x="1721.6" dominant-baseline="central">POST setPrefs</tspan><tspan x="1721.6" dy="20" dominant-baseline="central">+ JWT</tspan></text>
+<text x="1113.2" y="121" font-size="16" fill="#1e1e1e" class="tg-text-black tg-halo-stroke" stroke="white" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="middle" dominant-baseline="central"><tspan x="1113.2" dominant-baseline="central">upsert →</tspan><tspan x="1113.2" dy="20" dominant-baseline="central">User Preferences</tspan></text>
+<text x="1721.6" y="71.8" font-size="16" fill="#1e1e1e" class="tg-text-black tg-halo-stroke" stroke="white" stroke-width="4" stroke-linejoin="round" paint-order="stroke" text-anchor="middle" dominant-baseline="central"><tspan x="1721.6" dominant-baseline="central">verify JWT</tspan><tspan x="1721.6" dy="20" dominant-baseline="central">+ roster</tspan></text>
+</svg>
+    </div>
+    <p class="scroll-hint">← scroll horizontally to see the full pipeline →</p>
+    <figcaption>The spine reads left → right as the <strong>read path</strong> (data flowing out of the sheet to the UI). The arrows feeding the sheet from the left and the favorites loop below are the <strong>write paths</strong>.</figcaption>
+  </figure>
+
+  <h2>Data out: read path</h2>
+  <p><code>doGet(e)</code> is the single GET entry point. It routes on <code>?action=</code> to a handler and serializes the result with <code>ContentService</code> as JSON. Live actions: <code>leaderboard</code> (default), <code>monthly&amp;month=April</code>, <code>scoringLog</code>, <code>handicapIndex</code>, <code>courses</code>, <code>courseInfo</code>, <code>getPrefs</code>.</p>
+  <p>Each read handler follows the same shape:</p>
+  <ol>
+    <li>Check <strong>Apps Script <code>CacheService</code></strong> (server-side script cache) for a key matching the action. TTLs vary by data volatility: leaderboard 15 min, monthly 30 min, scoringLog 15 min, handicap index 60 min, courses/courseInfo 60 min.</li>
+    <li>On a miss, <code>SpreadsheetApp.openById(SPREADSHEET_ID).getSheetByName(...)</code> reads the cell values (<code>getValues()</code> / a column-capped <code>getRange()</code>).</li>
+    <li>Map rows to plain JSON objects (e.g. <code>{ rank, name, points, events, isTied }</code> for the leaderboard). Ranks, points, and plus-minus are read straight from sheet cells — the script only re-derives the <code>isTied</code> flag and a fallback rank.</li>
+    <li>Cache the JSON (<code>cache.put(...)</code>) and return it.</li>
+  </ol>
+  <p>There are <strong>two caching tiers</strong>:</p>
+  <ul>
+    <li><strong>Server-side</strong>: the <code>CacheService</code> step above, shared across all clients.</li>
+    <li><strong>Client-side</strong>: a module-level <code>sessionCache</code> object in <code>geosef/src/golf-cache.ts</code>. It lives outside React, so it survives component unmount/remount for the whole browser session. Each fetch in <code>GolfLeaderboard.tsx</code> checks <code>sessionCache</code> first and only hits the network on a miss.</li>
+  </ul>
+  <p><strong>Key client optimization</strong>: only the two <em>raw</em> sheets — <code>scoringLog</code> and <code>handicapIndex</code> — are fetched once into <code>sessionCache</code>. Every per-player detail view (round history, monthly R1/R2 best rounds, handicap trend) is <strong>pure client-side computation off those cached blobs</strong> (see <code>getMonthlyR1R2</code>, <code>tagCountingRounds</code>, the <code>expandedRounds</code> filter in <code>GolfLeaderboard.tsx</code>). There are <strong>no per-player network calls</strong>.</p>
+
+  <h3>URL resolution (<code>config.ts</code> + <code>vite.config.ts</code>)</h3>
+  <p><code>APPS_SCRIPT_URL</code> is resolved at build time:</p>
+  <ul>
+    <li><strong>Dev</strong> (<code>import.meta.env.DEV</code>): <code>'/apps-script-proxy'</code>. Apps Script blocks <code>localhost</code> CORS, so <code>vite.config.ts</code> proxies that path to the real <code>/exec</code> URL (<code>changeOrigin</code>, <code>followRedirects</code>, rewrite <code>/apps-script-proxy</code> → <code>/exec</code>).</li>
+    <li><strong>Prod</strong>: the baked-in <code>__APPS_SCRIPT_PROD_URL__</code> constant, which <code>vite.config.ts</code> injects via <code>define</code>, built from the deployment ID read from <code>appscript/deployment-id.txt</code> (or <code>VITE_APPS_SCRIPT_DEPLOYMENT</code>).</li>
+  </ul>
+
+  <h2>Data in: write paths</h2>
+  <p>There are <strong>two distinct, unrelated write paths</strong> into the sheet:</p>
+
+  <h3>1. Score submission — bypasses Apps Script entirely</h3>
+  <p>Players submit rounds through a <strong>native Google Form</strong> (<code>SUBMIT_SCORES_URL</code> in <code>GolfLayout.tsx</code>, linked from the slide-in menu). Form responses land <strong>directly</strong> in the <code>Scoring Log 2026</code> tab. Apps Script is not involved on the write side at all; it later just <em>reads</em> that tab for <code>?action=scoringLog</code>. Sheet formulas then compute net score, plus-minus, monthly counts, and feed the monthly/total points sheets. <strong>Majors</strong> (The Open, Captains Cup) are entered manually by admins, not via the form.</p>
+
+  <h3>2. User favorites — POST through Apps Script</h3>
+  <p>The app writes favorites by POSTing JSON to <code>/exec</code>:</p>
+  <ul>
+    <li><code>geosef/src/services/userPrefs.ts</code> <code>setPrefs()</code> POSTs <code>{ action: 'setPrefs', token, favoritePlayers, favoriteCourses }</code>.</li>
+    <li><code>doPost(e)</code> parses the body and routes <code>action: 'setPrefs'</code> to <code>setPrefsHandler</code>, which verifies the token, then <strong>upserts a row</strong> keyed by email in the <code>User Preferences</code> tab (matching row updated in place, otherwise <code>appendRow</code>; the sheet is created with headers if missing).</li>
+    <li><code>useUserPrefs.ts</code> drives the UI: it applies the toggle optimistically (updates state + <code>localStorage</code> cache immediately), fires <code>setPrefs</code>, and rolls back on failure. Reads go through <code>getPrefs</code> (a GET <code>?action=getPrefs&amp;token=...</code>).</li>
+  </ul>
+  <p><code>setPrefs</code> is currently the only POST action handled.</p>
+
+  <h2>Auth (favorites only)</h2>
+  <p>Auth gates only the favorites read/write — all leaderboard/scoring data is public.</p>
+  <ul>
+    <li><strong>Client</strong> (<code>AuthContext.tsx</code>): Google Identity Services (loaded from <code>accounts.google.com/gsi/client</code>) issues a <strong>JWT ID token</strong> on sign-in. It is decoded client-side for display (<code>email</code>/<code>name</code>/<code>picture</code>) and stored in <code>localStorage</code> (<code>authToken</code>) plus <code>AuthContext</code>. The token is sent on <code>getPrefs</code> (query param) and <code>setPrefs</code> (POST body).</li>
+    <li><strong>Server</strong> (<code>verifyTokenDetailed</code> in <code>Code.gs</code>): calls Google's <code>oauth2.googleapis.com/tokeninfo</code> endpoint, then checks <code>email_verified</code>, the audience (<code>payload.aud === OAUTH_CLIENT_ID</code>, only if that script property is set), and <strong>roster membership</strong> — the email must exist in the <code>League Roster 2026</code> tab's email column (index 4 / column E). Only roster members can read or write prefs; failures return <code>{ error: 'Unauthorized', reason, status: 403 }</code>.</li>
+  </ul>
+
+  <h2>Gotchas / non-obvious bits</h2>
+  <ul>
+    <li><strong>Errors come back as HTTP 200.</strong> Apps Script returns <code>{ error, reason }</code> in the JSON body with a 200 status. Clients must inspect the parsed JSON, not the HTTP status (<code>userPrefs.ts</code> does exactly this).</li>
+    <li><strong>POST uses <code>Content-Type: text/plain</code></strong> to dodge a CORS preflight on the cross-origin Apps Script request.</li>
+    <li><strong><code>CacheService</code> has a ~100KB-per-entry limit.</strong> The <code>scoringLog</code> (and <code>courses</code>/<code>courseInfo</code>/<code>handicapIndex</code>) <code>cache.put</code> calls are wrapped in <code>try/catch</code>, so an oversized <code>scoringLog</code> is simply served uncached rather than erroring.</li>
+    <li><strong>Wide sheets are column-capped.</strong> <code>Handicap Index Log</code> reads are capped at 252 columns and <code>Playing Handicaps</code> at 110 (<code>Math.min(getLastColumn(), N)</code>) — never <code>getDataRange()</code> these pivot tables.</li>
+    <li><strong>Static SPA on GitHub Pages.</strong> No server-side rendering; everything client-side after the initial static load.</li>
+    <li><strong>Manifest gotcha (from project CLAUDE.md):</strong> <code>clasp push --force</code> overwrites <code>appsscript.json</code> on Google's side. The <code>webapp</code> block (executeAs/access) must be preserved or <code>/exec</code> 404s for everyone, including local dev (which proxies to the same URL).</li>
+  </ul>
+</main>
+</body>
+</html>
