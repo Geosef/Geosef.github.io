@@ -1,11 +1,11 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './GolfLeaderboard.css';
 import type { ScoringLogData, Round, CourseVariantData, CourseInfoData } from '../../types/golf';
 import { formatPlusMinus } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
-import { SortTh, SortDir, pmScoreClass, StickyListHeader, Chip, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
+import { SortTh, SortDir, pmScoreClass, StickyListHeader, Chip, PAGE_SIZE, ShowAllRow, ListError } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
 import { sortByFavorites } from '../../lib/sortByFavorites';
@@ -50,8 +50,10 @@ export default function CoursesList() {
   const [sortKey, setSortKey] = useState('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [showAll, setShowAll] = useState(false);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback(() => {
+    setError(false);
     if (!sessionCache.scoringLog) {
       fetch(`${APPS_SCRIPT_URL}?action=scoringLog`)
         .then(r => r.json())
@@ -61,14 +63,19 @@ export default function CoursesList() {
         })
         .catch(() => {});
     }
+    // The courses variant feed is what gates the page out of its loading
+    // state, so a failure here is the one users must be able to recover from.
     if (!sessionCache.courseVariants) {
       fetch(`${APPS_SCRIPT_URL}?action=courses`)
-        .then(r => r.json())
+        .then(r => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json();
+        })
         .then((d: CourseVariantData) => {
           sessionCache.courseVariants = d;
           setVariants(d);
         })
-        .catch(() => {});
+        .catch(() => setError(true));
     }
     if (!sessionCache.courseInfo) {
       fetch(`${APPS_SCRIPT_URL}?action=courseInfo`)
@@ -80,6 +87,8 @@ export default function CoursesList() {
         .catch(() => {});
     }
   }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   const courses = useMemo<CourseSummary[]>(() => {
     if (!variants?.courses?.length) return [];
@@ -255,7 +264,9 @@ export default function CoursesList() {
       />
 
       <div className="gl-content">
-        {loading ? (
+        {error && !variants ? (
+          <ListError onRetry={load} />
+        ) : loading ? (
           <div className="gl-table-scroll">
             <table className="gl-table gl-courses-table">
               <thead>
@@ -361,7 +372,11 @@ export default function CoursesList() {
             </tbody>
           </table></div>
         ) : (
-          <div className="gl-loading">No courses found.</div>
+          <div className="gl-loading">
+            {searchQuery.trim()
+              ? `No courses match “${searchQuery.trim()}”.`
+              : 'No courses found.'}
+          </div>
         )}
       </div>
     </div>

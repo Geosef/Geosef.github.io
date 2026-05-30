@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import './GolfLeaderboard.css';
 import type { ScoringLogData, Round } from '../../types/golf';
 import { formatPlusMinus, formatDate } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
-import { SortTh, SortDir, StickyListHeader, pmScoreClass, lastName, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
+import { SortTh, SortDir, StickyListHeader, pmScoreClass, lastName, PAGE_SIZE, ShowAllRow, ListError, EmptyRow } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 
 type SortKey = 'date' | 'player' | 'course' | 'gross' | 'net' | 'plusMinus';
@@ -44,17 +44,26 @@ export default function RecentScores() {
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
   const [showAll, setShowAll] = useState(false);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    if (sessionCache.scoringLog) return;
+  const load = useCallback(() => {
+    setError(false);
     fetch(`${APPS_SCRIPT_URL}?action=scoringLog`)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((d: ScoringLogData) => {
         sessionCache.scoringLog = d;
         setData(d);
       })
-      .catch(() => {});
+      .catch(() => setError(true));
   }, []);
+
+  useEffect(() => {
+    if (sessionCache.scoringLog) return;
+    load();
+  }, [load]);
 
   function handleSort(key: string) {
     const k = key as SortKey;
@@ -85,6 +94,9 @@ export default function RecentScores() {
       />
 
       <div className="gl-content">
+        {error && !data ? (
+          <ListError onRetry={load} />
+        ) : (
         <div className="gl-table-scroll">
           <table className="gl-table gl-scores-table">
             <thead>
@@ -100,10 +112,16 @@ export default function RecentScores() {
             <tbody>
               {!data ? (
                 <SkeletonTableRows rows={12} cols={6} />
+              ) : display.length === 0 ? (
+                <EmptyRow colSpan={6}>
+                  {searchQuery.trim()
+                    ? `No scores match “${searchQuery.trim()}”.`
+                    : 'No scores yet.'}
+                </EmptyRow>
               ) : (
                 visible.map((r, i) => (
                   <tr
-                    key={i}
+                    key={`${r.player}|${r.datePlayed}|${r.course}|${r.score}`}
                     className={['gl-row', i % 2 === 0 ? 'gl-row-even' : ''].filter(Boolean).join(' ')}
                   >
                     <td className="gl-col-date">{formatDate(r.datePlayed)}</td>
@@ -138,6 +156,7 @@ export default function RecentScores() {
             </tbody>
           </table>
         </div>
+        )}
       </div>
     </div>
   );

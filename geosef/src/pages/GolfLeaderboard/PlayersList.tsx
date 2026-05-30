@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './GolfLeaderboard.css';
 import type { LeaderboardData } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
-import { SortTh, sortStandings, SortDir, StickyListHeader, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
+import { SortTh, sortStandings, SortDir, StickyListHeader, PAGE_SIZE, ShowAllRow, ListError, EmptyRow } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
 import { sortByFavorites } from '../../lib/sortByFavorites';
@@ -18,17 +18,26 @@ export default function PlayersList() {
   const [sortKey, setSortKey] = useState('rank');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [showAll, setShowAll] = useState(false);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    if (sessionCache.season) return;
+  const load = useCallback(() => {
+    setError(false);
     fetch(`${APPS_SCRIPT_URL}?action=leaderboard`)
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((d: LeaderboardData) => {
         sessionCache.season = d;
         setData(d);
       })
-      .catch(() => {});
+      .catch(() => setError(true));
   }, []);
+
+  useEffect(() => {
+    if (sessionCache.season) return;
+    load();
+  }, [load]);
 
   function handleSort(key: string) {
     if (key === sortKey) {
@@ -55,6 +64,9 @@ export default function PlayersList() {
       />
 
       <div className="gl-content">
+        {error && !data ? (
+          <ListError onRetry={load} />
+        ) : (
         <table className="gl-table">
           <thead>
             <tr>
@@ -66,6 +78,12 @@ export default function PlayersList() {
           <tbody>
             {!data ? (
               <SkeletonTableRows rows={8} cols={3} />
+            ) : display.length === 0 ? (
+              <EmptyRow colSpan={3}>
+                {searchQuery.trim()
+                  ? `No players match “${searchQuery.trim()}”.`
+                  : 'No players yet.'}
+              </EmptyRow>
             ) : (
               visible.map((s, i) => (
                 <tr
@@ -101,6 +119,7 @@ export default function PlayersList() {
             )}
           </tbody>
         </table>
+        )}
       </div>
     </div>
   );

@@ -1291,3 +1291,93 @@
     pointer-events: auto;
   }
 }
+
+/* ── Sortable header button (keyboard-operable) ── */
+.gl-th-btn {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* ── List error + empty states ── */
+.gl-error--list {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.gl-retry-btn {
+  flex-shrink: 0;
+  background: var(--gl-green);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.9rem;
+  font-family: var(--gl-font-sans);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.gl-retry-btn:hover {
+  background: var(--gl-green-light);
+}
+
+.gl-table .gl-empty-cell {
+  text-align: center;
+  color: var(--gl-muted);
+  font-family: var(--gl-font-sans);
+  font-style: italic;
+  padding: 2.5rem 1rem;
+}
+
+/* ── Visible keyboard focus (mouse clicks stay ring-free via :focus-visible) ── */
+.gl-layout a:focus-visible,
+.gl-layout button:focus-visible,
+.gl-layout input:focus-visible,
+.gl-layout select:focus-visible,
+.gl-layout [role="button"]:focus-visible {
+  outline: 2px solid var(--gl-green);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+/* On the green header row, a green ring is invisible — use the Masters yellow. */
+.gl-table thead th .gl-th-btn:focus-visible {
+  outline-color: var(--gl-yellow);
+}
+
+/* ── Larger touch targets (44px min per WCAG 2.5.5 / iOS HIG) ── */
+@media (hover: none) {
+  .gl-subnav-menu-btn,
+  .gl-menu-close,
+  .gl-refresh-btn,
+  .gl-search-clear {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .gl-row .gl-name-cell .fav-star,
+  .gl-detail-title-row .fav-star {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0.6rem;
+  }
+}
+
+/* ── Respect reduced-motion: drop slides, loops, and hover scaling ── */
+@media (prefers-reduced-motion: reduce) {
+  .gl-menu-backdrop,
+  .gl-menu-panel,
+  .gl-live-badge,
+  .gl-skeleton-bar {
+    animation: none !important;
+  }
+  /* Static fill so skeletons still read as placeholders without shimmer */
+  .gl-skeleton-bar {
+    background: #e8f0e8;
+  }
+  .fav-star,
+  .fav-star:hover {
+    transform: none;
+  }
+}
