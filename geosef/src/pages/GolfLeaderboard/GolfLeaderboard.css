@@ -1447,7 +1447,7 @@
 .gl-fav-filter-row {
   max-width: 860px;
   margin: 0 auto;
-  padding: 0 1rem 0.75rem;
+  padding: 1rem;
 }
 .gl-fav-filter {
   display: inline-flex;
