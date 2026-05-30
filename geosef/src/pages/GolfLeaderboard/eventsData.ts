@@ -69,11 +69,10 @@ export const GOLF_EVENTS: Record<string, GolfEvent> = {
   'barrel-run': {
     slug: 'barrel-run',
     name: 'The Barrel Run',
-    tagline: 'Best net score takes the barrel',
+    tagline: 'Battle for the barrel',
     logo: '/golf/ggc-barrel-run.jpg',
     history: [
-      'An individual 18-hole tournament played at 70% of your handicap.',
-      'Low net wins the barrel, takes their place on the trophy and the club walls, and earns a caddie bib in Looper’s with their name on it for the year.',
+      'Our first major of the season. The Barrel Run is a battle for bragging rights, a place on the club walls, and a caddie bib in Looper’s for the year.',
     ],
     venue: { name: 'St. Peters Golf Course', courseName: 'St. Peters' },
     when: 'June 27 · 1:30 PM shotgun start',
