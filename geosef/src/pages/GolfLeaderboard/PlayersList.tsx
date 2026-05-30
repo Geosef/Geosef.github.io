@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './GolfLeaderboard.css';
-import type { MonthlyData } from '../../types/golf';
+import type { LeaderboardData } from '../../types/golf';
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
 import { SortTh, sortStandings, SortDir, StickyListHeader, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
@@ -10,23 +10,21 @@ import { useUserPrefs } from '../../hooks/useUserPrefs';
 import { sortByFavorites } from '../../lib/sortByFavorites';
 import FavoriteStar from '../../components/FavoriteStar';
 
-// TODO: Temporary — sourcing from April monthly sheet while "Total Points" is stale.
-// Revert to `?action=leaderboard` / `sessionCache.season` once Total Points is caught up.
 export default function PlayersList() {
   const navigate = useNavigate();
   const { prefs, toggleFavoritePlayer } = useUserPrefs();
-  const [data, setData] = useState<MonthlyData | null>(sessionCache.monthly.get('April') ?? null);
+  const [data, setData] = useState<LeaderboardData | null>(sessionCache.season);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState('rank');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
-    if (sessionCache.monthly.get('April')) return;
-    fetch(`${APPS_SCRIPT_URL}?action=monthly&month=April`)
+    if (sessionCache.season) return;
+    fetch(`${APPS_SCRIPT_URL}?action=leaderboard`)
       .then(r => r.json())
-      .then((d: MonthlyData) => {
-        sessionCache.monthly.set('April', d);
+      .then((d: LeaderboardData) => {
+        sessionCache.season = d;
         setData(d);
       })
       .catch(() => {});
