@@ -1,6 +1,6 @@
 # Deployment
 
-- Frontend: `geosef/` → GitHub Pages on push to master
+- Frontend: `geosef/` → GitHub Pages on push to main
 - Backend: `appscript/` → Apps Script via clasp in CI
 - Deployment ID lives in `appscript/deployment-id.txt` (read by vite config + CI build — no env var needed)
 
@@ -8,7 +8,7 @@
 
 `clasp push --force` overwrites the manifest on Google's side. Without `webapp` (executeAs/access), `/exec` 404s for everyone — prod *and* local dev (which proxies to the same URL).
 
-## Master = prod
+## Main = prod
 
 Test Apps Script changes locally before pushing:
 ```
