@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Trophy } from 'lucide-react';
+import { ArrowLeft, Trophy, MapPin, Calendar, Flag, ArrowUpRight } from 'lucide-react';
 import './GolfLeaderboard.css';
 import './EventDetail.css';
 import { getEvent } from './eventsData';
@@ -31,27 +31,88 @@ export default function EventDetail() {
     );
   }
 
-  const { name, tagline, history, format, pastWinners, latestResult } = event;
+  const { name, tagline, logo, intro, history, venue, when, what, captains, pastWinners, latestResult } = event;
+
+  const venueLink = venue?.websiteUrl
+    ? { href: venue.websiteUrl, external: true }
+    : venue?.courseName
+      ? { href: `/golf-leaderboard/course/${encodeURIComponent(venue.courseName)}`, external: false }
+      : null;
 
   return (
     <div className="gl-detail-wrapper">
       <div className="gl-detail-header">
         <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
-        <h1 className="ev-name">{name}</h1>
-        <p className="ev-tagline">{tagline}</p>
+        <div className="ev-titlebar">
+          {logo && <img src={logo} alt={`${name} logo`} className="ev-logo" />}
+          <div>
+            <h1 className="ev-name">{name}</h1>
+            <p className="ev-tagline">{tagline}</p>
+          </div>
+        </div>
       </div>
 
       <div className="gl-detail-content">
         {/* About */}
         <section className="gl-detail-section">
           <h2 className="gl-detail-section-title">About</h2>
+          {intro && <p className="ev-intro">{intro}</p>}
           {history.map((p, i) => (
             <p key={i} className="ev-paragraph">{p}</p>
           ))}
-          {format && (
-            <p className="ev-format"><span className="ev-format-label">Format</span> {format}</p>
-          )}
         </section>
+
+        {/* Details: where / when / what */}
+        {(venue || when || what) && (
+          <section className="gl-detail-section">
+            <h2 className="gl-detail-section-title">Details</h2>
+            <div className="ev-details">
+              {venue && (
+                <div className="ev-detail-row">
+                  <MapPin size={15} className="ev-detail-icon" />
+                  <span className="ev-detail-label">Where</span>
+                  {venueLink ? (
+                    venueLink.external ? (
+                      <a href={venueLink.href} target="_blank" rel="noopener noreferrer" className="ev-detail-link">
+                        {venue.name} <ArrowUpRight size={13} />
+                      </a>
+                    ) : (
+                      <Link to={venueLink.href} className="ev-detail-link">{venue.name}</Link>
+                    )
+                  ) : (
+                    <span className="ev-detail-value">{venue.name}</span>
+                  )}
+                </div>
+              )}
+              {when && (
+                <div className="ev-detail-row">
+                  <Calendar size={15} className="ev-detail-icon" />
+                  <span className="ev-detail-label">When</span>
+                  <span className="ev-detail-value">{when}</span>
+                </div>
+              )}
+              {what && (
+                <div className="ev-detail-row">
+                  <Flag size={15} className="ev-detail-icon" />
+                  <span className="ev-detail-label">What</span>
+                  <span className="ev-detail-value">{what}</span>
+                </div>
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Club captains (Captain's Cup) */}
+        {captains && captains.length > 0 && (
+          <section className="gl-detail-section">
+            <h2 className="gl-detail-section-title">Club Captains</h2>
+            <div className="ev-captains">
+              {captains.map(c => (
+                <span key={c} className="ev-captain">{c}</span>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Latest points scorers (post-event) */}
         <section className="gl-detail-section">
@@ -96,7 +157,6 @@ export default function EventDetail() {
                     <span className="ev-winner-champ">
                       <Trophy size={13} className="ev-winner-trophy" /> {w.champion}
                     </span>
-                    {w.runnerUp && <span className="ev-winner-runner">def. {w.runnerUp}</span>}
                     {w.note && <span className="ev-winner-note">{w.note}</span>}
                   </span>
                 </div>

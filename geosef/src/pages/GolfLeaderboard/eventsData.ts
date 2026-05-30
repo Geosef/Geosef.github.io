@@ -1,24 +1,33 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Manually-maintained content for the special-event pages (The Open, Captains
-// Cup). These are NOT backed by the scoring spreadsheet — edit this file by hand
-// and push to update the live pages.
+// Manually-maintained content for the major-event pages (The Barrel Run, the
+// Captain's Cup). These are NOT backed by the scoring spreadsheet — edit this
+// file by hand and push to update the live pages.
 //
-//   • history       — evergreen paragraphs telling the story of the event.
-//   • format        — optional one-liner describing how the event is played.
-//   • pastWinners    — one row per year. Add a new row when an event wraps.
-//   • latestResult   — the points scorers from the most recent running. Leave it
-//                      `null` between events (the page shows a "results coming
-//                      soon" note), then fill it in once the event is played.
-//
-// The page links player names to their league profile, so spell names exactly as
-// they appear on the leaderboard.
+//   • intro        — optional lead-in line (the Captain's Cup invitation).
+//   • history      — evergreen paragraphs telling the story of the event.
+//   • venue        — Where it's played. Set `courseName` to link to that course's
+//                    in-app page, OR `websiteUrl` to link out to their site.
+//   • when / what  — the date/format lines shown in the Details block.
+//   • captains     — optional roster (used by the Captain's Cup).
+//   • pastWinners  — one row per year, most recent first.
+//   • latestResult — points scorers from the most recent running. Leave it `null`
+//                    between events (the page shows a "coming soon" note), then
+//                    fill it in once the event is played. Scorer names link to
+//                    league profiles, so spell them exactly as on the leaderboard.
 // ─────────────────────────────────────────────────────────────────────────────
+
+export interface EventVenue {
+  name: string;
+  /** Links to this course's in-app page (must match the course name on the board). */
+  courseName?: string;
+  /** Links out to an external site instead. Takes precedence over courseName. */
+  websiteUrl?: string;
+}
 
 export interface EventWinner {
   year: number;
   champion: string;
-  runnerUp?: string;
-  /** Optional one-liner: score, venue, margin of victory, etc. */
+  /** Optional one-liner: score, margin, etc. */
   note?: string;
 }
 
@@ -26,13 +35,13 @@ export interface EventScorer {
   rank: number;
   name: string;
   points: number;
-  /** Optional one-liner shown under the name (e.g. "Low round of the day"). */
+  /** Optional one-liner shown under the name (e.g. "Low net of the day"). */
   note?: string;
 }
 
 export interface EventResult {
   year: number;
-  /** Where / when it was played — free text, e.g. "Forest Park · June 14". */
+  /** Free text, e.g. "St. Peters · June 27". */
   played?: string;
   scorers: EventScorer[];
 }
@@ -43,42 +52,66 @@ export interface GolfEvent {
   name: string;
   /** Short subtitle shown under the title. */
   tagline: string;
+  /** Path under /public, e.g. "/golf/ggc-barrel-run.jpg". */
+  logo?: string;
+  /** Optional lead-in line set apart above the history. */
+  intro?: string;
   history: string[];
-  format?: string;
+  venue?: EventVenue;
+  when?: string;
+  what?: string;
+  captains?: string[];
   pastWinners: EventWinner[];
   latestResult: EventResult | null;
 }
 
-// NOTE: The copy and winners below are PLACEHOLDERS so the pages render with the
-// right shape — replace them with the real history and results.
 export const GOLF_EVENTS: Record<string, GolfEvent> = {
-  open: {
-    slug: 'open',
-    name: 'The Open',
-    tagline: 'The league’s mid-summer major',
-    format: 'Two-round stroke play, best score counts toward the season standings.',
+  'barrel-run': {
+    slug: 'barrel-run',
+    name: 'The Barrel Run',
+    tagline: 'Best net score takes the barrel',
+    logo: '/golf/ggc-barrel-run.jpg',
     history: [
-      'The Open is the marquee event of the GGC season — a points-heavy major that can swing the season standings in a single weekend.',
-      'TODO: Replace this with the real story of The Open: when it started, where it’s played, memorable moments, and what makes it the event everyone circles on the calendar.',
+      'The Barrel Run is an individual 18-hole tournament played at 70% of your handicap.',
+      'The best net score wins a barrel, earns their name on the trophy and the club walls, and gets a caddie bib hanging in Looper’s — GGC’s club bar — with their name on it for the year.',
     ],
+    venue: { name: 'St. Peters Golf Course', courseName: 'St. Peters' },
+    when: 'June 27 · 1:30 PM shotgun start',
+    what: '18-hole net stroke play · 70% handicap',
     pastWinners: [
-      // Add a row per year, most recent first.
-      { year: 2025, champion: 'TODO Champion Name', runnerUp: 'TODO Runner-up', note: 'TODO: winning score / venue' },
+      { year: 2025, champion: 'Brad Bishop' },
+      { year: 2024, champion: 'Kevin Dickherber' },
+      { year: 2023, champion: 'Keith Skaggs' },
     ],
-    // Set to `null` until the event is played, then fill in the scorers.
     latestResult: null,
   },
   'captains-cup': {
     slug: 'captains-cup',
-    name: 'Captains Cup',
-    tagline: 'Team match play, captain’s picks',
-    format: 'Captains draft squads and go head-to-head; points awarded by finish.',
+    name: 'Captain’s Cup',
+    tagline: 'Masters-style, hosted by the club captains',
+    logo: '/golf/ggc-captains-logo.png',
+    intro: 'On behalf of the Gimme Golf Club Captains, we’d like to invite you to the Captain’s Cup.',
     history: [
-      'The Captains Cup pits captain-drafted squads against each other in a late-season showdown for bragging rights and a big points haul.',
-      'TODO: Replace this with the real story of the Captains Cup: how the draft works, the rivalries, and the format that makes it special.',
+      'The Captain’s Cup is played Masters-style — hosted each year by the captains of the Gimme Golf Club.',
+      'Win it and you earn the privilege of joining the club’s Captains: a coveted Captain’s jacket, and a seat at the Captain’s dinner held before the tournament every year.',
+    ],
+    venue: { name: 'Glen Echo Country Club', websiteUrl: 'https://www.gecc.org' },
+    when: 'July 27 · start time & format TBD',
+    what: '18-hole net stroke play · 70% handicap',
+    captains: [
+      'Brian Schroeder',
+      'Colby White',
+      'David Lemon',
+      'Jack Bedtke',
+      'Joey Julius',
+      'Kory Goodson',
+      'Mark Schulte',
+      'Rob Santo Paulo',
     ],
     pastWinners: [
-      { year: 2025, champion: 'TODO Winning Captain', runnerUp: 'TODO Runner-up', note: 'TODO: result detail' },
+      { year: 2025, champion: 'Mark Schulte' },
+      { year: 2024, champion: 'Mark Schulte' },
+      { year: 2023, champion: 'Colby White' },
     ],
     latestResult: null,
   },

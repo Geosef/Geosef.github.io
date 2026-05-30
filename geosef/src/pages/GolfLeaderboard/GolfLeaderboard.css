@@ -443,7 +443,7 @@
   font-style: italic;
 }
 
-/* ── Event column headers (Open / CC) link to their event pages ── */
+/* ── Event column headers (BR / CC) link to their event pages ── */
 .gl-table thead th.gl-th-event {
   padding: 0;
 }

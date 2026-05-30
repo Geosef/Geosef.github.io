@@ -1,5 +1,19 @@
 /* Uses the Masters palette variables defined in GolfLeaderboard.css */
 
+.ev-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.ev-logo {
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
 .ev-name {
   margin: 0;
   font-size: 1.6rem;
@@ -17,6 +31,15 @@
 }
 
 /* ── About ── */
+.ev-intro {
+  margin: 0 0 0.9rem;
+  font-family: var(--gl-font-serif);
+  font-size: 1.02rem;
+  font-style: italic;
+  line-height: 1.5;
+  color: var(--gl-green-dark);
+}
+
 .ev-paragraph {
   margin: 0 0 0.75rem;
   font-family: var(--gl-font-sans);
@@ -29,20 +52,71 @@
   margin-bottom: 0;
 }
 
-.ev-format {
-  margin: 0.75rem 0 0;
+/* ── Details (where / when / what) ── */
+.ev-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
   font-family: var(--gl-font-sans);
-  font-size: 0.85rem;
-  color: var(--gl-muted);
+  font-size: 0.9rem;
 }
 
-.ev-format-label {
+.ev-detail-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.ev-detail-icon {
+  flex-shrink: 0;
+  color: var(--gl-green);
+  position: relative;
+  top: 2px;
+}
+
+.ev-detail-label {
+  flex-shrink: 0;
+  width: 3.2rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  font-size: 0.72rem;
+  color: var(--gl-muted);
+}
+
+.ev-detail-value {
+  color: var(--gl-text);
+}
+
+.ev-detail-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-weight: 600;
   color: var(--gl-green-dark);
-  margin-right: 0.4rem;
+  text-decoration: none;
+}
+
+.ev-detail-link:hover {
+  text-decoration: underline;
+}
+
+/* ── Club captains ── */
+.ev-captains {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.5rem;
+}
+
+.ev-captain {
+  font-family: var(--gl-font-sans);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--gl-green-dark);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid var(--gl-border);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
 }
 
 /* ── Points scorers ── */

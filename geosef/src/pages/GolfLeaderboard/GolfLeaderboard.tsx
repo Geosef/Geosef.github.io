@@ -277,7 +277,7 @@ export default function GolfLeaderboard() {
                     <SortTh label="May" sortK="may" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
                     <SortTh label="Jun" sortK="june" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
                     <th className="gl-col-month gl-col-major gl-th-event">
-                      <Link to="/golf-leaderboard/event/open" className="gl-event-link">Open</Link>
+                      <Link to="/golf-leaderboard/event/barrel-run" className="gl-event-link">BR</Link>
                     </th>
                     <SortTh label="Jul" sortK="july" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
                     <th className="gl-col-month gl-col-major gl-th-event">
@@ -398,7 +398,7 @@ export default function GolfLeaderboard() {
                       <th className="gl-col-month">Apr</th>
                       <th className="gl-col-month">May</th>
                       <th className="gl-col-month">Jun</th>
-                      <th className="gl-col-month">Open</th>
+                      <th className="gl-col-month">BR</th>
                       <th className="gl-col-month">Jul</th>
                       <th className="gl-col-month">CC</th>
                       <th className="gl-col-month">Aug</th>
