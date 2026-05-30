@@ -1,23 +1,70 @@
-/* ── Masters palette ── */
+/* ── Masters palette (light) ──
+   These --gl-* tokens carry semantic roles as much as brand:
+   --gl-white = page/card surface, --gl-text/-muted = text, --gl-border = lines,
+   --gl-green = brand accent + header bg, --gl-green-dark = text-accent only.
+   The dark theme below re-skins these values; component rules need not change. */
 :root {
   --app-header-height: 40px;
   --gl-green:        #006747;
-  --gl-green-dark:   #1c4932;
-  --gl-green-light:  #107d57;
+  --gl-green-dark:   #1c4932;   /* text accent (titles, links) */
+  --gl-green-light:  #107d57;   /* hover surfaces */
   --gl-yellow:         #fce300;
   --gl-muted:        #6b6f73;
   --gl-border:       #e8e8e8;
   --gl-red-light:    #df2f3b;
   --gl-red:          #ba0c2f;
-  --gl-white:        #ffffff;
+  --gl-white:        #ffffff;   /* page/card surface */
   --gl-row-alt:      #f7f7f7;
   --gl-leader-bg:    #fffbf0;
   --gl-leader-border: #fce300;
   --gl-text:         #1a1a1a;
   --gl-error-bg:     #fdf2f2;
+  --gl-error-border: #e0aaaa;
+  /* surface tints & accents (promoted from former hardcoded literals) */
+  --gl-green-tint:   #e8f0e8;   /* expanded rows, menu-active hover, skeleton base */
+  --gl-green-tint-2: #f4f8f4;   /* detail sub-row backgrounds */
+  --gl-green-border: #c0d4c0;   /* detail borders */
+  --gl-skeleton-2:   #d4e4d4;   /* skeleton shimmer mid-stop */
+  --gl-tint-1:       rgba(0,0,0,0.05);  /* subtle zebra/hover/separator */
+  --gl-tint-2:       rgba(0,0,0,0.06);  /* medium tag/badge background */
+  --gl-notice-bg:    #fffbe6;
+  --gl-notice-code:  #f0e8d0;
+  --gl-medal-gold:   #d4af37;
+  --gl-medal-silver: #a8a9ad;
+  --gl-medal-bronze: #a0522d;
   --gl-font-serif:   'Playfair Display', 'Georgia', serif;
   --gl-font-sc:      'Playfair Display SC', 'Georgia', serif;
   --gl-font-sans:    'Source Sans 3', 'Helvetica', sans-serif;
+}
+
+/* ── Masters palette (dark) ──
+   Deep desaturated pine rather than black, so the Augusta identity survives.
+   Greens lift to read on dark; yellow/red soften; surfaces go charcoal-green. */
+[data-theme="dark"] {
+  --gl-green:        #1f9d6e;   /* lifted: header bg + accent text both read */
+  --gl-green-dark:   #8fd3b8;   /* text accent → light on dark */
+  --gl-green-light:  #2a8f66;   /* hover surfaces */
+  --gl-yellow:       #f5d93b;
+  --gl-muted:        #97a39d;
+  --gl-border:       #2c3a32;
+  --gl-red-light:    #e8505b;
+  --gl-red:          #f06a78;   /* lifted for text contrast */
+  --gl-white:        #131814;   /* page/card surface */
+  --gl-row-alt:      #1a221c;
+  --gl-leader-bg:    #2a2512;
+  --gl-leader-border: #d8c23a;
+  --gl-text:         #e7ece9;
+  --gl-error-bg:     #2a1a1c;
+  --gl-error-border: #6a2f37;
+  --gl-green-tint:   #1b2922;
+  --gl-green-tint-2: #161e19;
+  --gl-green-border: #2c3a32;
+  --gl-skeleton-2:   #243029;
+  --gl-tint-1:       rgba(255,255,255,0.05);
+  --gl-tint-2:       rgba(255,255,255,0.08);
+  --gl-notice-bg:    #2a2512;
+  --gl-notice-code:  #3a331f;
+  /* medals stay constant — gold/silver/bronze read on dark with white text */
 }
 
 /* ── Layout shell (GolfLayout) ── */
@@ -183,7 +230,7 @@
     color: var(--gl-green);
   }
   .gl-menu-link--active:hover {
-    background-color: #e8f0e8;
+    background-color: var(--gl-green-tint);
   }
 }
 
@@ -288,7 +335,7 @@
 }
 
 .gl-notice {
-  background: #fffbe6;
+  background: var(--gl-notice-bg);
   border: 1px solid var(--gl-yellow);
   border-radius: 4px;
   padding: 0.75rem 1rem;
@@ -298,14 +345,14 @@
 }
 
 .gl-notice code {
-  background: #f0e8d0;
+  background: var(--gl-notice-code);
   padding: 0.1rem 0.3rem;
   border-radius: 3px;
 }
 
 .gl-error {
   background: var(--gl-error-bg);
-  border: 1px solid #e0aaaa;
+  border: 1px solid var(--gl-error-border);
   color: var(--gl-red);
   border-radius: 4px;
   padding: 0.75rem 1rem;
@@ -375,7 +422,7 @@
 .gl-row-leader td.gl-col-rank,
 .gl-row-leader td.gl-col-name       { background-color: var(--gl-leader-bg); }
 .gl-row-is-expanded td.gl-col-rank,
-.gl-row-is-expanded td.gl-col-name  { background-color: #e8f0e8; }
+.gl-row-is-expanded td.gl-col-name  { background-color: var(--gl-green-tint); }
 
 .gl-table tbody td {
   padding: 0.65rem 0.5rem;
@@ -391,7 +438,7 @@
 
 .gl-table tbody td.gl-col-name {
   text-align: left;
-  border-right: 2px solid #d8d8d8;
+  border-right: 2px solid var(--gl-border);
 }
 
 .gl-row-even {
@@ -531,7 +578,7 @@
 
 .gl-month-select:focus {
   outline: none;
-  border-color: var(--gl-green-dark);
+  border-color: var(--gl-green);
 }
 
 /* ── Footer ── */
@@ -592,7 +639,7 @@
 
 .gl-search-input:focus {
   outline: none;
-  border-color: var(--gl-green-dark);
+  border-color: var(--gl-green);
 }
 
 .gl-search-clear {
@@ -672,13 +719,13 @@
 }
 
 .gl-row-is-expanded {
-  background-color: #e8f0e8 !important;
+  background-color: var(--gl-green-tint) !important;
 }
 
 .gl-row-detail td {
   padding: 0;
-  background-color: #f4f8f4;
-  border-bottom: 2px solid #c0d4c0;
+  background-color: var(--gl-green-tint-2);
+  border-bottom: 2px solid var(--gl-green-border);
 }
 
 .gl-detail-loading {
@@ -707,7 +754,7 @@
   text-transform: uppercase;
   color: var(--gl-green-dark);
   padding: 0.3rem 0 0.3rem 0.25rem;
-  border-bottom: 1px solid #c0d4c0;
+  border-bottom: 1px solid var(--gl-green-border);
   margin-bottom: 0.3rem;
   display: flex;
   align-items: center;
@@ -728,7 +775,7 @@
   padding: 0.3rem 0.25rem;
   font-family: var(--gl-font-sans);
   font-size: 0.8rem;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid var(--gl-border);
 }
 
 .gl-round-row:last-child {
@@ -938,7 +985,7 @@
 
 /* ── Skeleton shimmer ── */
 .gl-skeleton-bar {
-  background: linear-gradient(90deg, #e8f0e8 25%, #d4e4d4 50%, #e8f0e8 75%);
+  background: linear-gradient(90deg, var(--gl-green-tint) 25%, var(--gl-skeleton-2) 50%, var(--gl-green-tint) 75%);
   background-size: 200% 100%;
   animation: gl-skeleton-shimmer 1.4s ease-in-out infinite;
   border-radius: 3px;
@@ -1110,7 +1157,7 @@
   margin-left: 0.4rem;
   font-size: 0.65rem;
   font-family: var(--gl-font-sans);
-  background-color: var(--gl-green-dark);
+  background-color: var(--gl-green);
   color: white;
   border-radius: 3px;
   padding: 0.1rem 0.3rem;
@@ -1125,7 +1172,7 @@
   font-size: 0.76rem;
   text-transform: initial;
   color: var(--gl-muted);
-  background: rgba(0,0,0,0.06);
+  background: var(--gl-tint-2);
   border-radius: 4px;
   border-width: 0;
   padding: 0.2rem 0.5rem;
@@ -1373,7 +1420,7 @@
   }
   /* Static fill so skeletons still read as placeholders without shimmer */
   .gl-skeleton-bar {
-    background: #e8f0e8;
+    background: var(--gl-green-tint);
   }
   .fav-star,
   .fav-star:hover,
@@ -1474,4 +1521,48 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .gl-toast { animation: none; }
+}
+
+/* ── Theme toggle (sun/moon) ── */
+.gl-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  padding: 0.4rem;
+  margin-left: 0.25rem;
+  color: var(--gl-green);
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background-color 0.15s, color 0.15s;
+}
+.gl-theme-toggle:hover {
+  background: var(--gl-green-tint);
+  color: var(--gl-green-dark);
+}
+.gl-menu-theme-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+  font-family: var(--gl-font-sans);
+  font-size: 0.95rem;
+  color: var(--gl-muted);
+}
+
+/* Dark-mode: recolor the select dropdown arrow (it's a baked-in SVG fill) */
+[data-theme="dark"] .gl-month-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%231f9d6e'/%3E%3C/svg%3E");
+}
+
+/* Smooth the surface flip on theme toggle (kept subtle; off for reduced-motion) */
+@media (prefers-reduced-motion: no-preference) {
+  .gl-layout,
+  .gl-wrapper,
+  .gl-detail-wrapper,
+  .gl-subnav,
+  .gl-table tbody td {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
 }

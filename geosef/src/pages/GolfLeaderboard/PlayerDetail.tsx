@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import FavoriteStar from '../../components/FavoriteStar';
 import FavoritesToast from '../../components/FavoritesToast';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
+import { useTheme } from '../../hooks/useTheme';
 import { SkeletonDetailHeader, SkeletonSection } from './GolfSkeleton';
 import {
   ResponsiveContainer, LineChart, Line,
@@ -39,6 +40,24 @@ function toMD(dateStr: string): string {
 }
 
 function HandicapChart({ history }: { history: HandicapPoint[] }) {
+  const { resolved } = useTheme();
+  // Recharts paints SVG attributes that don't resolve CSS vars, so read the
+  // current token values directly and recompute them when the theme flips.
+  const c = useMemo(() => {
+    const s = getComputedStyle(document.documentElement);
+    const v = (name: string, fallback: string) => s.getPropertyValue(name).trim() || fallback;
+    return {
+      axisText: v('--gl-muted', '#5a6e5a'),
+      axisLine: v('--gl-green-border', '#c0d4c0'),
+      line: v('--gl-green', '#006747'),
+      active: v('--gl-leader-border', '#fce300'),
+      surface: v('--gl-white', '#ffffff'),
+      border: v('--gl-green-border', '#c0d4c0'),
+      label: v('--gl-green-dark', '#2d4a2d'),
+      text: v('--gl-text', '#1a1a1a'),
+    };
+  }, [resolved]);
+
   if (history.length === 0) return null;
 
   const byMD = new Map(history.map(h => [toMD(h.date), h.index]));
@@ -60,30 +79,30 @@ function HandicapChart({ history }: { history: HandicapPoint[] }) {
       <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 4 }}>
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 10, fontFamily: 'sans-serif', fill: '#5a6e5a' }}
+          tick={{ fontSize: 10, fontFamily: 'sans-serif', fill: c.axisText }}
           tickLine={false}
-          axisLine={{ stroke: '#c0d4c0' }}
+          axisLine={{ stroke: c.axisLine }}
           interval={3}
         />
         <YAxis
           domain={[yMin, yMax]}
-          tick={{ fontSize: 11, fontFamily: 'sans-serif', fill: '#5a6e5a' }}
+          tick={{ fontSize: 11, fontFamily: 'sans-serif', fill: c.axisText }}
           tickLine={false}
           axisLine={false}
           width={40}
         />
         <Tooltip
           formatter={(v) => [typeof v === 'number' ? v.toFixed(1) : v, 'Index']}
-          contentStyle={{ fontFamily: 'sans-serif', fontSize: 12, borderColor: '#c0d4c0' }}
-          labelStyle={{ color: '#2d4a2d', fontWeight: 600 }}
+          contentStyle={{ fontFamily: 'sans-serif', fontSize: 12, backgroundColor: c.surface, borderColor: c.border, color: c.text }}
+          labelStyle={{ color: c.label, fontWeight: 600 }}
         />
         <Line
           type="monotone"
           dataKey="index"
-          stroke="#006747"
+          stroke={c.line}
           strokeWidth={2}
-          dot={{ r: 3, fill: '#006747', strokeWidth: 0 }}
-          activeDot={{ r: 5, fill: '#fce300' }}
+          dot={{ r: 3, fill: c.line, strokeWidth: 0 }}
+          activeDot={{ r: 5, fill: c.active }}
           connectNulls={false}
         />
       </LineChart>
