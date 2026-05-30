@@ -72,8 +72,8 @@ export const GOLF_EVENTS: Record<string, GolfEvent> = {
     tagline: 'Best net score takes the barrel',
     logo: '/golf/ggc-barrel-run.jpg',
     history: [
-      'The Barrel Run is an individual 18-hole tournament played at 70% of your handicap.',
-      'The best net score wins a barrel, earns their name on the trophy and the club walls, and gets a caddie bib hanging in Looper’s — GGC’s club bar — with their name on it for the year.',
+      'An individual 18-hole tournament played at 70% of your handicap.',
+      'Low net wins the barrel, takes their place on the trophy and the club walls, and earns a caddie bib in Looper’s with their name on it for the year.',
     ],
     venue: { name: 'St. Peters Golf Course', courseName: 'St. Peters' },
     when: 'June 27 · 1:30 PM shotgun start',
@@ -88,12 +88,12 @@ export const GOLF_EVENTS: Record<string, GolfEvent> = {
   'captains-cup': {
     slug: 'captains-cup',
     name: 'Captain’s Cup',
-    tagline: 'Masters-style, hosted by the club captains',
+    tagline: 'Earn your place among the Captains',
     logo: '/golf/ggc-captains-logo.png',
     intro: 'On behalf of the Gimme Golf Club Captains, we’d like to invite you to the Captain’s Cup.',
     history: [
-      'The Captain’s Cup is played Masters-style — hosted each year by the captains of the Gimme Golf Club.',
-      'Win it and you earn the privilege of joining the club’s Captains: a coveted Captain’s jacket, and a seat at the Captain’s dinner held before the tournament every year.',
+      'Hosted each year by the Captains of the Gimme Golf Club.',
+      'Win the Cup and you join them — a Captain’s jacket of your own, and a seat at the Captain’s dinner the night before the tournament, every year.',
     ],
     venue: { name: 'Glen Echo Country Club', websiteUrl: 'https://www.gecc.org' },
     when: 'July 27 · start time & format TBD',

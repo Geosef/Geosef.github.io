@@ -108,7 +108,13 @@ export default function EventDetail() {
             <h2 className="gl-detail-section-title">Club Captains</h2>
             <div className="ev-captains">
               {captains.map(c => (
-                <span key={c} className="ev-captain">{c}</span>
+                <Link
+                  key={c}
+                  to={`/golf-leaderboard/player/${encodeURIComponent(c)}`}
+                  className="ev-captain"
+                >
+                  {c}
+                </Link>
               ))}
             </div>
           </section>
@@ -155,7 +161,13 @@ export default function EventDetail() {
                   <span className="ev-winner-year">{w.year}</span>
                   <span className="ev-winner-info">
                     <span className="ev-winner-champ">
-                      <Trophy size={13} className="ev-winner-trophy" /> {w.champion}
+                      <Trophy size={13} className="ev-winner-trophy" />
+                      <Link
+                        to={`/golf-leaderboard/player/${encodeURIComponent(w.champion)}`}
+                        className="cd-player-link"
+                      >
+                        {w.champion}
+                      </Link>
                     </span>
                     {w.note && <span className="ev-winner-note">{w.note}</span>}
                   </span>

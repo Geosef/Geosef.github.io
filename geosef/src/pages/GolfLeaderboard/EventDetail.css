@@ -117,6 +117,12 @@
   border: 1px solid var(--gl-border);
   border-radius: 999px;
   padding: 0.25rem 0.7rem;
+  text-decoration: none;
+}
+
+.ev-captain:hover {
+  background: rgba(0, 0, 0, 0.07);
+  border-color: var(--gl-green);
 }
 
 /* ── Points scorers ── */
