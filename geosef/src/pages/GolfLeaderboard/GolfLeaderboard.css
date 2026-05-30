@@ -443,6 +443,28 @@
   font-style: italic;
 }
 
+/* ── Event column headers (Open / CC) link to their event pages ── */
+.gl-table thead th.gl-th-event {
+  padding: 0;
+}
+
+.gl-th-event:hover {
+  background-color: var(--gl-green-light);
+}
+
+.gl-event-link {
+  display: block;
+  padding: 0.6rem 0.5rem;
+  color: #fff;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
+.gl-event-link:hover {
+  text-decoration-style: solid;
+}
+
 /* ── Monthly R1/R2/Total columns ── */
 .gl-col-r1,
 .gl-col-r2,

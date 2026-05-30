@@ -22,11 +22,6 @@ const MONTH_TABS = [
   { key: 'august' as ActiveTab, label: 'August', param: 'August', month: 7 },
 ];
 
-function getActiveMonthTab(): ActiveTab {
-  const m = new Date().getMonth();
-  return (MONTH_TABS.find(t => t.month >= m) ?? MONTH_TABS[MONTH_TABS.length - 1]).key;
-}
-
 function isFutureMonth(tab: typeof MONTH_TABS[number]): boolean {
   return tab.month > new Date().getMonth();
 }
@@ -98,7 +93,7 @@ export default function GolfLeaderboard() {
     const tab = searchParams.get('tab') as ActiveTab;
     if (tab === 'season') return 'season';
     if (MONTH_TABS.some(m => m.key === tab)) return tab;
-    return getActiveMonthTab();
+    return 'season';
   });
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -253,7 +248,7 @@ export default function GolfLeaderboard() {
                   {m.label} 2026
                 </option>
               ))}
-              <option value="season" disabled>Season</option>
+              <option value="season">Season</option>
             </select>
           </div>
           <SearchInput value={searchQuery} onChange={setSearchQuery} placeholder="Filter players…" />
@@ -281,9 +276,13 @@ export default function GolfLeaderboard() {
                     <SortTh label="Apr" sortK="april" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
                     <SortTh label="May" sortK="may" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
                     <SortTh label="Jun" sortK="june" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
-                    <SortTh label="Open" sortK="theOpen" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month gl-col-major" />
+                    <th className="gl-col-month gl-col-major gl-th-event">
+                      <Link to="/golf-leaderboard/event/open" className="gl-event-link">Open</Link>
+                    </th>
                     <SortTh label="Jul" sortK="july" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
-                    <SortTh label="CC" sortK="captainsCup" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month gl-col-major" />
+                    <th className="gl-col-month gl-col-major gl-th-event">
+                      <Link to="/golf-leaderboard/event/captains-cup" className="gl-event-link">CC</Link>
+                    </th>
                     <SortTh label="Aug" sortK="august" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
                   </>
                 )}
