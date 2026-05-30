@@ -1,34 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './GolfLeaderboard.css';
 import type { LeaderboardData } from '../../types/golf';
-import { APPS_SCRIPT_URL } from '../../config';
-import { sessionCache } from '../../golf-cache';
-import { SortTh, sortStandings, SortDir, StickyListHeader, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
+import { sessionCache, loadAction } from '../../golf-cache';
+import { SortTh, sortStandings, SortDir, StickyListHeader, PAGE_SIZE, ShowAllRow, ListError, EmptyRow, FavoritesToggle } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
 import { sortByFavorites } from '../../lib/sortByFavorites';
 import FavoriteStar from '../../components/FavoriteStar';
+import FavoritesToast from '../../components/FavoritesToast';
 
 export default function PlayersList() {
   const navigate = useNavigate();
-  const { prefs, toggleFavoritePlayer } = useUserPrefs();
+  const { prefs, toggleFavoritePlayer, isSignedIn, saveError, clearSaveError } = useUserPrefs();
   const [data, setData] = useState<LeaderboardData | null>(sessionCache.season);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState('rank');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [showAll, setShowAll] = useState(false);
+  const [favOnly, setFavOnly] = useState(false);
+  const [error, setError] = useState(false);
+
+  const load = useCallback(() => {
+    setError(false);
+    loadAction('season').then(setData).catch(() => setError(true));
+  }, []);
 
   useEffect(() => {
     if (sessionCache.season) return;
-    fetch(`${APPS_SCRIPT_URL}?action=leaderboard`)
-      .then(r => r.json())
-      .then((d: LeaderboardData) => {
-        sessionCache.season = d;
-        setData(d);
-      })
-      .catch(() => {});
-  }, []);
+    load();
+  }, [load]);
 
   function handleSort(key: string) {
     if (key === sortKey) {
@@ -40,21 +41,33 @@ export default function PlayersList() {
   }
 
   const standings = data?.standings ?? [];
+  const favPlayers = prefs?.favoritePlayers ?? [];
+  const favCount = favPlayers.length;
+  const favActive = favOnly && favCount > 0;
+  const base = favActive ? standings.filter(s => favPlayers.includes(s.name)) : standings;
   const filtered = searchQuery.trim()
-    ? standings.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase().trim()))
-    : standings;
+    ? base.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase().trim()))
+    : base;
   const sorted = sortStandings(filtered, sortKey, sortDir, 'season');
-  const display = sortByFavorites(sorted, prefs?.favoritePlayers ?? [], s => s.name);
-  const visible = showAll ? display : display.slice(0, PAGE_SIZE);
+  const display = sortByFavorites(sorted, favPlayers, s => s.name);
+  // In the favorites view there's no need to paginate — show them all.
+  const visible = favActive || showAll ? display : display.slice(0, PAGE_SIZE);
 
   return (
     <div className="gl-wrapper">
       <StickyListHeader
         title="All Players"
         search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Filter players…' }}
-      />
+      >
+        {isSignedIn && favCount > 0 && (
+          <FavoritesToggle favOnly={favActive} onChange={setFavOnly} count={favCount} />
+        )}
+      </StickyListHeader>
 
       <div className="gl-content">
+        {error && !data ? (
+          <ListError onRetry={load} />
+        ) : (
         <table className="gl-table">
           <thead>
             <tr>
@@ -66,6 +79,14 @@ export default function PlayersList() {
           <tbody>
             {!data ? (
               <SkeletonTableRows rows={8} cols={3} />
+            ) : display.length === 0 ? (
+              <EmptyRow colSpan={3}>
+                {searchQuery.trim()
+                  ? `No players match “${searchQuery.trim()}”.`
+                  : favActive
+                    ? 'No favorite players yet — tap the ☆ on any player to add one.'
+                    : 'No players yet.'}
+              </EmptyRow>
             ) : (
               visible.map((s, i) => (
                 <tr
@@ -96,12 +117,14 @@ export default function PlayersList() {
                 </tr>
               ))
             )}
-            {data && !showAll && display.length > PAGE_SIZE && (
+            {data && !favActive && !showAll && display.length > PAGE_SIZE && (
               <ShowAllRow total={display.length} shown={visible.length} colSpan={3} onShowAll={() => setShowAll(true)} />
             )}
           </tbody>
         </table>
+        )}
       </div>
+      <FavoritesToast show={saveError} onDismiss={clearSaveError} />
     </div>
   );
 }

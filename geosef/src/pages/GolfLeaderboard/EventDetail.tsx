@@ -3,6 +3,7 @@ import { ArrowLeft, Trophy, MapPin, Calendar, Flag, ArrowUpRight } from 'lucide-
 import './GolfLeaderboard.css';
 import './EventDetail.css';
 import { getEvent } from './eventsData';
+import ShareButton from '../../components/ShareButton';
 
 const RANK_CLASS = ['ev-rank--1', 'ev-rank--2', 'ev-rank--3'];
 
@@ -42,7 +43,10 @@ export default function EventDetail() {
   return (
     <div className="gl-detail-wrapper">
       <div className="gl-detail-header">
-        <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
+        <div className="gl-detail-topbar">
+          <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
+          <ShareButton title={`${name} — GGC League`} />
+        </div>
         <div className="ev-titlebar">
           {logo && <img src={logo} alt={`${name} logo`} className="ev-logo" />}
           <div>

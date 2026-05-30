@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, MapPin, Phone, Clock, DollarSign } from 'lucide-react';
 import FavoriteStar from '../../components/FavoriteStar';
+import FavoritesToast from '../../components/FavoritesToast';
+import ShareButton from '../../components/ShareButton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
 import './GolfLeaderboard.css';
 import './CourseDetail.css';
-import type { Round, ScoringLogData, CourseInfoData, CourseVariantData } from '../../types/golf';
+import type { Round } from '../../types/golf';
 import { formatPlusMinus, formatDate } from '../../types/golf';
-import { APPS_SCRIPT_URL } from '../../config';
-import { sessionCache } from '../../golf-cache';
+import { sessionCache, loadAction } from '../../golf-cache';
 import { pmScoreClass, countBy, Chip } from './leaderboard-utils';
 import { SkeletonDetailHeader, SkeletonSection } from './GolfSkeleton';
 
@@ -88,7 +89,7 @@ export default function CourseDetail() {
   const side = searchParams.get('side'); // "Front", "Back", or null
   const navigate = useNavigate();
   const location = useLocation();
-  const { prefs, toggleFavoriteCourse } = useUserPrefs();
+  const { prefs, toggleFavoriteCourse, isSignedIn, signIn, saveError, clearSaveError } = useUserPrefs();
 
   function goBack() {
     if (location.key !== 'default') {
@@ -106,44 +107,20 @@ export default function CourseDetail() {
   useEffect(() => {
     if (!courseName) return;
 
-    const fetches: Promise<void>[] = [];
+    // Course variants enrich the view but don't gate it — load independently.
+    loadAction('courseVariants')
+      .then(() => forceUpdate(n => n + 1))
+      .catch(() => {});
 
-    if (!sessionCache.scoringLog) {
-      fetches.push(
-        fetch(`${APPS_SCRIPT_URL}?action=scoringLog`)
-          .then(r => r.json())
-          .then((data: ScoringLogData) => { sessionCache.scoringLog = data; })
-          .catch(() => { setError('Could not load course data.'); })
-      );
-    }
-
-    if (!sessionCache.courseInfo) {
-      fetches.push(
-        fetch(`${APPS_SCRIPT_URL}?action=courseInfo`)
-          .then(r => r.json())
-          .then((data: CourseInfoData) => { sessionCache.courseInfo = data; })
-          .catch(() => {})
-      );
-    }
-
-    if (!sessionCache.courseVariants) {
-      fetch(`${APPS_SCRIPT_URL}?action=courses`)
-        .then(r => r.json())
-        .then((data: CourseVariantData) => {
-          sessionCache.courseVariants = data;
-          forceUpdate(n => n + 1);
-        })
-        .catch(() => {});
-    }
-
-    if (fetches.length > 0) {
-      Promise.all(fetches).then(() => {
-        setLoading(false);
-        forceUpdate(n => n + 1);
-      });
-    } else {
+    // scoringLog + courseInfo gate the loading state; only a scoringLog failure
+    // is surfaced (courseInfo is supplementary).
+    Promise.all([
+      loadAction('scoringLog').catch(() => { setError('Could not load course data.'); }),
+      loadAction('courseInfo').catch(() => {}),
+    ]).then(() => {
       setLoading(false);
-    }
+      forceUpdate(n => n + 1);
+    });
   }, [courseName]);
 
   if (loading) {
@@ -250,13 +227,20 @@ export default function CourseDetail() {
         <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
         <div className="gl-detail-title-row">
           <h1 className="cd-name">{headingTitle}</h1>
-          {prefs && decoded && (
-            <FavoriteStar
-              isFavorite={prefs.favoriteCourses.includes(decoded)}
-              onToggle={() => toggleFavoriteCourse(decoded)}
-              label={decoded}
-            />
-          )}
+          <div className="gl-detail-actions">
+            {decoded && (
+              isSignedIn && prefs ? (
+                <FavoriteStar
+                  isFavorite={prefs.favoriteCourses.includes(decoded)}
+                  onToggle={() => toggleFavoriteCourse(decoded)}
+                  label={decoded}
+                />
+              ) : (
+                <FavoriteStar isFavorite={false} promptSignIn onToggle={signIn} label={decoded} />
+              )
+            )}
+            <ShareButton title={`${headingTitle} — GGC League`} />
+          </div>
         </div>
         <p className="cd-meta">
           {parDisplay} · {rounds.length} round{rounds.length !== 1 ? 's' : ''}
@@ -503,6 +487,7 @@ export default function CourseDetail() {
         </section>
 
       </div>
+      <FavoritesToast show={saveError} onDismiss={clearSaveError} />
     </div>
   );
 }

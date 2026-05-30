@@ -1,4 +1,5 @@
 import React from 'react';
+import { Star } from 'lucide-react';
 import type { Standing, MonthlyStanding, MonthlyBreakdown } from '../../types/golf';
 
 export const NON_MEMBER_PARTNER = 'Other (GGC Member)';
@@ -22,6 +23,58 @@ export function StickyListHeader({ title, search, children }: StickyListHeaderPr
       </div>
       {children}
     </div>
+  );
+}
+
+/** Segmented "All | ★ Favorites (N)" control for list pages. */
+export function FavoritesToggle({
+  favOnly,
+  onChange,
+  count,
+}: { favOnly: boolean; onChange: (v: boolean) => void; count: number }) {
+  return (
+    <div className="gl-fav-filter-row">
+      <div className="gl-fav-filter" role="group" aria-label="Filter by favorites">
+        <button
+          type="button"
+          className={`gl-fav-filter-btn${!favOnly ? ' gl-fav-filter-btn--active' : ''}`}
+          aria-pressed={!favOnly}
+          onClick={() => onChange(false)}
+        >
+          All
+        </button>
+        <button
+          type="button"
+          className={`gl-fav-filter-btn${favOnly ? ' gl-fav-filter-btn--active' : ''}`}
+          aria-pressed={favOnly}
+          onClick={() => onChange(true)}
+        >
+          <Star size={13} /> Favorites {count}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** Full-width error state for list pages, with a Retry affordance. */
+export function ListError({
+  onRetry,
+  message = "Couldn't load this list. Check your connection and try again.",
+}: { onRetry: () => void; message?: string }) {
+  return (
+    <div className="gl-error gl-error--list" role="alert">
+      <span>{message}</span>
+      <button className="gl-retry-btn" onClick={onRetry}>Retry</button>
+    </div>
+  );
+}
+
+/** A single full-width table row for empty / no-match states. */
+export function EmptyRow({ colSpan, children }: { colSpan: number; children: React.ReactNode }) {
+  return (
+    <tr className="gl-empty-row">
+      <td colSpan={colSpan} className="gl-empty-cell">{children}</td>
+    </tr>
   );
 }
 
@@ -145,16 +198,32 @@ interface SortThProps {
 export function SortTh({ label, sortK, currentKey, dir, onSort, className, invertArrow }: SortThProps) {
   const isActive = sortK === currentKey;
   let indicator: string | null = null;
+  let ariaSort: 'none' | 'ascending' | 'descending' = 'none';
   if (isActive) {
     const goingDown = invertArrow ? dir === 'asc' : dir === 'desc';
     indicator = goingDown ? '↓' : '↑';
+    ariaSort = goingDown ? 'descending' : 'ascending';
   }
+  const activate = () => onSort(sortK);
   return (
     <th
       className={['gl-th-sortable', isActive ? 'gl-th-active' : '', className].filter(Boolean).join(' ')}
-      onClick={() => onSort(sortK)}
+      aria-sort={ariaSort}
+      onClick={activate}
     >
-      {label}{indicator && <span className="gl-sort-indicator">{indicator}</span>}
+      <span
+        className="gl-th-btn"
+        role="button"
+        tabIndex={0}
+        onKeyDown={e => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            activate();
+          }
+        }}
+      >
+        {label}{indicator && <span className="gl-sort-indicator">{indicator}</span>}
+      </span>
     </th>
   );
 }

@@ -3,6 +3,7 @@ import { Outlet, NavLink, useLocation, useNavigationType } from 'react-router-do
 import { Menu, X, ArrowUpRight } from 'lucide-react';
 import { NavRightProvider, useNavRight } from './NavRightContext';
 import { useAuth } from '../../context/AuthContext';
+import ThemeToggle from '../../components/ThemeToggle';
 import './GolfLeaderboard.css';
 
 const LEAGUE_RULES_URL = 'https://docs.google.com/document/d/1hg-nl49_QdqyBlWsAYHjgmQYnvClTUHDigqLMRerrsI';
@@ -158,6 +159,7 @@ function GolfLayoutInner() {
   return (
     <div className="gl-layout">
       <ScrollManager />
+      <a href="#gl-main" className="gl-skip-link">Skip to content</a>
       <header className="gl-subnav">
         <button
           className="gl-subnav-menu-btn"
@@ -168,7 +170,7 @@ function GolfLayoutInner() {
           <Menu size={22} />
         </button>
         <div className="gl-subnav-title">GGC League</div>
-        <div className="gl-subnav-right">{navRight}<AuthButton /></div>
+        <div className="gl-subnav-right">{navRight}<ThemeToggle /><AuthButton /></div>
       </header>
 
       {menuOpen && (
@@ -202,6 +204,11 @@ function GolfLayoutInner() {
                 </NavLink>
               ))}
               <div className="gl-menu-divider" />
+              <div className="gl-menu-theme-row">
+                <span>Appearance</span>
+                <ThemeToggle />
+              </div>
+              <div className="gl-menu-divider" />
               <a
                 href={SUBMIT_SCORES_URL}
                 target="_blank"
@@ -225,7 +232,9 @@ function GolfLayoutInner() {
         </div>
       )}
 
-      <Outlet />
+      <main id="gl-main" tabIndex={-1} className="gl-main">
+        <Outlet />
+      </main>
 
       <footer className="gl-footer">
         <div className="gl-footer-inner">

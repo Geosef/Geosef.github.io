@@ -35,7 +35,7 @@
   font-family: var(--gl-font-sans);
   font-size: 0.82rem;
   padding: 0.2rem 0;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid var(--gl-border);
 }
 
 .pd-hcp-row:last-child {

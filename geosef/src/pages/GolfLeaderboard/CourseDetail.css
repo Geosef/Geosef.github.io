@@ -36,7 +36,7 @@
   align-items: flex-start;
   gap: 0.4rem;
   padding: 0.35rem 0;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid var(--gl-border);
   font-family: var(--gl-font-sans);
   font-size: 0.82rem;
 }
@@ -60,17 +60,17 @@
 }
 
 .cd-notable-rank--1 {
-  background: #d4af37;
+  background: var(--gl-medal-gold);
   color: #fff;
 }
 
 .cd-notable-rank--2 {
-  background: #a8a9ad;
+  background: var(--gl-medal-silver);
   color: #fff;
 }
 
 .cd-notable-rank--3 {
-  background: #a0522d;
+  background: var(--gl-medal-bronze);
   color: #fff;
 }
 
@@ -101,7 +101,7 @@
   padding: 0.35rem 0;
   font-family: var(--gl-font-sans);
   font-size: 0.82rem;
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid var(--gl-border);
 }
 
 .cd-round-row:last-child {
@@ -151,7 +151,7 @@
 
 /* ── Course Info ── */
 .cd-info-section {
-  background: rgba(0,0,0,0.03);
+  background: var(--gl-tint-1);
   border-radius: 6px;
   overflow: hidden;
   padding: 0;
@@ -230,7 +230,7 @@
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--gl-muted);
-  background: rgba(0,0,0,0.06);
+  background: var(--gl-tint-2);
   border-radius: 3px;
   padding: 0.1rem 0.35rem;
 }

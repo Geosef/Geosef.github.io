@@ -1,8 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import FavoriteStar from '../../components/FavoriteStar';
+import FavoritesToast from '../../components/FavoritesToast';
+import ShareButton from '../../components/ShareButton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
+import { useTheme } from '../../hooks/useTheme';
 import { SkeletonDetailHeader, SkeletonSection } from './GolfSkeleton';
 import {
   ResponsiveContainer, LineChart, Line,
@@ -10,10 +13,9 @@ import {
 } from 'recharts';
 import './GolfLeaderboard.css';
 import './PlayerDetail.css';
-import type { Round, HandicapPoint, ScoringLogData, HandicapIndexData, PlayerHandicap } from '../../types/golf';
+import type { Round, HandicapPoint, PlayerHandicap } from '../../types/golf';
 import { tagCountingRounds, groupRoundsByMonth, formatDate } from '../../types/golf';
-import { APPS_SCRIPT_URL } from '../../config';
-import { sessionCache } from '../../golf-cache';
+import { sessionCache, loadAction } from '../../golf-cache';
 import { RoundMonthGroup } from './RoundHistory';
 import { countBy, NON_MEMBER_PARTNER } from './leaderboard-utils';
 
@@ -38,6 +40,24 @@ function toMD(dateStr: string): string {
 }
 
 function HandicapChart({ history }: { history: HandicapPoint[] }) {
+  const { resolved } = useTheme();
+  // Recharts paints SVG attributes that don't resolve CSS vars, so read the
+  // current token values directly and recompute them when the theme flips.
+  const c = useMemo(() => {
+    const s = getComputedStyle(document.documentElement);
+    const v = (name: string, fallback: string) => s.getPropertyValue(name).trim() || fallback;
+    return {
+      axisText: v('--gl-muted', '#5a6e5a'),
+      axisLine: v('--gl-green-border', '#c0d4c0'),
+      line: v('--gl-green', '#006747'),
+      active: v('--gl-leader-border', '#fce300'),
+      surface: v('--gl-white', '#ffffff'),
+      border: v('--gl-green-border', '#c0d4c0'),
+      label: v('--gl-green-dark', '#2d4a2d'),
+      text: v('--gl-text', '#1a1a1a'),
+    };
+  }, [resolved]);
+
   if (history.length === 0) return null;
 
   const byMD = new Map(history.map(h => [toMD(h.date), h.index]));
@@ -59,30 +79,30 @@ function HandicapChart({ history }: { history: HandicapPoint[] }) {
       <LineChart data={data} margin={{ top: 8, right: 16, bottom: 0, left: 4 }}>
         <XAxis
           dataKey="date"
-          tick={{ fontSize: 10, fontFamily: 'sans-serif', fill: '#5a6e5a' }}
+          tick={{ fontSize: 10, fontFamily: 'sans-serif', fill: c.axisText }}
           tickLine={false}
-          axisLine={{ stroke: '#c0d4c0' }}
+          axisLine={{ stroke: c.axisLine }}
           interval={3}
         />
         <YAxis
           domain={[yMin, yMax]}
-          tick={{ fontSize: 11, fontFamily: 'sans-serif', fill: '#5a6e5a' }}
+          tick={{ fontSize: 11, fontFamily: 'sans-serif', fill: c.axisText }}
           tickLine={false}
           axisLine={false}
           width={40}
         />
         <Tooltip
           formatter={(v) => [typeof v === 'number' ? v.toFixed(1) : v, 'Index']}
-          contentStyle={{ fontFamily: 'sans-serif', fontSize: 12, borderColor: '#c0d4c0' }}
-          labelStyle={{ color: '#2d4a2d', fontWeight: 600 }}
+          contentStyle={{ fontFamily: 'sans-serif', fontSize: 12, backgroundColor: c.surface, borderColor: c.border, color: c.text }}
+          labelStyle={{ color: c.label, fontWeight: 600 }}
         />
         <Line
           type="monotone"
           dataKey="index"
-          stroke="#006747"
+          stroke={c.line}
           strokeWidth={2}
-          dot={{ r: 3, fill: '#006747', strokeWidth: 0 }}
-          activeDot={{ r: 5, fill: '#fce300' }}
+          dot={{ r: 3, fill: c.line, strokeWidth: 0 }}
+          activeDot={{ r: 5, fill: c.active }}
           connectNulls={false}
         />
       </LineChart>
@@ -94,7 +114,7 @@ export default function PlayerDetail() {
   const { playerName } = useParams<{ playerName: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { prefs, toggleFavoritePlayer } = useUserPrefs();
+  const { prefs, toggleFavoritePlayer, isSignedIn, signIn, saveError, clearSaveError } = useUserPrefs();
 
   // Go back in history if we have it; fall back to leaderboard for direct-URL visits
   function goBack() {
@@ -114,30 +134,14 @@ export default function PlayerDetail() {
   useEffect(() => {
     if (!playerName) return;
 
-    const fetches: Promise<void>[] = [];
-
-    if (!sessionCache.scoringLog) {
-      fetches.push(
-        fetch(`${APPS_SCRIPT_URL}?action=scoringLog`)
-          .then(r => r.json())
-          .then((data: ScoringLogData) => { sessionCache.scoringLog = data; })
-      );
-    }
-
-    if (!sessionCache.handicapIndex) {
-      fetches.push(
-        fetch(`${APPS_SCRIPT_URL}?action=handicapIndex`)
-          .then(r => r.json())
-          .then((data: HandicapIndexData) => { sessionCache.handicapIndex = data; })
-      );
-    }
-
-    if (fetches.length === 0) {
+    if (sessionCache.scoringLog && sessionCache.handicapIndex) {
       setLoading(false);
       return;
     }
 
-    Promise.all(fetches)
+    setLoading(true);
+    setError(null);
+    Promise.all([loadAction('scoringLog'), loadAction('handicapIndex')])
       .then(() => {
         setLoading(false);
         forceUpdate(n => n + 1);
@@ -185,13 +189,18 @@ export default function PlayerDetail() {
         <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
         <div className="gl-detail-title-row">
           <h1 className="pd-name">{playerName}</h1>
-          {prefs && (
-            <FavoriteStar
-              isFavorite={prefs.favoritePlayers.includes(playerName)}
-              onToggle={() => toggleFavoritePlayer(playerName)}
-              label={playerName}
-            />
-          )}
+          <div className="gl-detail-actions">
+            {isSignedIn && prefs ? (
+              <FavoriteStar
+                isFavorite={prefs.favoritePlayers.includes(playerName)}
+                onToggle={() => toggleFavoritePlayer(playerName)}
+                label={playerName}
+              />
+            ) : (
+              <FavoriteStar isFavorite={false} promptSignIn onToggle={signIn} label={playerName} />
+            )}
+            <ShareButton title={`${playerName} — GGC League`} />
+          </div>
         </div>
         {handicap?.current != null && (
           <p className="pd-hcp-current">Handicap Index: {handicap.current.toFixed(1)}</p>
@@ -266,6 +275,7 @@ export default function PlayerDetail() {
         </section>
 
       </div>
+      <FavoritesToast show={saveError} onDismiss={clearSaveError} />
     </div>
   );
 }

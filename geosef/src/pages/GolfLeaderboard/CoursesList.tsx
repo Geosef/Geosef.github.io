@@ -1,15 +1,15 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import './GolfLeaderboard.css';
 import type { ScoringLogData, Round, CourseVariantData, CourseInfoData } from '../../types/golf';
 import { formatPlusMinus } from '../../types/golf';
-import { APPS_SCRIPT_URL } from '../../config';
-import { sessionCache } from '../../golf-cache';
-import { SortTh, SortDir, pmScoreClass, StickyListHeader, Chip, PAGE_SIZE, ShowAllRow } from './leaderboard-utils';
+import { sessionCache, loadAction } from '../../golf-cache';
+import { SortTh, SortDir, pmScoreClass, StickyListHeader, Chip, PAGE_SIZE, ShowAllRow, ListError, FavoritesToggle } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
 import { sortByFavorites } from '../../lib/sortByFavorites';
 import FavoriteStar from '../../components/FavoriteStar';
+import FavoritesToast from '../../components/FavoritesToast';
 
 const NINE_HOLE_COURSES = ['Ballwin'];
 
@@ -42,7 +42,7 @@ interface CourseSummary {
 
 export default function CoursesList() {
   const navigate = useNavigate();
-  const { prefs, toggleFavoriteCourse } = useUserPrefs();
+  const { prefs, toggleFavoriteCourse, isSignedIn, saveError, clearSaveError } = useUserPrefs();
   const [scoringLog, setScoringLog] = useState<ScoringLogData | null>(sessionCache.scoringLog);
   const [variants, setVariants] = useState<CourseVariantData | null>(sessionCache.courseVariants);
   const [courseInfo, setCourseInfo] = useState<CourseInfoData | null>(sessionCache.courseInfo);
@@ -50,36 +50,19 @@ export default function CoursesList() {
   const [sortKey, setSortKey] = useState('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
   const [showAll, setShowAll] = useState(false);
+  const [favOnly, setFavOnly] = useState(false);
+  const [error, setError] = useState(false);
 
-  useEffect(() => {
-    if (!sessionCache.scoringLog) {
-      fetch(`${APPS_SCRIPT_URL}?action=scoringLog`)
-        .then(r => r.json())
-        .then((d: ScoringLogData) => {
-          sessionCache.scoringLog = d;
-          setScoringLog(d);
-        })
-        .catch(() => {});
-    }
-    if (!sessionCache.courseVariants) {
-      fetch(`${APPS_SCRIPT_URL}?action=courses`)
-        .then(r => r.json())
-        .then((d: CourseVariantData) => {
-          sessionCache.courseVariants = d;
-          setVariants(d);
-        })
-        .catch(() => {});
-    }
-    if (!sessionCache.courseInfo) {
-      fetch(`${APPS_SCRIPT_URL}?action=courseInfo`)
-        .then(r => r.json())
-        .then((d: CourseInfoData) => {
-          sessionCache.courseInfo = d;
-          setCourseInfo(d);
-        })
-        .catch(() => {});
-    }
+  const load = useCallback(() => {
+    setError(false);
+    loadAction('scoringLog').then(setScoringLog).catch(() => {});
+    // The courses variant feed gates the page out of its loading state, so a
+    // failure here is the one users must be able to recover from.
+    loadAction('courseVariants').then(setVariants).catch(() => setError(true));
+    loadAction('courseInfo').then(setCourseInfo).catch(() => {});
   }, []);
+
+  useEffect(() => { load(); }, [load]);
 
   const courses = useMemo<CourseSummary[]>(() => {
     if (!variants?.courses?.length) return [];
@@ -213,9 +196,13 @@ export default function CoursesList() {
     }
   }
 
-  const filtered = searchQuery.trim()
+  const favCourses = prefs?.favoriteCourses ?? [];
+  const favCount = favCourses.length;
+  const favActive = favOnly && favCount > 0;
+  const searched = searchQuery.trim()
     ? courses.filter(c => c.displayName.toLowerCase().includes(searchQuery.toLowerCase().trim()))
     : courses;
+  const filtered = favActive ? searched.filter(c => favCourses.includes(c.name)) : searched;
 
   const rateToNum = (r: string | null) => {
     if (!r) return Infinity;
@@ -243,8 +230,8 @@ export default function CoursesList() {
     return sortDir === 'asc' ? cmp : -cmp;
   });
 
-  const displayFaved = sortByFavorites(display, prefs?.favoriteCourses ?? [], c => c.name);
-  const visible = showAll ? displayFaved : displayFaved.slice(0, PAGE_SIZE);
+  const displayFaved = sortByFavorites(display, favCourses, c => c.name);
+  const visible = favActive || showAll ? displayFaved : displayFaved.slice(0, PAGE_SIZE);
   const loading = !variants;
 
   return (
@@ -252,10 +239,16 @@ export default function CoursesList() {
       <StickyListHeader
         title="All Courses"
         search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Filter courses…' }}
-      />
+      >
+        {isSignedIn && favCount > 0 && (
+          <FavoritesToggle favOnly={favActive} onChange={setFavOnly} count={favCount} />
+        )}
+      </StickyListHeader>
 
       <div className="gl-content">
-        {loading ? (
+        {error && !variants ? (
+          <ListError onRetry={load} />
+        ) : loading ? (
           <div className="gl-table-scroll">
             <table className="gl-table gl-courses-table">
               <thead>
@@ -355,15 +348,22 @@ export default function CoursesList() {
                   </tr>
                 );
               })}
-              {!showAll && displayFaved.length > PAGE_SIZE && (
+              {!favActive && !showAll && displayFaved.length > PAGE_SIZE && (
                 <ShowAllRow total={displayFaved.length} shown={visible.length} colSpan={6} onShowAll={() => setShowAll(true)} />
               )}
             </tbody>
           </table></div>
         ) : (
-          <div className="gl-loading">No courses found.</div>
+          <div className="gl-loading">
+            {searchQuery.trim()
+              ? `No courses match “${searchQuery.trim()}”.`
+              : favActive
+                ? 'No favorite courses yet — tap the ☆ on any course to add one.'
+                : 'No courses found.'}
+          </div>
         )}
       </div>
+      <FavoritesToast show={saveError} onDismiss={clearSaveError} />
     </div>
   );
 }

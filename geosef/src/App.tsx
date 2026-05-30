@@ -10,6 +10,7 @@ import PlayersList from './pages/GolfLeaderboard/PlayersList';
 import CoursesList from './pages/GolfLeaderboard/CoursesList';
 import RecentScores from './pages/GolfLeaderboard/RecentScores';
 import EventDetail from './pages/GolfLeaderboard/EventDetail';
+import NotFound from './pages/GolfLeaderboard/NotFound';
 import './App.css';
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
             <Route path="scores" element={<RecentScores />} />
             <Route path="players" element={<PlayersList />} />
             <Route path="courses" element={<CoursesList />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
       </div>
