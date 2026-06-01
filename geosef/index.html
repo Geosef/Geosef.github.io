@@ -21,13 +21,19 @@
           var dark = p === 'dark' ||
             (!p && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
           document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+          // Match the browser-chrome tint (status/address bar) to the top surface
+          // (--gl-white). Kept in sync on theme changes by useTheme.
+          var meta = document.createElement('meta');
+          meta.name = 'theme-color';
+          meta.content = dark ? '#131814' : '#ffffff';
+          document.head.appendChild(meta);
         } catch (e) {}
       })();
     </script>
     <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <meta name="theme-color" content="#006747" />
     <meta name="description" content="GGC golf league standings, scores, and player stats — plus a ski-resort travel coordinator." />
 
     <!-- Open Graph / link previews -->

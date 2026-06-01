@@ -39,6 +39,15 @@ export function useTheme() {
     return () => obs.disconnect();
   }, []);
 
+  // Keep the browser-chrome tint (status/address bar) matched to the top surface
+  // (--gl-white) as the theme flips. First paint is handled by the bootstrap in
+  // index.html; this covers manual toggles and OS changes. Colors mirror it.
+  useEffect(() => {
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute('content', resolved === 'dark' ? '#131814' : '#ffffff');
+  }, [resolved]);
+
   // Track OS changes while the preference is 'system' (no explicit override stored).
   useEffect(() => {
     const mq = window.matchMedia('(prefers-color-scheme: dark)');
