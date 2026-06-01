@@ -70,6 +70,7 @@
 /* ── Layout shell (GolfLayout) ── */
 .gl-layout {
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   background-color: var(--gl-white);
@@ -642,6 +643,14 @@
   border-color: var(--gl-green);
 }
 
+/* Keep the field ≥16px on touch so focusing it doesn't trigger iOS auto-zoom
+   (the element-level rule in index.css can't beat this class's specificity). */
+@media (pointer: coarse) {
+  .gl-search-input {
+    font-size: 1rem;
+  }
+}
+
 .gl-search-clear {
   background: none;
   border: none;
@@ -860,6 +869,7 @@
 /* ── Shared detail page structure (CourseDetail + PlayerDetail) ── */
 .gl-detail-wrapper {
   min-height: 100vh;
+  min-height: 100dvh;
   background-color: var(--gl-white);
   color: var(--gl-text);
   font-family: var(--gl-font-serif);

@@ -1,3 +1,15 @@
+/* Opt into iOS Dynamic Type. `-apple-system-body` resolves to the user's system
+   text size (Settings → Display & Brightness → Text Size, and Accessibility →
+   Larger Text) in Safari/WebKit; because every size in the app is in `rem`,
+   scaling the root scales the whole UI. Gated to touch devices so macOS desktop
+   Safari (where the keyword resolves to a tiny ~13px) is unaffected; non-WebKit
+   browsers ignore the keyword and keep their default root size + page zoom. */
+@media (pointer: coarse) {
+  :root {
+    font: -apple-system-body;
+  }
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -10,4 +22,24 @@ body {
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* Match native UI (form controls, scrollbars, text caret, autofill backgrounds)
+   to the active theme. Without this they render light even in our dark theme. */
+:root {
+  color-scheme: light;
+}
+[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/* Stop iOS Safari from auto-zooming the page when a form field is focused — it
+   does that whenever the field's text computes under 16px. 1rem = the Dynamic
+   Type root size on touch (≥16px), so focusing a field no longer zooms. */
+@media (pointer: coarse) {
+  input,
+  select,
+  textarea {
+    font-size: 1rem;
+  }
 }
