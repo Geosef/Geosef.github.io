@@ -160,6 +160,8 @@ function doGet(e) {
     result = getHandicapIndex();
   } else if (action === "courses") {
     result = getCourses();
+  } else if (action === "playingHandicaps") {
+    result = getPlayingHandicaps();
   } else if (action === "courseInfo") {
     result = getCourseInfo();
   } else if (action === "getPrefs") {
@@ -403,6 +405,81 @@ function getCourses() {
   var result = { courses: courses };
   try {
     cache.put("courses", JSON.stringify(result), CACHE_TTL_COURSES);
+  } catch (e) {}
+  return result;
+}
+
+// --- Playing handicaps matrix (per player, per course/tee) ---
+
+/**
+ * Reads the Playing Handicaps sheet's player rows to expose each player's
+ * precomputed playing handicap for every course/tee variant.
+ *
+ * Same sheet getCourses() reads, but below the header:
+ *   Row 7 (index 6) = column headers ("Player | Current | Course - Tees - Front | ...")
+ *   Row 8+ (index 7+) = one row per player; col 0 = name, col 1 = current index,
+ *                       cols 2+ = playing handicap for the matching header column.
+ *
+ * Returns { players: [{ player, current, handicaps: { "<key>": number } }] }
+ * where <key> = "name|tees|frontBack" — built identically to getCourses() so the
+ * frontend can match a (course, tees, front/back) selection straight to a value.
+ */
+function getPlayingHandicaps() {
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get("playingHandicaps");
+  if (cached) return JSON.parse(cached);
+
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(PLAYING_HANDICAPS_SHEET);
+  if (!sheet) return { players: [] };
+
+  var maxCols = Math.min(sheet.getLastColumn(), 110);
+  var lastRow = sheet.getLastRow();
+  if (lastRow < 8) return { players: [] };
+
+  var data = sheet.getRange(1, 1, lastRow, maxCols).getValues();
+  var headerRow = data[6]; // row 7: course/tee column names
+
+  // Map each course column index → canonical "name|tees|frontBack" key.
+  var colKey = {};
+  for (var c = 2; c < headerRow.length; c++) {
+    var header = String(headerRow[c]).trim();
+    if (!header) continue;
+    var parts = header.split(" - ");
+    var courseName = parts[0].trim();
+    var tees = parts.length >= 2 ? parts[1].trim() : "";
+    var isNineHole = NINE_HOLE_COURSES.indexOf(courseName) >= 0;
+    var frontBack = (!isNineHole && parts.length >= 3) ? parts[parts.length - 1].trim() : "";
+    colKey[c] = courseName + "|" + tees + "|" + frontBack;
+  }
+
+  var players = [];
+  for (var r = 7; r < data.length; r++) { // row 8+ (index 7+)
+    var row = data[r];
+    var name = String(row[0]).trim();
+    if (!name) continue;
+
+    var handicaps = {};
+    for (var cc = 2; cc < row.length; cc++) {
+      if (!colKey[cc]) continue;
+      var val = row[cc];
+      if (val === "" || val === null) continue;
+      var num = parseFloat(val);
+      if (isNaN(num)) continue;
+      handicaps[colKey[cc]] = num;
+    }
+
+    var current = row[1] === "" || row[1] === null ? null : parseFloat(row[1]);
+    players.push({
+      player: name,
+      current: isNaN(current) ? null : current,
+      handicaps: handicaps,
+    });
+  }
+
+  var result = { players: players };
+  try {
+    cache.put("playingHandicaps", JSON.stringify(result), CACHE_TTL_COURSES);
   } catch (e) {}
   return result;
 }
