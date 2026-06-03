@@ -74,6 +74,9 @@ jobs:
         working-directory: geosef
         env:
           VITE_APPS_SCRIPT_DEPLOYMENT: ${{ steps.appscript.outputs.deployment_id }}
+          # Without this the prod bundle ships an empty client ID and the Google
+          # sign-in button never renders (the secret existed but wasn't wired in).
+          VITE_OAUTH_CLIENT_ID: ${{ secrets.VITE_OAUTH_CLIENT_ID }}
 
       - uses: actions/upload-pages-artifact@v5
         with:
