@@ -14,6 +14,7 @@ const NAV_LINKS: { to: string; label: string; end?: boolean }[] = [
   { to: '/golf-leaderboard/scores', label: 'Scores' },
   { to: '/golf-leaderboard/players', label: 'Players' },
   { to: '/golf-leaderboard/courses', label: 'Courses' },
+  { to: '/golf-leaderboard/handicaps', label: 'Playing Handicaps' },
 ];
 
 // Module-level so scroll positions survive re-renders

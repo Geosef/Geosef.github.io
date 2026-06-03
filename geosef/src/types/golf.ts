@@ -104,6 +104,18 @@ export interface CourseInfoData {
   courses: CourseInfoEntry[];
 }
 
+export interface PlayerPlayingHandicaps {
+  player: string;
+  current: number | null;
+  // Keyed by "name|tees|frontBack" — matches the CourseVariant identity so a
+  // course/tee/nine selection maps straight to a value.
+  handicaps: Record<string, number>;
+}
+
+export interface PlayingHandicapData {
+  players: PlayerPlayingHandicaps[];
+}
+
 export interface UserPrefs {
   favoritePlayers: string[];
   favoriteCourses: string[];

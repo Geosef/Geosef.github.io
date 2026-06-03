@@ -8,6 +8,7 @@ import PlayerDetail from './pages/GolfLeaderboard/PlayerDetail';
 import CourseDetail from './pages/GolfLeaderboard/CourseDetail';
 import PlayersList from './pages/GolfLeaderboard/PlayersList';
 import CoursesList from './pages/GolfLeaderboard/CoursesList';
+import PlayingHandicap from './pages/GolfLeaderboard/PlayingHandicap';
 import RecentScores from './pages/GolfLeaderboard/RecentScores';
 import EventDetail from './pages/GolfLeaderboard/EventDetail';
 import NotFound from './pages/GolfLeaderboard/NotFound';
@@ -28,6 +29,7 @@ function App() {
             <Route path="scores" element={<RecentScores />} />
             <Route path="players" element={<PlayersList />} />
             <Route path="courses" element={<CoursesList />} />
+            <Route path="handicaps" element={<PlayingHandicap />} />
             <Route path="*" element={<NotFound />} />
           </Route>
         </Routes>
