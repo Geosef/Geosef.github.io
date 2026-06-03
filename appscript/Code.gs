@@ -167,9 +167,6 @@ function doGet(e) {
   } else if (action === "getPrefs") {
     var token = e.parameter && e.parameter.token ? e.parameter.token : "";
     result = getPrefsHandler(token);
-  } else if (action === "whoami") {
-    var whoamiToken = e.parameter && e.parameter.token ? e.parameter.token : "";
-    result = getWhoami(whoamiToken);
   } else {
     result = { error: "Unknown action: " + action };
   }
@@ -744,6 +741,9 @@ function doPost(e) {
 
   if (action === 'setPrefs') {
     result = setPrefsHandler(body);
+  } else if (action === 'whoami') {
+    // POST (not GET) so the auth token stays out of the URL / server logs.
+    result = getWhoami(body.token);
   } else {
     result = { error: 'Unknown action: ' + action };
   }

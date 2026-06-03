@@ -45,7 +45,13 @@ let myPlayerInflight: Promise<string | null> | null = null;
 export async function getMyPlayerName(token: string): Promise<string | null> {
   if (myPlayerCache !== undefined) return myPlayerCache;
   if (myPlayerInflight) return myPlayerInflight;
-  myPlayerInflight = fetch(`${APPS_SCRIPT_URL}?action=whoami&token=${encodeURIComponent(token)}`)
+  myPlayerInflight = fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    // text/plain keeps the token out of the URL and avoids a CORS preflight
+    // (Apps Script /exec can't answer OPTIONS) — same approach as setPrefs.
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify({ action: 'whoami', token }),
+  })
     .then(res => (res.ok ? res.json() : { player: null }))
     .then(data => {
       // 403 / no match → cache null (a real "not a member" answer).
