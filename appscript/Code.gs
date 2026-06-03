@@ -453,13 +453,18 @@ function getPlayingHandicaps() {
     colKey[c] = courseName + "|" + tees + "|" + frontBack;
   }
 
+  // The sheet repeats each player across stacked blocks (identical rows), plus a
+  // few stray name-only rows. Keep the first row that actually has handicaps and
+  // skip the rest, so each player appears once.
   var players = [];
+  var seen = {};
   for (var r = 7; r < data.length; r++) { // row 8+ (index 7+)
     var row = data[r];
     var name = String(row[0]).trim();
-    if (!name) continue;
+    if (!name || seen[name]) continue;
 
     var handicaps = {};
+    var count = 0;
     for (var cc = 2; cc < row.length; cc++) {
       if (!colKey[cc]) continue;
       var val = row[cc];
@@ -467,8 +472,11 @@ function getPlayingHandicaps() {
       var num = parseFloat(val);
       if (isNaN(num)) continue;
       handicaps[colKey[cc]] = num;
+      count++;
     }
+    if (count === 0) continue; // stray name-only row — no data to show
 
+    seen[name] = true;
     var current = row[1] === "" || row[1] === null ? null : parseFloat(row[1]);
     players.push({
       player: name,
