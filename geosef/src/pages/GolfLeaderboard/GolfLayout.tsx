@@ -55,12 +55,17 @@ function AuthButton() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const g = (window as any).google;
     if (g?.accounts?.id && gBtnRef.current) {
-      g.accounts.id.renderButton(gBtnRef.current, {
-        theme: 'outline',
-        size: 'medium',
-        text: 'signin_with',
-        shape: 'rectangular',
-      });
+      // The full "Sign in with Google" pill is wider than the subnav's right
+      // cell on phones and got clipped off-screen — use the compact icon button
+      // below the mobile breakpoint. Clear first so re-renders don't stack.
+      const compact = window.matchMedia('(max-width: 480px)').matches;
+      gBtnRef.current.replaceChildren(); // clear any prior render before re-rendering
+      g.accounts.id.renderButton(
+        gBtnRef.current,
+        compact
+          ? { type: 'icon', shape: 'circle', theme: 'outline', size: 'large' }
+          : { theme: 'outline', size: 'medium', text: 'signin_with', shape: 'rectangular' },
+      );
       return true;
     }
     return false;
@@ -74,6 +79,15 @@ function AuthButton() {
       if (renderGoogleButton()) clearInterval(t);
     }, 200);
     return () => clearInterval(t);
+  }, [user, renderGoogleButton]);
+
+  // Re-render the button when crossing the mobile breakpoint (icon <-> full pill).
+  useEffect(() => {
+    if (user) return;
+    const mq = window.matchMedia('(max-width: 480px)');
+    const onChange = () => renderGoogleButton();
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
   }, [user, renderGoogleButton]);
 
   if (!user) {

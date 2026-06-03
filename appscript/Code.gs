@@ -453,13 +453,18 @@ function getPlayingHandicaps() {
     colKey[c] = courseName + "|" + tees + "|" + frontBack;
   }
 
+  // The sheet repeats each player across stacked blocks (identical rows), plus a
+  // few stray name-only rows. Keep the first row that actually has handicaps and
+  // skip the rest, so each player appears once.
   var players = [];
+  var seen = {};
   for (var r = 7; r < data.length; r++) { // row 8+ (index 7+)
     var row = data[r];
     var name = String(row[0]).trim();
-    if (!name) continue;
+    if (!name || seen[name]) continue;
 
     var handicaps = {};
+    var count = 0;
     for (var cc = 2; cc < row.length; cc++) {
       if (!colKey[cc]) continue;
       var val = row[cc];
@@ -467,8 +472,11 @@ function getPlayingHandicaps() {
       var num = parseFloat(val);
       if (isNaN(num)) continue;
       handicaps[colKey[cc]] = num;
+      count++;
     }
+    if (count === 0) continue; // stray name-only row — no data to show
 
+    seen[name] = true;
     var current = row[1] === "" || row[1] === null ? null : parseFloat(row[1]);
     players.push({
       player: name,
@@ -616,6 +624,32 @@ function verifyTokenDetailed(token) {
   }
 }
 
+/**
+ * Returns the signed-in user's own roster Full Name, gated by their verified
+ * token. Privacy-safe: only ever returns the caller's own name (never a lookup
+ * of arbitrary emails). Used to prefill the Playing Handicaps page reliably,
+ * since Google display names don't always match roster names (nicknames,
+ * middle names, etc.).
+ */
+function getWhoami(token) {
+  var v = verifyTokenDetailed(token);
+  if (!v.payload) return { player: null, reason: v.reason };
+
+  var email = String(v.payload.email).trim().toLowerCase();
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(LEAGUE_ROSTER_SHEET);
+  if (!sheet) return { player: null, reason: 'no_roster' };
+
+  var data = sheet.getDataRange().getValues();
+  // Col A (0) = Full Name, Col E (4) = Email; row 1 is header.
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][4]).trim().toLowerCase() === email) {
+      return { player: String(data[i][0]).trim() };
+    }
+  }
+  return { player: null, reason: 'not_in_roster' };
+}
+
 function isInRoster(email) {
   if (!email) return false;
   var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
@@ -707,6 +741,9 @@ function doPost(e) {
 
   if (action === 'setPrefs') {
     result = setPrefsHandler(body);
+  } else if (action === 'whoami') {
+    // POST (not GET) so the auth token stays out of the URL / server logs.
+    result = getWhoami(body.token);
   } else {
     result = { error: 'Unknown action: ' + action };
   }
