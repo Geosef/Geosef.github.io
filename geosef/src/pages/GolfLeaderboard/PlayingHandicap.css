@@ -4,20 +4,24 @@
   max-width: 520px;
   margin: 0 auto;
   padding: 1.25rem 1rem 0;
-  text-align: center;
 }
 
+/* Match the app's page titles (.gl-title / .cd-name): serif, regular weight, green. */
 .gph-title {
   font-family: var(--gl-font-serif);
-  color: var(--gl-green-dark);
-  font-size: 1.55rem;
+  font-size: 1.8rem;
+  font-weight: 400;
+  color: var(--gl-green);
   margin: 0;
 }
 
+/* Match the detail-page subtitle (.cd-meta). */
 .gph-sub {
+  font-family: var(--gl-font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
   color: var(--gl-muted);
-  font-size: 0.9rem;
-  margin: 0.4rem 0 0;
+  margin: 0.35rem 0 0;
 }
 
 .gph {
