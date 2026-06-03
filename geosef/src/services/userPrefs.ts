@@ -31,6 +31,32 @@ export async function getPrefs(token: string): Promise<UserPrefs> {
   return data;
 }
 
+// The signed-in user's own roster name, resolved once per session. undefined =
+// not yet fetched, null = fetched but no roster match (signed out / not a member).
+let myPlayerCache: string | null | undefined;
+let myPlayerInflight: Promise<string | null> | null = null;
+
+/**
+ * Resolve the signed-in user's league roster name via their verified token.
+ * More reliable than matching Google display names, which can differ from roster
+ * names (nicknames, middle names, etc.). Cached for the session; transient
+ * network failures aren't cached so a later call can retry.
+ */
+export async function getMyPlayerName(token: string): Promise<string | null> {
+  if (myPlayerCache !== undefined) return myPlayerCache;
+  if (myPlayerInflight) return myPlayerInflight;
+  myPlayerInflight = fetch(`${APPS_SCRIPT_URL}?action=whoami&token=${encodeURIComponent(token)}`)
+    .then(res => (res.ok ? res.json() : { player: null }))
+    .then(data => {
+      // 403 / no match → cache null (a real "not a member" answer).
+      myPlayerCache = data?.player ? String(data.player) : null;
+      return myPlayerCache;
+    })
+    .catch(() => null) // network error — leave uncached so a remount can retry
+    .finally(() => { myPlayerInflight = null; });
+  return myPlayerInflight;
+}
+
 export async function setPrefs(token: string, prefs: UserPrefs): Promise<void> {
   const res = await fetch(APPS_SCRIPT_URL, {
     method: 'POST',

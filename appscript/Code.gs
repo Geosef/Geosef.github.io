@@ -167,6 +167,9 @@ function doGet(e) {
   } else if (action === "getPrefs") {
     var token = e.parameter && e.parameter.token ? e.parameter.token : "";
     result = getPrefsHandler(token);
+  } else if (action === "whoami") {
+    var whoamiToken = e.parameter && e.parameter.token ? e.parameter.token : "";
+    result = getWhoami(whoamiToken);
   } else {
     result = { error: "Unknown action: " + action };
   }
@@ -622,6 +625,32 @@ function verifyTokenDetailed(token) {
   } catch (e) {
     return { payload: null, reason: 'exception:' + String(e) };
   }
+}
+
+/**
+ * Returns the signed-in user's own roster Full Name, gated by their verified
+ * token. Privacy-safe: only ever returns the caller's own name (never a lookup
+ * of arbitrary emails). Used to prefill the Playing Handicaps page reliably,
+ * since Google display names don't always match roster names (nicknames,
+ * middle names, etc.).
+ */
+function getWhoami(token) {
+  var v = verifyTokenDetailed(token);
+  if (!v.payload) return { player: null, reason: v.reason };
+
+  var email = String(v.payload.email).trim().toLowerCase();
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(LEAGUE_ROSTER_SHEET);
+  if (!sheet) return { player: null, reason: 'no_roster' };
+
+  var data = sheet.getDataRange().getValues();
+  // Col A (0) = Full Name, Col E (4) = Email; row 1 is header.
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][4]).trim().toLowerCase() === email) {
+      return { player: String(data[i][0]).trim() };
+    }
+  }
+  return { player: null, reason: 'not_in_roster' };
 }
 
 function isInRoster(email) {

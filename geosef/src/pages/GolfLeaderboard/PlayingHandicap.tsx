@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { X, RotateCcw } from 'lucide-react';
 import './PlayingHandicap.css';
 import type { CourseVariantData, PlayerPlayingHandicaps, PlayingHandicapData } from '../../types/golf';
 import { sessionCache, loadAction } from '../../golf-cache';
+import { getMyPlayerName } from '../../services/userPrefs';
 import { ListError } from './leaderboard-utils';
 import { useAuth } from '../../context/AuthContext';
 
@@ -19,8 +20,9 @@ function normalizeName(s: string) {
 }
 
 // Best-effort "is this the signed-in user" match. Exact normalized match, else
-// same last name with a first-name that's equal or a prefix (so "Joe" finds
-// "Joseph Carroll"). Conservative enough not to false-match within one league.
+// same last name with a first-name that's equal or a prefix (so a shortened
+// first name finds its longer form). Conservative enough not to false-match
+// within one league.
 function isSamePerson(playerName: string, userName: string): boolean {
   const pn = normalizeName(playerName);
   const un = normalizeName(userName);
@@ -55,10 +57,12 @@ function strokesFor(
 }
 
 export default function PlayingHandicap() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [phData, setPhData] = useState<PlayingHandicapData | null>(sessionCache.playingHandicaps);
   const [variants, setVariants] = useState<CourseVariantData | null>(sessionCache.courseVariants);
   const [error, setError] = useState(false);
+  // The signed-in user's roster name, resolved from their token via the backend.
+  const [rosterName, setRosterName] = useState<string | null>(null);
 
   const [group, setGroup] = useState<string[]>([]);
   const [query, setQuery] = useState('');
@@ -79,6 +83,14 @@ export default function PlayingHandicap() {
 
   useEffect(() => { load(); }, [load]);
 
+  // Resolve the signed-in user's roster name (email → name via the backend).
+  useEffect(() => {
+    if (!token) { setRosterName(null); return; }
+    let active = true;
+    getMyPlayerName(token).then(name => { if (active) setRosterName(name); });
+    return () => { active = false; };
+  }, [token]);
+
   const players = useMemo(() => {
     // Dedupe by name as a safety net (the sheet repeats players; the backend
     // already collapses them, but keep the page robust if that ever regresses).
@@ -98,18 +110,26 @@ export default function PlayingHandicap() {
     return m;
   }, [players]);
 
-  // The player name that maps to the signed-in user (for the "you" label).
+  // The handicaps-list player that is the signed-in user. Prefer the roster name
+  // (resolved from their email — reliable), falling back to a fuzzy match on the
+  // Google display name if the roster lookup hasn't landed or found nothing.
   const meName = useMemo(() => {
-    if (!user) return null;
-    return players.find(p => isSamePerson(p.player, user.name))?.player ?? null;
-  }, [user, players]);
+    if (!players.length) return null;
+    const target = rosterName ?? user?.name ?? null;
+    if (!target) return null;
+    const norm = normalizeName(target);
+    const exact = players.find(p => normalizeName(p.player) === norm);
+    if (exact) return exact.player;
+    return players.find(p => isSamePerson(p.player, target))?.player ?? null;
+  }, [players, rosterName, user]);
 
-  // Seed the group with the signed-in user once data is in.
+  // Seed the group with the signed-in user once we've resolved who they are.
+  // userSeeded latches so we don't re-add them after a manual removal.
   useEffect(() => {
-    if (userSeeded || group.length || !user || !players.length) return;
-    if (meName) setGroup([meName]);
+    if (userSeeded || !meName) return;
+    if (group.length === 0) setGroup([meName]);
     setUserSeeded(true);
-  }, [userSeeded, group.length, user, players.length, meName]);
+  }, [userSeeded, meName, group.length]);
 
   // Close the combobox on outside click.
   useEffect(() => {
@@ -140,6 +160,21 @@ export default function PlayingHandicap() {
   function removePlayer(name: string) {
     setGroup(g => g.filter(n => n !== name));
   }
+
+  // Reset to the just-loaded state: clear the course selection and partners,
+  // but keep yourself prefilled (the default).
+  function resetForm() {
+    setGroup(meName ? [meName] : []);
+    setQuery('');
+    setComboOpen(false);
+    setCourse('');
+    setTees('');
+    setNine('');
+  }
+
+  const isDirty =
+    !!course || !!query || group.length > (meName ? 1 : 0) ||
+    (group.length === 1 && !!meName && group[0] !== meName);
 
   // Course names in sheet order.
   const courseNames = useMemo(() => {
@@ -228,8 +263,15 @@ export default function PlayingHandicap() {
   return (
     <div className="gl-wrapper">
       <div className="gph-head">
-        <h1 className="gph-title">Playing Handicaps</h1>
-        <p className="gph-sub">Strokes your group gets before a round — add players, pick a course and tees.</p>
+        <div className="gph-head-text">
+          <h1 className="gph-title">Playing Handicaps</h1>
+          <p className="gph-sub">Strokes your group gets before a round — add players, pick a course and tees.</p>
+        </div>
+        {!loading && !noData && isDirty && (
+          <button type="button" className="gph-reset" onClick={resetForm}>
+            <RotateCcw size={14} /> Reset
+          </button>
+        )}
       </div>
 
       <div className="gph">
