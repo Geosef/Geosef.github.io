@@ -6,6 +6,7 @@ import FavoritesToast from '../../components/FavoritesToast';
 import ShareButton from '../../components/ShareButton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
 import { SkeletonDetailHeader, SkeletonSection } from './GolfSkeleton';
+import PlayerFlair from '../../components/PlayerFlair';
 import {
   ResponsiveContainer, LineChart, Line,
   XAxis, YAxis, Tooltip, ReferenceLine,
@@ -186,7 +187,7 @@ export default function PlayerDetail() {
       <div className="gl-detail-header">
         <button onClick={goBack} className="gl-detail-back"><ArrowLeft size={16} /> Back</button>
         <div className="gl-detail-title-row">
-          <h1 className="pd-name">{playerName}</h1>
+          <h1 className="pd-name">{playerName}<PlayerFlair name={playerName} /></h1>
           <div className="gl-detail-actions">
             {isSignedIn && prefs ? (
               <FavoriteStar

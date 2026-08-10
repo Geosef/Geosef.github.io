@@ -8,6 +8,7 @@ import ShareButton from '../../components/ShareButton';
 import type { MonthlyBreakdown, Standing } from '../../types/golf';
 import { sessionCache, loadAction } from '../../golf-cache';
 import { SkeletonLine } from './GolfSkeleton';
+import PlayerFlair from '../../components/PlayerFlair';
 
 const RANK_CLASS = ['ev-rank--1', 'ev-rank--2', 'ev-rank--3'];
 
@@ -186,6 +187,7 @@ export default function EventDetail() {
                       >
                         {s.name}
                       </Link>
+                      <PlayerFlair name={s.name} />
                     </span>
                     <span className="ev-scorer-points">{Math.round(s.points)} pts</span>
                   </div>

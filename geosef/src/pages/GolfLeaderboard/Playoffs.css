@@ -148,12 +148,15 @@
   color: var(--gl-green-dark);
 }
 
+/* The name shrink-wraps so its flair sits beside it rather than being pushed
+   across the row; the points take the slack instead. */
 .pl-group-player .cd-player-link {
-  flex: 1;
   min-width: 0;
 }
 
 .pl-player-points {
+  margin-left: auto;
+  padding-left: 0.5rem;
   flex-shrink: 0;
   min-width: 2.2rem;
   text-align: right;

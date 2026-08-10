@@ -9,6 +9,7 @@ import { sessionCache } from '../../golf-cache';
 import { RoundMonthGroup } from './RoundHistory';
 import { SortTh, sortStandings, SortDir, pmScoreClass, SearchInput, lastName, StickyListHeader, scrollToListTop, cutLineIndex } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
+import PlayerFlair from '../../components/PlayerFlair';
 
 type ActiveTab = 'season' | 'april' | 'may' | 'june' | 'july' | 'august';
 
@@ -317,6 +318,7 @@ export default function GolfLeaderboard() {
                         >
                           {lastName(s.name)}
                         </Link>
+                        <PlayerFlair name={s.name} />
                       </td>
                       {isMonthTab ? (
                         <>
