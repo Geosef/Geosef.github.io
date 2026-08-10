@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import './GolfLeaderboard.css';
 import type { LeaderboardData } from '../../types/golf';
 import { sessionCache, loadAction } from '../../golf-cache';
-import { SortTh, sortStandings, SortDir, StickyListHeader, PAGE_SIZE, ShowAllRow, ListError, EmptyRow, FavoritesToggle } from './leaderboard-utils';
+import { SortTh, sortStandings, SortDir, StickyListHeader, ListError, EmptyRow, FavoritesToggle, scrollToListTop } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
 import { sortByFavorites } from '../../lib/sortByFavorites';
@@ -17,7 +17,6 @@ export default function PlayersList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState('rank');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
-  const [showAll, setShowAll] = useState(false);
   const [favOnly, setFavOnly] = useState(false);
   const [error, setError] = useState(false);
 
@@ -38,6 +37,7 @@ export default function PlayersList() {
       setSortKey(key);
       setSortDir(key === 'points' ? 'desc' : 'asc');
     }
+    scrollToListTop();
   }
 
   const standings = data?.standings ?? [];
@@ -51,10 +51,9 @@ export default function PlayersList() {
   const sorted = sortStandings(filtered, sortKey, sortDir, 'season');
   const display = sortByFavorites(sorted, favPlayers, s => s.name);
   // In the favorites view there's no need to paginate — show them all.
-  const visible = favActive || showAll ? display : display.slice(0, PAGE_SIZE);
 
   return (
-    <div className="gl-wrapper">
+    <div className="gl-wrapper gl-wrapper--table">
       <StickyListHeader
         title="All Players"
         search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Filter players…' }}
@@ -68,6 +67,7 @@ export default function PlayersList() {
         {error && !data ? (
           <ListError onRetry={load} />
         ) : (
+        <div className="gl-table-scroll">
         <table className="gl-table">
           <thead>
             <tr>
@@ -88,7 +88,7 @@ export default function PlayersList() {
                     : 'No players yet.'}
               </EmptyRow>
             ) : (
-              visible.map((s, i) => (
+              display.map((s, i) => (
                 <tr
                   key={s.name}
                   className={['gl-row', i % 2 === 0 ? 'gl-row-even' : ''].filter(Boolean).join(' ')}
@@ -117,11 +117,9 @@ export default function PlayersList() {
                 </tr>
               ))
             )}
-            {data && !favActive && !showAll && display.length > PAGE_SIZE && (
-              <ShowAllRow total={display.length} shown={visible.length} colSpan={3} onShowAll={() => setShowAll(true)} />
-            )}
           </tbody>
         </table>
+        </div>
         )}
       </div>
       <FavoritesToast show={saveError} onDismiss={clearSaveError} />

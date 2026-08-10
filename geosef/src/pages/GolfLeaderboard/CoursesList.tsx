@@ -4,7 +4,7 @@ import './GolfLeaderboard.css';
 import type { ScoringLogData, Round, CourseVariantData, CourseInfoData } from '../../types/golf';
 import { formatPlusMinus } from '../../types/golf';
 import { sessionCache, loadAction } from '../../golf-cache';
-import { SortTh, SortDir, pmScoreClass, StickyListHeader, Chip, PAGE_SIZE, ShowAllRow, ListError, FavoritesToggle } from './leaderboard-utils';
+import { SortTh, SortDir, pmScoreClass, StickyListHeader, Chip, ListError, FavoritesToggle, scrollToListTop } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
 import { sortByFavorites } from '../../lib/sortByFavorites';
@@ -49,7 +49,6 @@ export default function CoursesList() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState('name');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
-  const [showAll, setShowAll] = useState(false);
   const [favOnly, setFavOnly] = useState(false);
   const [error, setError] = useState(false);
 
@@ -194,6 +193,7 @@ export default function CoursesList() {
       setSortKey(key);
       setSortDir(key === 'avgPlusMinus' || key === 'name' ? 'asc' : 'desc');
     }
+    scrollToListTop();
   }
 
   const favCourses = prefs?.favoriteCourses ?? [];
@@ -231,11 +231,10 @@ export default function CoursesList() {
   });
 
   const displayFaved = sortByFavorites(display, favCourses, c => c.name);
-  const visible = favActive || showAll ? displayFaved : displayFaved.slice(0, PAGE_SIZE);
   const loading = !variants;
 
   return (
-    <div className="gl-wrapper">
+    <div className="gl-wrapper gl-wrapper--table">
       <StickyListHeader
         title="All Courses"
         search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Filter courses…' }}
@@ -279,7 +278,7 @@ export default function CoursesList() {
               </tr>
             </thead>
             <tbody>
-              {visible.map((c, i) => {
+              {displayFaved.map((c, i) => {
                 const rowClass = ['gl-row', i % 2 === 0 ? 'gl-row-even' : ''].filter(Boolean).join(' ');
                 const courseUrl = `/golf-leaderboard/course/${encodeURIComponent(c.name)}${c.frontBack ? `?side=${c.frontBack}` : ''}`;
                 const avgHasAny = c.avgCells.some(a => a.value !== null);
@@ -348,9 +347,6 @@ export default function CoursesList() {
                   </tr>
                 );
               })}
-              {!favActive && !showAll && displayFaved.length > PAGE_SIZE && (
-                <ShowAllRow total={displayFaved.length} shown={visible.length} colSpan={6} onShowAll={() => setShowAll(true)} />
-              )}
             </tbody>
           </table></div>
         ) : (

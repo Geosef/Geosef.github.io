@@ -228,6 +228,35 @@
   font-family: var(--gl-font-serif);
 }
 
+/* ── Table-first pages (leader board, players, scores, courses) ──
+   These fill the viewport below the subnav and scroll *inside* the table
+   rather than scrolling the page. That's what lets the column headers stay
+   sticky: a `position: sticky` <thead> anchors to its nearest scroll
+   container, and .gl-table-scroll is already one (it scrolls sideways for
+   wide tables), so the page scrollbar could never drive it. */
+.gl-wrapper--table {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - var(--app-header-height, 40px));
+}
+
+.gl-wrapper--table > .gl-content {
+  flex: 1;
+  min-height: 0;
+  /* Explicit width because `margin: 0 auto` on a flex item stops it
+     stretching — without this it collapses to fit-content. */
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.gl-wrapper--table .gl-table-scroll {
+  flex: 1;
+  min-height: 0;
+  overscroll-behavior: contain;
+}
+
 /* ── Sticky list-page header wrapper ── */
 .gl-sticky-list-header {
   position: sticky;
@@ -340,7 +369,7 @@
 
 /* ── Table ── */
 .gl-table-scroll {
-  overflow-x: auto;
+  overflow: auto;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -351,22 +380,32 @@
 }
 
 .gl-table thead tr {
-  background-color: var(--gl-green);
   color: white;
 }
 
+/* The column headers stay put while the rows scroll under them, so sorting
+   is reachable however far down the list you are. `top: 0` is relative to
+   .gl-table-scroll, which is the scroll container on table pages. */
 .gl-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 4;
   padding: 0.6rem 0.5rem;
   font-family: var(--gl-font-sans);
   font-size: 0.78rem;
   font-weight: 500;
   color: white;
   text-align: center;
-  border-right: 1px solid rgba(255,255,255,0.2);
+  /* Background and column divider both belong to the cell, not the row: a
+     sticky <th> travels alone, leaving a `tr` background behind, and under
+     `border-collapse: collapse` borders belong to the table and don't move
+     with it either. An inset shadow does move. */
+  background-color: var(--gl-green);
+  box-shadow: inset -1px 0 0 rgba(255,255,255,0.2);
 }
 
 .gl-table thead th:last-child {
-  border-right: none;
+  box-shadow: none;
 }
 
 .gl-col-name {
@@ -378,13 +417,13 @@
 }
 
 .gl-table thead th.gl-col-name {
-  border-right: 2px solid rgba(255,255,255,0.35);
+  box-shadow: inset -2px 0 0 rgba(255,255,255,0.35);
 }
 
+/* Sticky on both axes (top + left), so they outrank the singly-sticky cells. */
 .gl-table thead th.gl-col-rank,
 .gl-table thead th.gl-col-name {
-  background-color: var(--gl-green);
-  z-index: 3;
+  z-index: 5;
 }
 
 .gl-row-even td.gl-col-rank,
@@ -549,41 +588,6 @@
 .gl-month-select:focus {
   outline: none;
   border-color: var(--gl-green);
-}
-
-/* ── Footer ── */
-.gl-footer {
-  background-color: var(--gl-white);
-  border-top: 1px solid var(--gl-border);
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.gl-footer-inner {
-  max-width: 860px;
-  margin: 0 auto;
-  padding: 0.85rem 1rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.gl-footer-credit {
-  font-size: 0.78rem;
-  font-family: var(--gl-font-sans);
-  color: var(--gl-muted);
-}
-
-.gl-footer-link {
-  color: var(--gl-green-dark);
-  font-size: 0.78rem;
-  font-family: var(--gl-font-sans);
-  text-decoration: none;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.gl-footer-link:hover {
-  color: var(--gl-green);
 }
 
 .gl-search-row {
@@ -1058,36 +1062,6 @@
 .gl-scores-table tbody td.gl-col-net {
   font-family: var(--gl-font-sans);
   font-weight: 500;
-}
-
-/* ── "Show all" pagination row ── */
-.gl-show-all-row td {
-  padding: 0 !important;
-  background-color: var(--gl-white);
-  border-right: none !important;
-}
-
-.gl-show-all-btn {
-  width: 100%;
-  background: none;
-  border: none;
-  padding: 0.75rem 1rem;
-  font-family: var(--gl-font-sans);
-  font-size: 0.85rem;
-  font-weight: 500;
-  color: var(--gl-green-dark);
-  cursor: pointer;
-  transition: background-color 0.15s;
-}
-
-.gl-show-all-btn:hover {
-  background-color: var(--gl-row-alt);
-}
-
-.gl-show-all-meta {
-  color: var(--gl-muted);
-  font-weight: 400;
-  margin-left: 0.3rem;
 }
 
 /* ── List page header (left-aligned) ── */

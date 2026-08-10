@@ -7,7 +7,7 @@ import { tagCountingRounds, groupRoundsByMonth, formatPlusMinus } from '../../ty
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
 import { RoundMonthGroup } from './RoundHistory';
-import { SortTh, sortStandings, SortDir, pmScoreClass, SearchInput, lastName, PAGE_SIZE, ShowAllRow, StickyListHeader } from './leaderboard-utils';
+import { SortTh, sortStandings, SortDir, pmScoreClass, SearchInput, lastName, StickyListHeader, scrollToListTop } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 
 /** Playoff field: the top 52, plus anyone tied on points with the 52nd player. */
@@ -109,14 +109,12 @@ export default function GolfLeaderboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState('rank');
   const [sortDir, setSortDir] = useState<SortDir>('asc');
-  const [showAll, setShowAll] = useState(false);
 
   function handleTabChange(tab: ActiveTab) {
     setActiveTab(tab);
     setSortKey('rank');
     setSortDir('asc');
     setSearchQuery('');
-    setShowAll(false);
     if (tab === 'season') {
       setSearchParams({}, { replace: true });
     } else {
@@ -131,6 +129,7 @@ export default function GolfLeaderboard() {
       setSortKey(key);
       setSortDir(defaultDir(key));
     }
+    scrollToListTop();
   }
 
   const { setNavRight } = useNavRight();
@@ -241,11 +240,10 @@ export default function GolfLeaderboard() {
     ? standings.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase().trim()))
     : standings;
   const displayStandings = sortStandings(filtered, sortKey, sortDir, activeTab);
-  const visibleStandings = showAll ? displayStandings : displayStandings.slice(0, PAGE_SIZE);
   const cutIndex = isMonthTab ? -1 : cutLineIndex(standings);
 
   return (
-    <div className="gl-wrapper">
+    <div className="gl-wrapper gl-wrapper--table">
       <StickyListHeader title="Leader Board">
         <div className="gl-controls-bar">
           <div className="gl-month-selector">
@@ -298,7 +296,7 @@ export default function GolfLeaderboard() {
               </tr>
             </thead>
             <tbody>
-              {visibleStandings.map((s, i) => {
+              {displayStandings.map((s, i) => {
                 const expandedRounds = expandedPlayer === s.name && sessionCache.scoringLog
                   ? sessionCache.scoringLog.rounds.filter(r => r.player === s.name)
                   : null;
@@ -376,14 +374,6 @@ export default function GolfLeaderboard() {
                   </React.Fragment>
                 );
               })}
-              {!showAll && displayStandings.length > PAGE_SIZE && (
-                <ShowAllRow
-                  total={displayStandings.length}
-                  shown={visibleStandings.length}
-                  colSpan={colCount}
-                  onShowAll={() => setShowAll(true)}
-                />
-              )}
             </tbody>
           </table>
           </div>
