@@ -4,6 +4,22 @@ import type { Standing, MonthlyStanding, MonthlyBreakdown } from '../../types/go
 
 export const NON_MEMBER_PARTNER = 'Other (GGC Member)';
 
+/** Playoff field: the top 52, plus anyone tied on points with the 52nd player. */
+export const CUT_LINE_RANK = 52;
+
+/**
+ * Index of the first player below the playoff cut, or -1 if the whole field
+ * makes it. Shared so the leader board's cut line and the playoffs page can't
+ * drift apart. Expects standings already ordered best-first.
+ */
+export function cutLineIndex(standings: { points: number }[]): number {
+  if (standings.length <= CUT_LINE_RANK) return -1;
+  const cutPoints = standings[CUT_LINE_RANK - 1].points;
+  let i = CUT_LINE_RANK;
+  while (i < standings.length && standings[i].points === cutPoints) i++;
+  return i < standings.length ? i : -1;
+}
+
 /**
  * Jump back to row 1 after a re-sort — otherwise you're left stranded in the
  * middle of a list whose rows all just changed under you. Table pages scroll
