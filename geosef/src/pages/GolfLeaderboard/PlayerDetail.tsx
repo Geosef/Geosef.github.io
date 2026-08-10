@@ -5,7 +5,6 @@ import FavoriteStar from '../../components/FavoriteStar';
 import FavoritesToast from '../../components/FavoritesToast';
 import ShareButton from '../../components/ShareButton';
 import { useUserPrefs } from '../../hooks/useUserPrefs';
-import { useTheme } from '../../hooks/useTheme';
 import { SkeletonDetailHeader, SkeletonSection } from './GolfSkeleton';
 import {
   ResponsiveContainer, LineChart, Line,
@@ -40,9 +39,8 @@ function toMD(dateStr: string): string {
 }
 
 function HandicapChart({ history }: { history: HandicapPoint[] }) {
-  const { resolved } = useTheme();
   // Recharts paints SVG attributes that don't resolve CSS vars, so read the
-  // current token values directly and recompute them when the theme flips.
+  // token values off the document once and hand Recharts the literals.
   const c = useMemo(() => {
     const s = getComputedStyle(document.documentElement);
     const v = (name: string, fallback: string) => s.getPropertyValue(name).trim() || fallback;
@@ -56,7 +54,7 @@ function HandicapChart({ history }: { history: HandicapPoint[] }) {
       label: v('--gl-green-dark', '#2d4a2d'),
       text: v('--gl-text', '#1a1a1a'),
     };
-  }, [resolved]);
+  }, []);
 
   if (history.length === 0) return null;
 

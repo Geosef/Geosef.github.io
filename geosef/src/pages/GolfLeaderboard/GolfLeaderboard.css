@@ -1,8 +1,7 @@
-/* ── Masters palette (light) ──
+/* ── Masters palette ──
    These --gl-* tokens carry semantic roles as much as brand:
    --gl-white = page/card surface, --gl-text/-muted = text, --gl-border = lines,
-   --gl-green = brand accent + header bg, --gl-green-dark = text-accent only.
-   The dark theme below re-skins these values; component rules need not change. */
+   --gl-green = brand accent + header bg, --gl-green-dark = text-accent only. */
 :root {
   --app-header-height: 40px;
   --gl-green:        #006747;
@@ -35,36 +34,6 @@
   --gl-font-serif:   'Playfair Display', 'Georgia', serif;
   --gl-font-sc:      'Playfair Display SC', 'Georgia', serif;
   --gl-font-sans:    'Source Sans 3', 'Helvetica', sans-serif;
-}
-
-/* ── Masters palette (dark) ──
-   Deep desaturated pine rather than black, so the Augusta identity survives.
-   Greens lift to read on dark; yellow/red soften; surfaces go charcoal-green. */
-[data-theme="dark"] {
-  --gl-green:        #1f9d6e;   /* lifted: header bg + accent text both read */
-  --gl-green-dark:   #8fd3b8;   /* text accent → light on dark */
-  --gl-green-light:  #2a8f66;   /* hover surfaces */
-  --gl-yellow:       #f5d93b;
-  --gl-muted:        #97a39d;
-  --gl-border:       #2c3a32;
-  --gl-red-light:    #e8505b;
-  --gl-red:          #f06a78;   /* lifted for text contrast */
-  --gl-white:        #131814;   /* page/card surface */
-  --gl-row-alt:      #1a221c;
-  --gl-leader-bg:    #2a2512;
-  --gl-leader-border: #d8c23a;
-  --gl-text:         #e7ece9;
-  --gl-error-bg:     #2a1a1c;
-  --gl-error-border: #6a2f37;
-  --gl-green-tint:   #1b2922;
-  --gl-green-tint-2: #161e19;
-  --gl-green-border: #2c3a32;
-  --gl-skeleton-2:   #243029;
-  --gl-tint-1:       rgba(255,255,255,0.05);
-  --gl-tint-2:       rgba(255,255,255,0.08);
-  --gl-notice-bg:    #2a2512;
-  --gl-notice-code:  #3a331f;
-  /* medals stay constant — gold/silver/bronze read on dark with white text */
 }
 
 /* ── Layout shell (GolfLayout) ── */
@@ -1532,39 +1501,6 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .gl-toast { animation: none; }
-}
-
-/* ── Theme toggle (sun/moon) ── */
-.gl-theme-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  padding: 0.4rem;
-  margin-left: 0.25rem;
-  color: var(--gl-green);
-  cursor: pointer;
-  border-radius: 50%;
-  transition: background-color 0.15s, color 0.15s;
-}
-.gl-theme-toggle:hover {
-  background: var(--gl-green-tint);
-  color: var(--gl-green-dark);
-}
-.gl-menu-theme-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 1.5rem;
-  font-family: var(--gl-font-sans);
-  font-size: 0.95rem;
-  color: var(--gl-muted);
-}
-
-/* Dark-mode: recolor the select dropdown arrow (it's a baked-in SVG fill) */
-[data-theme="dark"] .gl-month-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%231f9d6e'/%3E%3C/svg%3E");
 }
 
 /* ── Skip to content (keyboard) ── */
