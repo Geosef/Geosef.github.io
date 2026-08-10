@@ -10,7 +10,17 @@ import { RoundMonthGroup } from './RoundHistory';
 import { SortTh, sortStandings, SortDir, pmScoreClass, SearchInput, lastName, PAGE_SIZE, ShowAllRow, StickyListHeader } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 
-const CUT_LINE_POSITION = 48;
+/** Playoff field: the top 52, plus anyone tied on points with the 52nd player. */
+const CUT_LINE_RANK = 52;
+
+/** Index of the first player below the cut, or -1 if the whole field makes it. */
+function cutLineIndex(standings: { points: number }[]): number {
+  if (standings.length <= CUT_LINE_RANK) return -1;
+  const cutPoints = standings[CUT_LINE_RANK - 1].points;
+  let i = CUT_LINE_RANK;
+  while (i < standings.length && standings[i].points === cutPoints) i++;
+  return i < standings.length ? i : -1;
+}
 
 type ActiveTab = 'season' | 'april' | 'may' | 'june' | 'july' | 'august';
 
@@ -225,13 +235,14 @@ export default function GolfLeaderboard() {
     : (currentMonthData?.standings ?? []);
 
   const isMonthTab = activeTab !== 'season';
-  const colCount = isMonthTab ? 6 : 10;
+  const colCount = isMonthTab ? 6 : 9;
 
   const filtered = searchQuery.trim()
     ? standings.filter(s => s.name.toLowerCase().includes(searchQuery.toLowerCase().trim()))
     : standings;
   const displayStandings = sortStandings(filtered, sortKey, sortDir, activeTab);
   const visibleStandings = showAll ? displayStandings : displayStandings.slice(0, PAGE_SIZE);
+  const cutIndex = isMonthTab ? -1 : cutLineIndex(standings);
 
   return (
     <div className="gl-wrapper">
@@ -276,9 +287,6 @@ export default function GolfLeaderboard() {
                     <SortTh label="Apr" sortK="april" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
                     <SortTh label="May" sortK="may" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
                     <SortTh label="Jun" sortK="june" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
-                    <th className="gl-col-month gl-col-major gl-th-event">
-                      <Link to="/golf-leaderboard/event/barrel-run" className="gl-event-link">BR</Link>
-                    </th>
                     <SortTh label="Jul" sortK="july" currentKey={sortKey} dir={sortDir} onSort={handleSort} className="gl-col-month" />
                     <th className="gl-col-month gl-col-major gl-th-event">
                       <Link to="/golf-leaderboard/event/captains-cup" className="gl-event-link">CC</Link>
@@ -300,7 +308,7 @@ export default function GolfLeaderboard() {
 
                 return (
                   <React.Fragment key={s.name}>
-                    {!searchQuery && !isMonthTab && i === CUT_LINE_POSITION && (
+                    {!searchQuery && i === cutIndex && (
                       <tr className="gl-cut-row">
                         <td colSpan={colCount} className="gl-cut-label">✂ CUT</td>
                       </tr>
@@ -346,7 +354,6 @@ export default function GolfLeaderboard() {
                           <td className="gl-col-month">{(s as Standing).monthly?.april ? Math.round((s as Standing).monthly!.april) : '—'}</td>
                           <td className="gl-col-month">{(s as Standing).monthly?.may ? Math.round((s as Standing).monthly!.may) : '—'}</td>
                           <td className="gl-col-month">{(s as Standing).monthly?.june ? Math.round((s as Standing).monthly!.june) : '—'}</td>
-                          <td className="gl-col-month">{(s as Standing).monthly?.theOpen ? Math.round((s as Standing).monthly!.theOpen) : '—'}</td>
                           <td className="gl-col-month">{(s as Standing).monthly?.july ? Math.round((s as Standing).monthly!.july) : '—'}</td>
                           <td className="gl-col-month">{(s as Standing).monthly?.captainsCup ? Math.round((s as Standing).monthly!.captainsCup) : '—'}</td>
                           <td className="gl-col-month">{(s as Standing).monthly?.august ? Math.round((s as Standing).monthly!.august) : '—'}</td>
@@ -398,7 +405,6 @@ export default function GolfLeaderboard() {
                       <th className="gl-col-month">Apr</th>
                       <th className="gl-col-month">May</th>
                       <th className="gl-col-month">Jun</th>
-                      <th className="gl-col-month">BR</th>
                       <th className="gl-col-month">Jul</th>
                       <th className="gl-col-month">CC</th>
                       <th className="gl-col-month">Aug</th>
