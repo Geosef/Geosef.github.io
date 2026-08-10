@@ -1264,6 +1264,12 @@
 
 /* ── FAV column in tables ── */
 /* ── Name cell with inline star ── */
+/* Keep a name and its honour flair on one line — letting the flair wrap
+   underneath makes those rows taller than the rest of the table. */
+.gl-table tbody td.gl-col-name {
+  white-space: nowrap;
+}
+
 .gl-name-cell {
   display: flex;
   align-items: center;

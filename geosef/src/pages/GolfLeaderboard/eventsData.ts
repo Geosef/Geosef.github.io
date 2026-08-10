@@ -110,18 +110,30 @@ export const GOLF_EVENTS: Record<string, GolfEvent> = {
       'Kenneth Duneman',
       'Kory Goodson',
       'Mark Jones',
-      'Mark Schulte',
+      'Mark Schulte Jr.',
       'Rob Santo Paulo',
     ],
     pastWinners: [
       { year: 2026, champion: 'Kenneth Duneman' },
-      { year: 2025, champion: 'Mark Schulte' },
-      { year: 2024, champion: 'Mark Schulte' },
+      { year: 2025, champion: 'Mark Schulte Jr.' },
+      { year: 2024, champion: 'Mark Schulte Jr.' },
       { year: 2023, champion: 'Colby White' },
     ],
     points: { key: 'captainsCup', year: 2026, played: 'Glen Echo · July 27' },
   },
 };
+
+/**
+ * League playoff champions, most recent first. Winning the season
+ * championship earns the trophy flair shown beside a player's name, so these
+ * must match the league roster exactly.
+ */
+export const PLAYOFF_CHAMPIONS: EventWinner[] = [
+  { year: 2025, champion: 'Brad Weissler' },
+  { year: 2024, champion: 'Kory Goodson' },
+  { year: 2023, champion: 'Nick Orcino' },
+  { year: 2022, champion: 'Daniel Stretch' },
+];
 
 export function getEvent(slug: string | undefined): GolfEvent | undefined {
   return slug ? GOLF_EVENTS[slug] : undefined;

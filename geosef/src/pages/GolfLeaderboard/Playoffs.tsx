@@ -7,8 +7,10 @@ import './Playoffs.css';
 import type { Standing } from '../../types/golf';
 import { formatPlusMinus } from '../../types/golf';
 import { sessionCache, loadAction } from '../../golf-cache';
+import { PLAYOFF_CHAMPIONS } from './eventsData';
 import { pmScoreClass, StickyListHeader, cutLineIndex, CUT_LINE_RANK } from './leaderboard-utils';
 import { SkeletonLine } from './GolfSkeleton';
+import PlayerFlair from '../../components/PlayerFlair';
 
 const VENUE_COURSE = 'The Quarry';
 
@@ -20,14 +22,6 @@ const TOP_SEED_SCORE = -9;
 const GROUP_SIZE = 4;
 /** Positions shown just outside the cut. */
 const BUBBLE_SIZE = 8;
-
-/** Champions, most recent first. Names must match the league roster to link. */
-const PAST_WINNERS: { year: number; champion: string }[] = [
-  { year: 2025, champion: 'Brad Weissler' },
-  { year: 2024, champion: 'Kory Goodson' },
-  { year: 2023, champion: 'Nick Orcino' },
-  { year: 2022, champion: 'Daniel Stretch' },
-];
 
 interface Group {
   score: number;
@@ -54,14 +48,17 @@ function startingGroups(qualifiers: Standing[]): Group[] {
   return groups;
 }
 
-function PlayerName({ name }: { name: string }) {
+function PlayerName({ name, flair = true }: { name: string; flair?: boolean }) {
   return (
-    <Link
-      to={`/golf-leaderboard/player/${encodeURIComponent(name)}`}
-      className="cd-player-link"
-    >
-      {name}
-    </Link>
+    <>
+      <Link
+        to={`/golf-leaderboard/player/${encodeURIComponent(name)}`}
+        className="cd-player-link"
+      >
+        {name}
+      </Link>
+      {flair && <PlayerFlair name={name} />}
+    </>
   );
 }
 
@@ -164,13 +161,13 @@ export default function Playoffs() {
         <section className="gl-detail-section">
           <h2 className="gl-detail-section-title">Past Champions</h2>
           <div className="ev-winners">
-            {PAST_WINNERS.map(w => (
+            {PLAYOFF_CHAMPIONS.map(w => (
               <div key={w.year} className="ev-winner-row">
                 <span className="ev-winner-year">{w.year}</span>
                 <span className="ev-winner-info">
                   <span className="ev-winner-champ">
                     <Trophy size={13} className="ev-winner-trophy" />
-                    <PlayerName name={w.champion} />
+                    <PlayerName name={w.champion} flair={false} />
                   </span>
                 </span>
               </div>

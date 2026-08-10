@@ -12,6 +12,7 @@ import { formatPlusMinus, formatDate } from '../../types/golf';
 import { sessionCache, loadAction } from '../../golf-cache';
 import { pmScoreClass, countBy, Chip } from './leaderboard-utils';
 import { SkeletonDetailHeader, SkeletonSection } from './GolfSkeleton';
+import PlayerFlair from '../../components/PlayerFlair';
 
 const RANKS = [
   <span className="cd-notable-rank cd-notable-rank--1">1</span>,
@@ -45,6 +46,7 @@ function NotableCol({ label, rounds, scoreCell }: {
             >
               {r.player}
             </Link>
+            <PlayerFlair name={r.player} />
             <span className="cd-notable-date">{formatDate(r.datePlayed)}</span>
           </span>
           <span className="cd-notable-score">
@@ -473,6 +475,7 @@ export default function CourseDetail() {
                 >
                   {r.player}
                 </Link>
+                <PlayerFlair name={r.player} />
                 {r.tees && <span className="cd-round-tees">{r.tees}</span>}
                 {r.frontBack && (
                   <span className="cd-round-fb">{r.frontBack}</span>

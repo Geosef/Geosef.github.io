@@ -6,6 +6,7 @@ import { formatPlusMinus, formatDate } from '../../types/golf';
 import { sessionCache, loadAction } from '../../golf-cache';
 import { SortTh, SortDir, StickyListHeader, pmScoreClass, lastName, ListError, EmptyRow, scrollToListTop } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
+import PlayerFlair from '../../components/PlayerFlair';
 
 type SortKey = 'date' | 'player' | 'course' | 'gross' | 'net' | 'plusMinus';
 
@@ -121,6 +122,7 @@ export default function RecentScores() {
                       >
                         {lastName(r.player)}
                       </Link>
+                      <PlayerFlair name={r.player} />
                     </td>
                     <td className="gl-col-course">
                       <Link

@@ -1,0 +1,29 @@
+/* Honour marks beside a player's name (see PlayerFlair.tsx).
+   Everything is sized in `em` so the flair tracks whatever text it sits in —
+   the same component appears in 0.78rem table cells and in the 1.6rem player
+   detail heading. */
+
+.pf {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.22em;
+  margin-left: 0.4em;
+  /* Nudges the marks onto the text's optical centre rather than its baseline. */
+  vertical-align: -0.12em;
+  flex-shrink: 0;
+  /* Never let a name/flair pair be the thing that widens a sticky column. */
+  line-height: 1;
+}
+
+.pf-shield {
+  display: block;
+  height: 1em;
+  width: auto;
+}
+
+.pf-trophy {
+  display: block;
+  height: 0.92em;
+  width: 0.92em;
+  color: var(--gl-medal-gold);
+}
