@@ -7,20 +7,8 @@ import { tagCountingRounds, groupRoundsByMonth, formatPlusMinus } from '../../ty
 import { APPS_SCRIPT_URL } from '../../config';
 import { sessionCache } from '../../golf-cache';
 import { RoundMonthGroup } from './RoundHistory';
-import { SortTh, sortStandings, SortDir, pmScoreClass, SearchInput, lastName, StickyListHeader, scrollToListTop } from './leaderboard-utils';
+import { SortTh, sortStandings, SortDir, pmScoreClass, SearchInput, lastName, StickyListHeader, scrollToListTop, cutLineIndex } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
-
-/** Playoff field: the top 52, plus anyone tied on points with the 52nd player. */
-const CUT_LINE_RANK = 52;
-
-/** Index of the first player below the cut, or -1 if the whole field makes it. */
-function cutLineIndex(standings: { points: number }[]): number {
-  if (standings.length <= CUT_LINE_RANK) return -1;
-  const cutPoints = standings[CUT_LINE_RANK - 1].points;
-  let i = CUT_LINE_RANK;
-  while (i < standings.length && standings[i].points === cutPoints) i++;
-  return i < standings.length ? i : -1;
-}
 
 type ActiveTab = 'season' | 'april' | 'may' | 'june' | 'july' | 'august';
 

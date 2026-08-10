@@ -1,60 +1,90 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Calendar, Trophy, Flag } from 'lucide-react';
+import { MapPin, Calendar, Trophy, Flag, Users, Scissors } from 'lucide-react';
 import './GolfLeaderboard.css';
 import './EventDetail.css';
 import './Playoffs.css';
+import type { Standing } from '../../types/golf';
 import { formatPlusMinus } from '../../types/golf';
-import { pmScoreClass, StickyListHeader } from './leaderboard-utils';
+import { sessionCache, loadAction } from '../../golf-cache';
+import { pmScoreClass, StickyListHeader, cutLineIndex, CUT_LINE_RANK } from './leaderboard-utils';
+import { SkeletonLine } from './GolfSkeleton';
 
 const VENUE_COURSE = 'The Quarry';
 
-/** Qualifiers who tee it up in the morning round. */
-const FIELD_SIZE = 52;
 /** Survivors of the 18-hole cut who play the afternoon round. */
 const CUT_TO = 24;
 
+/** Seeds 1–4 start here; each group of four after them starts a stroke higher. */
 const TOP_SEED_SCORE = -9;
 const GROUP_SIZE = 4;
+/** Positions shown just outside the cut. */
+const BUBBLE_SIZE = 8;
 
-interface StartingTier {
-  from: number;
-  to: number;
+/** Champions, most recent first. Names must match the league roster to link. */
+const PAST_WINNERS: { year: number; champion: string }[] = [
+  { year: 2025, champion: 'Brad Weissler' },
+  { year: 2024, champion: 'Kory Goodson' },
+  { year: 2023, champion: 'Nick Orcino' },
+  { year: 2022, champion: 'Daniel Stretch' },
+];
+
+interface Group {
   score: number;
+  from: number;
+  players: Standing[];
 }
 
 /**
- * Starting scores, FedEx-Cup style: the top four seeds begin at -9 and each
- * following group of four starts a stroke higher. Once the ladder reaches even
- * par, everyone left in the field starts there too.
+ * Split the qualifying field into its starting-score groups: four players per
+ * stroke from -9 up, then everyone remaining together at even par. Driven off
+ * the live field rather than a fixed 52 so a tie at the cut just widens the
+ * even-par group.
  */
-function startingTiers(): StartingTier[] {
-  const tiers: StartingTier[] = [];
+function startingGroups(qualifiers: Standing[]): Group[] {
+  const groups: Group[] = [];
+  let from = 0;
   for (let score = TOP_SEED_SCORE; score < 0; score++) {
-    const group = score - TOP_SEED_SCORE;
-    tiers.push({
-      from: group * GROUP_SIZE + 1,
-      to: (group + 1) * GROUP_SIZE,
-      score,
-    });
+    const players = qualifiers.slice(from, from + GROUP_SIZE);
+    if (players.length) groups.push({ score, from: from + 1, players });
+    from += GROUP_SIZE;
   }
-  const lastRanked = tiers[tiers.length - 1].to;
-  tiers.push({ from: lastRanked + 1, to: FIELD_SIZE, score: 0 });
-  return tiers;
+  const evenPar = qualifiers.slice(from);
+  if (evenPar.length) groups.push({ score: 0, from: from + 1, players: evenPar });
+  return groups;
 }
 
-function ordinal(n: number): string {
-  const rem100 = n % 100;
-  if (rem100 >= 11 && rem100 <= 13) return `${n}th`;
-  switch (n % 10) {
-    case 1: return `${n}st`;
-    case 2: return `${n}nd`;
-    case 3: return `${n}rd`;
-    default: return `${n}th`;
-  }
+function PlayerName({ name }: { name: string }) {
+  return (
+    <Link
+      to={`/golf-leaderboard/player/${encodeURIComponent(name)}`}
+      className="cd-player-link"
+    >
+      {name}
+    </Link>
+  );
 }
 
 export default function Playoffs() {
-  const tiers = startingTiers();
+  const [season, setSeason] = useState(sessionCache.season);
+  const [loading, setLoading] = useState(!sessionCache.season);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    if (sessionCache.season) return;
+    loadAction('season')
+      .then(setSeason)
+      .catch(() => setFailed(true))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const standings = season?.standings ?? [];
+  const cutAt = cutLineIndex(standings);
+  const fieldEnd = cutAt === -1 ? standings.length : cutAt;
+  const qualifiers = standings.slice(0, fieldEnd);
+  const groups = startingGroups(qualifiers);
+  const bubble = cutAt === -1 ? [] : standings.slice(cutAt, cutAt + BUBBLE_SIZE);
+  const cutPoints = fieldEnd > 0 ? standings[fieldEnd - 1].points : 0;
 
   return (
     <div className="gl-wrapper">
@@ -82,23 +112,33 @@ export default function Playoffs() {
             <div className="ev-detail-row">
               <Trophy size={15} className="ev-detail-icon" />
               <span className="ev-detail-label">What</span>
-              <span className="ev-detail-value">36-hole championship</span>
+              <span className="ev-detail-value">
+                36-hole individual stroke play · 70% handicap
+              </span>
+            </div>
+            <div className="ev-detail-row">
+              <p className="pl-note">
+                Starting scores carry over from the regular season — see the groupings below.
+              </p>
             </div>
             <div className="ev-detail-row">
               <Flag size={15} className="ev-detail-icon" />
               <span className="ev-detail-label">Tees</span>
               <span className="ev-detail-value">Gold</span>
             </div>
+            <div className="ev-detail-row">
+              <Users size={15} className="ev-detail-icon" />
+              <span className="ev-detail-label">Field</span>
+              {/* Ties at the cut still qualify (see cutLineIndex) — just not
+                  spelled out here. */}
+              <span className="ev-detail-value">Top {CUT_LINE_RANK}</span>
+            </div>
+            <div className="ev-detail-row">
+              <Scissors size={15} className="ev-detail-icon" />
+              <span className="ev-detail-label">Cut</span>
+              <span className="ev-detail-value">Top {CUT_TO} after 18 holes</span>
+            </div>
           </div>
-        </section>
-
-        <section className="gl-detail-section">
-          <h2 className="gl-detail-section-title">Qualifying</h2>
-          <p className="ev-paragraph">
-            The top {FIELD_SIZE} players in the overall standings qualify for the playoffs
-            (plus anyone tied on points with {ordinal(FIELD_SIZE)}). The cut line is marked
-            on the <Link to="/golf-leaderboard" className="ev-detail-link">Leader Board</Link>.
-          </p>
         </section>
 
         <section className="gl-detail-section">
@@ -106,46 +146,106 @@ export default function Playoffs() {
           <ol className="pl-steps">
             <li className="pl-step">
               <span className="pl-step-round">Morning</span>
-              <span className="pl-step-text">
-                All {FIELD_SIZE} qualifiers play 18 holes.
-              </span>
+              <span className="pl-step-text">Full field plays 18 holes.</span>
             </li>
             <li className="pl-step">
               <span className="pl-step-round">Cut</span>
-              <span className="pl-step-text">
-                The top {CUT_TO} advance.
-              </span>
+              <span className="pl-step-text">Top {CUT_TO} advance.</span>
             </li>
             <li className="pl-step">
               <span className="pl-step-round">Afternoon</span>
               <span className="pl-step-text">
-                Those {CUT_TO} play the second 18 for the championship.
+                Second 18 decides the championship.
               </span>
             </li>
           </ol>
         </section>
 
         <section className="gl-detail-section">
-          <h2 className="gl-detail-section-title">Starting Scores</h2>
-          <p className="ev-paragraph">
-            Like the PGA Tour’s FedEx Cup, you don’t start from scratch — you carry a
-            head start based on where you finish the regular season. The top four seeds
-            begin at {formatPlusMinus(TOP_SEED_SCORE)}, and each group of four after
-            them starts a stroke higher until the ladder reaches even par.
-          </p>
-          <div className="pl-tiers">
-            {tiers.map(t => (
-              <div key={t.from} className="pl-tier">
-                <span className="pl-tier-range">
-                  {ordinal(t.from)}–{ordinal(t.to)}
-                </span>
-                <span className={`pl-tier-score ${pmScoreClass(t.score)}`}>
-                  {formatPlusMinus(t.score)}
+          <h2 className="gl-detail-section-title">Past Champions</h2>
+          <div className="ev-winners">
+            {PAST_WINNERS.map(w => (
+              <div key={w.year} className="ev-winner-row">
+                <span className="ev-winner-year">{w.year}</span>
+                <span className="ev-winner-info">
+                  <span className="ev-winner-champ">
+                    <Trophy size={13} className="ev-winner-trophy" />
+                    <PlayerName name={w.champion} />
+                  </span>
                 </span>
               </div>
             ))}
           </div>
         </section>
+
+        <section className="gl-detail-section">
+          <h2 className="gl-detail-section-title">Groupings</h2>
+          <p className="pl-note">
+            Projected from the current <Link to="/golf-leaderboard" className="ev-detail-link">standings</Link>.
+            Final seeding is set when the regular season ends.
+          </p>
+
+          {loading ? (
+            <div className="pl-loading">
+              <SkeletonLine width="45%" />
+              <SkeletonLine width="70%" />
+              <SkeletonLine width="60%" />
+            </div>
+          ) : failed || groups.length === 0 ? (
+            <p className="gl-detail-empty">Standings unavailable right now.</p>
+          ) : (
+            <div className="pl-groups">
+              {groups.map(g => (
+                <div
+                  key={g.score}
+                  /* The even-par group holds everyone left, so it runs far
+                     longer than the four-player groups and gets its own row. */
+                  className={`pl-group${g.players.length > GROUP_SIZE ? ' pl-group--wide' : ''}`}
+                >
+                  <div className="pl-group-head">
+                    <span className={`pl-group-score ${pmScoreClass(g.score)}`}>
+                      {formatPlusMinus(g.score)}
+                    </span>
+                    <span className="pl-group-seeds">
+                      {g.players.length > 1
+                        ? `${g.from}–${g.from + g.players.length - 1}`
+                        : `${g.from}`}
+                    </span>
+                  </div>
+                  <ol className="pl-group-players">
+                    {g.players.map((p, i) => (
+                      <li key={p.name} className="pl-group-player">
+                        <span className="pl-seed">{g.from + i}</span>
+                        <PlayerName name={p.name} />
+                        <span className="pl-player-points">{Math.round(p.points)}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {!loading && !failed && bubble.length > 0 && (
+          <section className="gl-detail-section">
+            <h2 className="gl-detail-section-title">On the Bubble</h2>
+            <ol className="pl-bubble">
+              {bubble.map(p => (
+                <li key={p.name} className="pl-bubble-row">
+                  <span className="pl-seed">{p.isTied ? `T${p.rank}` : p.rank}</span>
+                  <span className="pl-bubble-name">
+                    <PlayerName name={p.name} />
+                  </span>
+                  <span className="pl-bubble-back">
+                    +{Math.round(cutPoints - p.points)}
+                  </span>
+                </li>
+              ))}
+            </ol>
+          </section>
+        )}
+
       </div>
     </div>
   );
