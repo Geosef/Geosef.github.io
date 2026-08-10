@@ -13,23 +13,8 @@
         }
       }(window.location));
     </script>
-    <script>
-      // Apply the saved theme before first paint to avoid a flash of the wrong one.
-      (function () {
-        try {
-          var p = localStorage.getItem('theme');
-          var dark = p === 'dark' ||
-            (!p && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-          document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-          // Match the browser-chrome tint (status/address bar) to the top surface
-          // (--gl-white). Kept in sync on theme changes by useTheme.
-          var meta = document.createElement('meta');
-          meta.name = 'theme-color';
-          meta.content = dark ? '#131814' : '#ffffff';
-          document.head.appendChild(meta);
-        } catch (e) {}
-      })();
-    </script>
+    <!-- Browser-chrome tint (status/address bar), matched to the page surface (--gl-white). -->
+    <meta name="theme-color" content="#ffffff" />
     <link rel="icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" />

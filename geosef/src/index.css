@@ -24,13 +24,10 @@ code {
     monospace;
 }
 
-/* Match native UI (form controls, scrollbars, text caret, autofill backgrounds)
-   to the active theme. Without this they render light even in our dark theme. */
+/* Keep native UI (form controls, scrollbars, text caret, autofill backgrounds)
+   light regardless of the OS setting — the app is light-only. */
 :root {
   color-scheme: light;
-}
-[data-theme='dark'] {
-  color-scheme: dark;
 }
 
 /* Stop iOS Safari from auto-zooming the page when a form field is focused — it
