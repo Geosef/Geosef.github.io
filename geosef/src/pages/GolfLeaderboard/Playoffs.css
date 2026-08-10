@@ -116,7 +116,10 @@
 
   .pl-group--wide .pl-group-players {
     columns: 2;
-    column-gap: 0;
+    /* Ruled gap: without it the left column's points butt up against the right
+       column's seed number and read as one figure. */
+    column-gap: 1.1rem;
+    column-rule: 1px solid var(--gl-border);
   }
 
   .pl-group--wide .pl-group-player {
@@ -133,12 +136,16 @@
   font-size: 0.88rem;
 }
 
+/* Seed and points are both numerals at opposite ends of a row, so they're
+   pulled apart visually: the seed reads as a rank, the points stay quiet. */
 .pl-seed {
   flex-shrink: 0;
   width: 1.6rem;
+  text-align: right;
   font-size: 0.78rem;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  color: var(--gl-muted);
+  color: var(--gl-green-dark);
 }
 
 .pl-group-player .cd-player-link {
@@ -148,7 +155,9 @@
 
 .pl-player-points {
   flex-shrink: 0;
-  font-size: 0.8rem;
+  min-width: 2.2rem;
+  text-align: right;
+  font-size: 0.78rem;
   font-variant-numeric: tabular-nums;
   color: var(--gl-muted);
 }

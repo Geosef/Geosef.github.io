@@ -21,9 +21,12 @@ const GROUP_SIZE = 4;
 /** Positions shown just outside the cut. */
 const BUBBLE_SIZE = 8;
 
-/** Confirmed champions, most recent first. */
+/** Champions, most recent first. Names must match the league roster to link. */
 const PAST_WINNERS: { year: number; champion: string }[] = [
   { year: 2025, champion: 'Brad Weissler' },
+  { year: 2024, champion: 'Kory Goodson' },
+  { year: 2023, champion: 'Nick Orcino' },
+  { year: 2022, champion: 'Daniel Stretch' },
 ];
 
 interface Group {
@@ -109,7 +112,14 @@ export default function Playoffs() {
             <div className="ev-detail-row">
               <Trophy size={15} className="ev-detail-icon" />
               <span className="ev-detail-label">What</span>
-              <span className="ev-detail-value">36-hole championship</span>
+              <span className="ev-detail-value">
+                36-hole individual stroke play · 70% handicap
+              </span>
+            </div>
+            <div className="ev-detail-row">
+              <p className="pl-note">
+                Starting scores carry over from the regular season — see the groupings below.
+              </p>
             </div>
             <div className="ev-detail-row">
               <Flag size={15} className="ev-detail-icon" />
@@ -119,7 +129,9 @@ export default function Playoffs() {
             <div className="ev-detail-row">
               <Users size={15} className="ev-detail-icon" />
               <span className="ev-detail-label">Field</span>
-              <span className="ev-detail-value">Top {CUT_LINE_RANK} plus ties</span>
+              {/* Ties at the cut still qualify (see cutLineIndex) — just not
+                  spelled out here. */}
+              <span className="ev-detail-value">Top {CUT_LINE_RANK}</span>
             </div>
             <div className="ev-detail-row">
               <Scissors size={15} className="ev-detail-icon" />
@@ -147,9 +159,23 @@ export default function Playoffs() {
               </span>
             </li>
           </ol>
-          <p className="pl-note">
-            Starting scores carry over from the regular season — see the groupings below.
-          </p>
+        </section>
+
+        <section className="gl-detail-section">
+          <h2 className="gl-detail-section-title">Past Champions</h2>
+          <div className="ev-winners">
+            {PAST_WINNERS.map(w => (
+              <div key={w.year} className="ev-winner-row">
+                <span className="ev-winner-year">{w.year}</span>
+                <span className="ev-winner-info">
+                  <span className="ev-winner-champ">
+                    <Trophy size={13} className="ev-winner-trophy" />
+                    <PlayerName name={w.champion} />
+                  </span>
+                </span>
+              </div>
+            ))}
+          </div>
         </section>
 
         <section className="gl-detail-section">
@@ -204,9 +230,6 @@ export default function Playoffs() {
         {!loading && !failed && bubble.length > 0 && (
           <section className="gl-detail-section">
             <h2 className="gl-detail-section-title">On the Bubble</h2>
-            <p className="pl-note">
-              Next {bubble.length} out, with the points each needs to reach the cut.
-            </p>
             <ol className="pl-bubble">
               {bubble.map(p => (
                 <li key={p.name} className="pl-bubble-row">
@@ -223,23 +246,6 @@ export default function Playoffs() {
           </section>
         )}
 
-        <section className="gl-detail-section">
-          <h2 className="gl-detail-section-title">Past Champions</h2>
-          <div className="ev-winners">
-            {PAST_WINNERS.map(w => (
-              <div key={w.year} className="ev-winner-row">
-                <span className="ev-winner-year">{w.year}</span>
-                <span className="ev-winner-info">
-                  <span className="ev-winner-champ">
-                    <Trophy size={13} className="ev-winner-trophy" />
-                    <PlayerName name={w.champion} />
-                  </span>
-                </span>
-              </div>
-            ))}
-          </div>
-          <p className="pl-note">Earlier champions to be added.</p>
-        </section>
       </div>
     </div>
   );
