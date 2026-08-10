@@ -10,11 +10,15 @@
 //   • when / what  — the date/format lines shown in the Details block.
 //   • captains     — optional roster (used by the Captain's Cup).
 //   • pastWinners  — one row per year, most recent first.
-//   • latestResult — points scorers from the most recent running. Leave it `null`
-//                    between events (the page shows a "coming soon" note), then
-//                    fill it in once the event is played. Scorer names link to
-//                    league profiles, so spell them exactly as on the leaderboard.
+//   • points       — which leaderboard column carries this event's points. The
+//                    scorer list itself is NOT hand-maintained: the page reads
+//                    the season leaderboard and lists everyone with points in
+//                    that column. Until the sheet has any, it shows a
+//                    "coming soon" note. Omit it entirely for an event that
+//                    isn't scoring this season — the section disappears.
 // ─────────────────────────────────────────────────────────────────────────────
+
+import type { MonthlyBreakdown } from '../../types/golf';
 
 export interface EventVenue {
   name: string;
@@ -31,19 +35,13 @@ export interface EventWinner {
   note?: string;
 }
 
-export interface EventScorer {
-  rank: number;
-  name: string;
-  points: number;
-  /** Optional one-liner shown under the name (e.g. "Low net of the day"). */
-  note?: string;
-}
-
-export interface EventResult {
+export interface EventPoints {
+  /** Leaderboard column this event's points land in. */
+  key: keyof MonthlyBreakdown;
+  /** Season shown in the section heading. */
   year: number;
-  /** Free text, e.g. "St. Peters · June 27". */
+  /** Free text under the heading, e.g. "St. Peters · June 27". */
   played?: string;
-  scorers: EventScorer[];
 }
 
 export interface GolfEvent {
@@ -62,7 +60,7 @@ export interface GolfEvent {
   what?: string;
   captains?: string[];
   pastWinners: EventWinner[];
-  latestResult: EventResult | null;
+  points?: EventPoints;
 }
 
 export const GOLF_EVENTS: Record<string, GolfEvent> = {
@@ -75,14 +73,13 @@ export const GOLF_EVENTS: Record<string, GolfEvent> = {
       'Our first major of the season. The Barrel Run is a battle for bragging rights, a place on the club walls, and a caddie bib in Looper’s for the year.',
     ],
     venue: { name: 'St. Peters Golf Course', courseName: 'St. Peters' },
-    when: 'June 27 · 1:30 PM shotgun start',
+    when: 'Postponed · not contested this season',
     what: '18-hole net stroke play · 70% handicap',
     pastWinners: [
       { year: 2025, champion: 'Brad Bishop' },
       { year: 2024, champion: 'Kevin Dickherber' },
       { year: 2023, champion: 'Keith Skaggs' },
     ],
-    latestResult: null,
   },
   'captains-cup': {
     slug: 'captains-cup',
@@ -95,24 +92,34 @@ export const GOLF_EVENTS: Record<string, GolfEvent> = {
       'Win the Cup and you join them — a Captain’s jacket of your own, and a seat at the Captain’s dinner the night before the tournament, every year.',
     ],
     venue: { name: 'Glen Echo Country Club', websiteUrl: 'https://www.gecc.org' },
-    when: 'July 27 · start time & format TBD',
-    what: '18-hole net stroke play · 70% handicap',
+    when: 'July 27 · 8:30 AM start',
+    what: '18-hole individual stroke play · 85% handicap',
     captains: [
+      'Adam Rockey',
+      'Barry Martin',
+      'Brendan Dolan',
       'Brian Schroeder',
       'Colby White',
+      'Daniel Stretch',
       'David Lemon',
       'Jack Bedtke',
+      'Jacob Kirtley',
+      'Jason Thompson',
       'Joey Julius',
+      'Josh Klaus',
+      'Kenneth Duneman',
       'Kory Goodson',
+      'Mark Jones',
       'Mark Schulte',
       'Rob Santo Paulo',
     ],
     pastWinners: [
+      { year: 2026, champion: 'Kenneth Duneman' },
       { year: 2025, champion: 'Mark Schulte' },
       { year: 2024, champion: 'Mark Schulte' },
       { year: 2023, champion: 'Colby White' },
     ],
-    latestResult: null,
+    points: { key: 'captainsCup', year: 2026, played: 'Glen Echo · July 27' },
   },
 };
 

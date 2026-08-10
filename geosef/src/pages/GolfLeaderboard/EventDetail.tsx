@@ -1,17 +1,56 @@
+import { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Trophy, MapPin, Calendar, Flag, ArrowUpRight } from 'lucide-react';
 import './GolfLeaderboard.css';
 import './EventDetail.css';
 import { getEvent } from './eventsData';
 import ShareButton from '../../components/ShareButton';
+import type { MonthlyBreakdown, Standing } from '../../types/golf';
+import { sessionCache, loadAction } from '../../golf-cache';
+import { SkeletonLine } from './GolfSkeleton';
 
 const RANK_CLASS = ['ev-rank--1', 'ev-rank--2', 'ev-rank--3'];
+
+interface Scorer {
+  rank: number;
+  name: string;
+  points: number;
+}
+
+/**
+ * Everyone who took points out of this event, straight from the season sheet.
+ * Ties share a rank and the next rank skips them (T4, T4 → 6).
+ */
+function eventScorers(standings: Standing[], key: keyof MonthlyBreakdown): Scorer[] {
+  const scored = standings
+    .map(s => ({ name: s.name, points: s.monthly?.[key] ?? 0 }))
+    .filter(s => s.points > 0)
+    .sort((a, b) => b.points - a.points || a.name.localeCompare(b.name));
+
+  return scored.reduce<Scorer[]>((out, s, i) => {
+    const prev = out[i - 1];
+    out.push({ ...s, rank: prev && prev.points === s.points ? prev.rank : i + 1 });
+    return out;
+  }, []);
+}
 
 export default function EventDetail() {
   const { eventId } = useParams<{ eventId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const event = getEvent(eventId);
+
+  const needsPoints = Boolean(event?.points);
+  const [season, setSeason] = useState(sessionCache.season);
+  const [pointsLoading, setPointsLoading] = useState(needsPoints && !sessionCache.season);
+
+  useEffect(() => {
+    if (!needsPoints || sessionCache.season) return;
+    loadAction('season')
+      .then(setSeason)
+      .catch(() => {})
+      .finally(() => setPointsLoading(false));
+  }, [needsPoints]);
 
   function goBack() {
     if (location.key !== 'default') {
@@ -32,7 +71,8 @@ export default function EventDetail() {
     );
   }
 
-  const { name, tagline, logo, intro, history, venue, when, what, captains, pastWinners, latestResult } = event;
+  const { name, tagline, logo, intro, history, venue, when, what, captains, pastWinners, points } = event;
+  const scorers = season && points ? eventScorers(season.standings, points.key) : [];
 
   const venueLink = venue?.websiteUrl
     ? { href: venue.websiteUrl, external: true }
@@ -124,17 +164,20 @@ export default function EventDetail() {
           </section>
         )}
 
-        {/* Latest points scorers (post-event) */}
+        {/* Points scorers — derived from the season leaderboard */}
+        {points && (
         <section className="gl-detail-section">
           <h2 className="gl-detail-section-title">
-            {latestResult ? `${latestResult.year} Points` : 'Points'}
+            {scorers.length > 0 ? `${points.year} Points` : 'Points'}
           </h2>
-          {latestResult ? (
+          {pointsLoading ? (
+            <SkeletonLine width="60%" />
+          ) : scorers.length > 0 ? (
             <>
-              {latestResult.played && <p className="ev-result-meta">{latestResult.played}</p>}
+              {points.played && <p className="ev-result-meta">{points.played}</p>}
               <div className="ev-scorers">
-                {latestResult.scorers.map(s => (
-                  <div key={`${s.rank}-${s.name}`} className="ev-scorer-row">
+                {scorers.map(s => (
+                  <div key={s.name} className="ev-scorer-row">
                     <span className={`ev-rank ${RANK_CLASS[s.rank - 1] ?? ''}`}>{s.rank}</span>
                     <span className="ev-scorer-info">
                       <Link
@@ -143,7 +186,6 @@ export default function EventDetail() {
                       >
                         {s.name}
                       </Link>
-                      {s.note && <span className="ev-scorer-note">{s.note}</span>}
                     </span>
                     <span className="ev-scorer-points">{Math.round(s.points)} pts</span>
                   </div>
@@ -154,6 +196,7 @@ export default function EventDetail() {
             <p className="gl-detail-empty">Results will be posted here after this year’s event.</p>
           )}
         </section>
+        )}
 
         {/* Past winners (evergreen) */}
         <section className="gl-detail-section">
