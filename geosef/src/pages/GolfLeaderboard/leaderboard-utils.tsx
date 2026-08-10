@@ -4,7 +4,18 @@ import type { Standing, MonthlyStanding, MonthlyBreakdown } from '../../types/go
 
 export const NON_MEMBER_PARTNER = 'Other (GGC Member)';
 
-export const PAGE_SIZE = 25;
+/**
+ * Jump back to row 1 after a re-sort — otherwise you're left stranded in the
+ * middle of a list whose rows all just changed under you. Table pages scroll
+ * inside .gl-table-scroll; the window is reset too for anything that doesn't.
+ *
+ * Deliberately instant: the rows are all different after a sort, so animating
+ * the trip past them conveys nothing and just delays the new order.
+ */
+export function scrollToListTop() {
+  document.querySelector('.gl-table-scroll')?.scrollTo({ top: 0, behavior: 'auto' });
+  window.scrollTo({ top: 0, behavior: 'auto' });
+}
 
 interface StickyListHeaderProps {
   title: string;
@@ -74,23 +85,6 @@ export function EmptyRow({ colSpan, children }: { colSpan: number; children: Rea
   return (
     <tr className="gl-empty-row">
       <td colSpan={colSpan} className="gl-empty-cell">{children}</td>
-    </tr>
-  );
-}
-
-export function ShowAllRow({
-  total,
-  shown,
-  colSpan,
-  onShowAll,
-}: { total: number; shown: number; colSpan: number; onShowAll: () => void }) {
-  return (
-    <tr className="gl-show-all-row">
-      <td colSpan={colSpan}>
-        <button className="gl-show-all-btn" onClick={onShowAll}>
-          Show all {total} <span className="gl-show-all-meta">(showing {shown})</span>
-        </button>
-      </td>
     </tr>
   );
 }

@@ -4,7 +4,7 @@ import './GolfLeaderboard.css';
 import type { ScoringLogData, Round } from '../../types/golf';
 import { formatPlusMinus, formatDate } from '../../types/golf';
 import { sessionCache, loadAction } from '../../golf-cache';
-import { SortTh, SortDir, StickyListHeader, pmScoreClass, lastName, PAGE_SIZE, ShowAllRow, ListError, EmptyRow } from './leaderboard-utils';
+import { SortTh, SortDir, StickyListHeader, pmScoreClass, lastName, ListError, EmptyRow, scrollToListTop } from './leaderboard-utils';
 import { SkeletonTableRows } from './GolfSkeleton';
 
 type SortKey = 'date' | 'player' | 'course' | 'gross' | 'net' | 'plusMinus';
@@ -42,7 +42,6 @@ export default function RecentScores() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
-  const [showAll, setShowAll] = useState(false);
   const [error, setError] = useState(false);
 
   const load = useCallback(() => {
@@ -63,6 +62,7 @@ export default function RecentScores() {
       setSortKey(k);
       setSortDir(k === 'date' ? 'desc' : 'asc');
     }
+    scrollToListTop();
   }
 
   const rounds = data?.rounds ?? [];
@@ -74,10 +74,9 @@ export default function RecentScores() {
       )
     : rounds;
   const display = sortRounds(filtered, sortKey, sortDir);
-  const visible = showAll ? display : display.slice(0, PAGE_SIZE);
 
   return (
-    <div className="gl-wrapper">
+    <div className="gl-wrapper gl-wrapper--table">
       <StickyListHeader
         title="Recent Scores"
         search={{ value: searchQuery, onChange: setSearchQuery, placeholder: 'Filter player or course…' }}
@@ -109,7 +108,7 @@ export default function RecentScores() {
                     : 'No scores yet.'}
                 </EmptyRow>
               ) : (
-                visible.map((r, i) => (
+                display.map((r, i) => (
                   <tr
                     key={`${r.player}|${r.datePlayed}|${r.course}|${r.score}`}
                     className={['gl-row', i % 2 === 0 ? 'gl-row-even' : ''].filter(Boolean).join(' ')}
@@ -139,9 +138,6 @@ export default function RecentScores() {
                     </td>
                   </tr>
                 ))
-              )}
-              {data && !showAll && display.length > PAGE_SIZE && (
-                <ShowAllRow total={display.length} shown={visible.length} colSpan={6} onShowAll={() => setShowAll(true)} />
               )}
             </tbody>
           </table>

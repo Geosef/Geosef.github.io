@@ -244,14 +244,6 @@ function GolfLayoutInner() {
       <main id="gl-main" tabIndex={-1} className="gl-main">
         <Outlet />
       </main>
-
-      <footer className="gl-footer">
-        <div className="gl-footer-inner">
-          <span className="gl-footer-credit">
-            Built by <a href="/" className="gl-footer-link">Joe Carroll</a>
-          </span>
-        </div>
-      </footer>
     </div>
   );
 }
