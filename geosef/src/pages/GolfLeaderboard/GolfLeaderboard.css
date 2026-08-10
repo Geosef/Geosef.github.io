@@ -383,13 +383,7 @@
   color: white;
 }
 
-/* The column headers stay put while the rows scroll under them, so sorting
-   is reachable however far down the list you are. `top: 0` is relative to
-   .gl-table-scroll, which is the scroll container on table pages. */
 .gl-table thead th {
-  position: sticky;
-  top: 0;
-  z-index: 4;
   padding: 0.6rem 0.5rem;
   font-family: var(--gl-font-sans);
   font-size: 0.78rem;
@@ -406,6 +400,17 @@
 
 .gl-table thead th:last-child {
   box-shadow: none;
+}
+
+/* Column headers stay put while rows scroll under them, so sorting is
+   reachable however far down the list you are. `top: 0` is relative to
+   .gl-table-scroll, which is the scroll container on table-first pages —
+   scoped to those, since elsewhere the page scrolls and a sticky header
+   would ride up under the subnav. */
+.gl-wrapper--table .gl-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 4;
 }
 
 .gl-col-name {

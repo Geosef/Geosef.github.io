@@ -1,0 +1,74 @@
+/* ── League Playoffs page ──
+   Reuses the event-page language (.gl-detail-section, .ev-*) and adds only
+   what's specific to the playoffs: the round-by-round format and the
+   starting-score ladder. */
+
+/* ── Format steps (morning → cut → afternoon) ── */
+.pl-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pl-step {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-family: var(--gl-font-sans);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.pl-step-round {
+  flex-shrink: 0;
+  width: 5.5rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--gl-green-dark);
+}
+
+.pl-step-text {
+  color: var(--gl-text);
+  min-width: 0;
+}
+
+/* ── Starting-score ladder ── */
+.pl-tiers {
+  display: grid;
+  /* One column on a phone, two once there's room — the list is 10 rows and
+     reads better paired up than as a long ribbon. */
+  grid-template-columns: 1fr;
+  gap: 0 1.5rem;
+  margin-top: 0.9rem;
+}
+
+@media (min-width: 30rem) {
+  .pl-tiers {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.pl-tier {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--gl-border);
+  font-family: var(--gl-font-sans);
+  font-size: 0.9rem;
+}
+
+.pl-tier-range {
+  color: var(--gl-text);
+}
+
+.pl-tier-score {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
