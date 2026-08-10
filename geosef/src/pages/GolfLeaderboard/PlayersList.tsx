@@ -9,6 +9,7 @@ import { useUserPrefs } from '../../hooks/useUserPrefs';
 import { sortByFavorites } from '../../lib/sortByFavorites';
 import FavoriteStar from '../../components/FavoriteStar';
 import FavoritesToast from '../../components/FavoritesToast';
+import PlayerFlair from '../../components/PlayerFlair';
 
 export default function PlayersList() {
   const navigate = useNavigate();
@@ -97,13 +98,18 @@ export default function PlayersList() {
                   <td className="gl-col-rank">{s.isTied ? `T${s.rank}` : s.rank}</td>
                   <td className="gl-col-name">
                     <div className="gl-name-cell">
-                      <Link
-                        to={`/golf-leaderboard/player/${encodeURIComponent(s.name)}`}
-                        className="gl-player-link"
-                        onClick={e => e.stopPropagation()}
-                      >
-                        {s.name}
-                      </Link>
+                      {/* Name and flair group as one flex child so the cell's
+                          space-between only pushes the star to the edge. */}
+                      <span>
+                        <Link
+                          to={`/golf-leaderboard/player/${encodeURIComponent(s.name)}`}
+                          className="gl-player-link"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          {s.name}
+                        </Link>
+                        <PlayerFlair name={s.name} />
+                      </span>
                       {prefs && (
                         <FavoriteStar
                           isFavorite={prefs.favoritePlayers.includes(s.name)}

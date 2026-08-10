@@ -10,6 +10,7 @@ import { useUserPrefs } from '../../hooks/useUserPrefs';
 import { sortByFavorites } from '../../lib/sortByFavorites';
 import FavoriteStar from '../../components/FavoriteStar';
 import FavoritesToast from '../../components/FavoritesToast';
+import PlayerFlair from '../../components/PlayerFlair';
 
 const NINE_HOLE_COURSES = ['Ballwin'];
 
@@ -331,6 +332,7 @@ export default function CoursesList() {
                             >
                               {cell.player}
                             </Link>
+                            <PlayerFlair name={cell.player} />
                             {' '}
                             <span className={pmScoreClass(cell.plusMinus)}>
                               {cell.score} ({formatPlusMinus(cell.plusMinus)})
