@@ -15,6 +15,8 @@ type Standing = ReturnType<typeof cupStanding>;
 export default function Board() {
   const [params] = useSearchParams();
   const tv = params.has('tv');
+  // ?tv=vertical: 9:16 layout for streaming to Instagram Live.
+  const vertical = params.get('tv') === 'vertical';
   const { sessions, error: sErr } = useSessions();
   const { matches, error: mErr } = useMatches();
   const { byId } = usePlayers();
@@ -43,6 +45,9 @@ export default function Board() {
     const live = started.filter(s => phases(s).includes('live'));
     const pool = live.length === 1 ? live : started.length ? started : sessions;
     const shown = pool[tvIndex % pool.length];
+    if (vertical) {
+      return <VerticalBoard standing={standing} session={shown} matches={inSession(shown)} byId={byId} />;
+    }
     return <TvBoard standing={standing} session={shown} matches={inSession(shown)} byId={byId} />;
   }
 
@@ -114,15 +119,75 @@ function Scoreboard({ standing }: { standing: Standing }) {
  * Leaderboard row in the Golf Genius style: the leading side's cell fills with
  * its team color and the status arrow points toward it.
  */
-function MatchRow({ match, byId }: { match: Match; byId: Map<string, Player> }) {
+function MatchRow({ match, byId, stacked = false }: { match: Match; byId: Map<string, Player>; stacked?: boolean }) {
   const states = matchStates(match);
   const { lead, started } = matchLead(states);
   const tone = lead ?? (started ? 'tied' : 'idle');
+  // Stacked puts each player on their own line (narrow vertical layout).
+  const names = (t: TeamId) => stacked
+    ? sideName(match, t, byId).split(' / ').map(n => <span key={n}>{n}</span>)
+    : sideName(match, t, byId);
   return (
     <div className={`hd-row lead-${tone}`}>
-      <div className={`hd-row-side og ${lead === 'og' ? 'filled' : ''}`}>{sideName(match, 'og', byId)}</div>
+      <div className={`hd-row-side og ${lead === 'og' ? 'filled' : ''}`}>{names('og')}</div>
       <div className={`hd-row-status ${tone}`}>{shortStatus(states) || `Match ${match.slot}`}</div>
-      <div className={`hd-row-side south ${lead === 'south' ? 'filled' : ''}`}>{sideName(match, 'south', byId)}</div>
+      <div className={`hd-row-side south ${lead === 'south' ? 'filled' : ''}`}>{names('south')}</div>
+    </div>
+  );
+}
+
+/** Words under each team's score: points needed, or the clinch. */
+function needLine(standing: Standing, t: TeamId): string {
+  const { needed, clinched } = standing;
+  if (clinched) return clinched.team === t ? (clinched.how === 'wins' ? 'Derby winners' : 'Retain the Derby') : '';
+  return t === DEFENDING_TEAM ? `${fmtPoints(needed[t])} to retain` : `${fmtPoints(needed[t])} to win`;
+}
+
+/**
+ * 9:16 board for Instagram Live. Instagram overlays the account/viewer count
+ * across the top and comments across the bottom, so those bands only carry
+ * the title and footer; scores and matches sit in the middle.
+ */
+function VerticalBoard({ standing, session, matches, byId }: {
+  standing: Standing; session: Session; matches: Match[]; byId: Map<string, Player>;
+}) {
+  return (
+    <div className="hd-page hd-vert-page">
+      <div className="hd-vert">
+        <div className="hd-vert-top">
+          <span className="hd-vert-crest">House<br />Derby</span>
+          <span className="hd-vert-title">2026 House Derby</span>
+        </div>
+
+        <div className="hd-vert-score">
+          {TEAMS.map(t => (
+            <div key={t} className={`hd-vert-team ${t}`}>
+              <span className="hd-vert-name">
+                {TEAM_NAMES[t]}
+                {/* Rendered on both sides (hidden on one) so the scores line up. */}
+                <span className="hd-defending" style={t === DEFENDING_TEAM ? undefined : { visibility: 'hidden' }}>
+                  Defending
+                </span>
+              </span>
+              <span className="hd-vert-points">{fmtPoints(standing.points[t])}</span>
+              <span className="hd-vert-need">{needLine(standing, t)}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="hd-vert-session">
+          {session.day === 'fri' ? 'Friday' : 'Saturday'} · {session.name}
+        </div>
+
+        <div className="hd-vert-rows">
+          {matches.map(m => <MatchRow key={m.id} match={m} byId={byId} stacked />)}
+        </div>
+
+        <div className="hd-vert-foot">
+          <span>{session.venue}</span>
+          <span>{FORMAT_NAMES[session.format] ?? session.format}</span>
+        </div>
+      </div>
     </div>
   );
 }

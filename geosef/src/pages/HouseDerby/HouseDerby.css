@@ -301,3 +301,60 @@
 /* Keep names clear of the arrow that overlaps the leader's cell. */
 .hd-row.lead-og .hd-row-side.og { padding-right: calc(10px + var(--arrow)); }
 .hd-row.lead-south .hd-row-side.south { padding-left: calc(10px + var(--arrow)); }
+
+/* Vertical 9:16 board for Instagram Live. The frame is a size container so
+   everything scales in cqw/cqh whatever window or device shows it. */
+.hd-page.hd-vert-page {
+  max-width: none; min-height: 100vh; padding: 0; background: #1d1f2b;
+  display: flex; align-items: center; justify-content: center;
+}
+.hd-vert {
+  container-type: size;
+  height: 100vh; width: min(100vw, 56.25vh); aspect-ratio: 9 / 16;
+  background: var(--hd-cream); display: flex; flex-direction: column; overflow: hidden;
+}
+/* Top ~10%: Instagram's username/viewer overlay sits here. */
+.hd-vert-top {
+  flex: 0 0 9cqh; background: var(--hd-og); color: var(--hd-gold);
+  display: flex; align-items: flex-end; justify-content: center; gap: 3cqw; padding-bottom: 1cqh;
+}
+.hd-vert-crest {
+  width: 11cqw; height: 11cqw; border-radius: 50%; background: var(--hd-cream); border: 0.6cqw solid var(--hd-gold);
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  font-size: 2cqw; font-weight: 800; line-height: 1.05; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.hd-vert-title { font-size: 4.2cqw; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; }
+.hd-vert-score { display: grid; grid-template-columns: 1fr 1fr; }
+.hd-vert-team { display: flex; flex-direction: column; align-items: center; padding: 1.2cqh 2cqw 1cqh; color: #fff; }
+.hd-vert-team.og { background: var(--hd-og); }
+.hd-vert-team.south { background: var(--hd-south); }
+.hd-vert-name {
+  font-size: 4.6cqw; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
+  display: flex; flex-direction: column; align-items: center; gap: 0.6cqh;
+}
+.hd-vert .hd-defending { font-size: 2.2cqw; padding: 0.2cqw 1cqw; }
+.hd-vert-points { font-size: 16cqw; font-weight: 800; line-height: 1; font-variant-numeric: tabular-nums; }
+.hd-vert-need { font-size: 3.2cqw; color: #f3d9b8; text-transform: uppercase; letter-spacing: 0.06em; min-height: 1.2em; }
+.hd-vert-session {
+  background: var(--hd-ink); color: #fff; text-align: center; padding: 0.8cqh 2cqw;
+  font-size: 3.8cqw; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
+}
+.hd-vert-rows {
+  flex: 1; display: flex; flex-direction: column; justify-content: flex-start;
+  gap: 0.6cqh; padding: 1cqh 2.5cqw; min-height: 0;
+}
+.hd-vert .hd-row { --arrow: 2.4cqw; flex: 1 1 0; max-height: 9cqh; min-height: 0; grid-template-columns: 1fr 22cqw 1fr; border-radius: 1.6cqw; }
+.hd-vert .hd-row-side { flex-direction: column; justify-content: center; font-size: 3.4cqw; text-transform: uppercase; padding: 0 2cqw; line-height: 1.05; }
+.hd-vert .hd-row-side.og { align-items: flex-end; }
+.hd-vert .hd-row-side.south { align-items: flex-start; }
+.hd-vert .hd-row.lead-og .hd-row-side.og { padding-right: calc(2cqw + var(--arrow)); }
+.hd-vert .hd-row.lead-south .hd-row-side.south { padding-left: calc(2cqw + var(--arrow)); }
+.hd-vert .hd-row-status { font-size: 3.4cqw; padding-top: 0; padding-bottom: 0; }
+.hd-vert .hd-row-status.idle { font-size: 2.4cqw; font-weight: 600; }
+/* Bottom band: Instagram's comment overlay covers roughly this area. */
+.hd-vert-foot {
+  flex: 0 0 10cqh; background: var(--hd-og); color: #fff;
+  display: flex; justify-content: space-between; align-items: flex-start; padding: 1.5cqh 5cqw;
+  font-size: 3cqw; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+}
+.hd-vert-foot span:first-child { color: var(--hd-gold); }
