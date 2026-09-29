@@ -1,12 +1,15 @@
 // Match-play scoring for the House Derby. Pure functions over match data so the
 // board, marshal view and tests all agree on one set of rules.
 //
-// Every match is 9 holes and worth 1 point. Stroke holes are set per match by
-// the committee (no handicap math here): a hole listed twice gives two strokes.
+// Every point is a 9-hole match. Most matches are 9 holes; the indoor matches
+// are 18 holes scored as two separate points (front and back nine).
+//
+// Marshals record only who won each hole. Stroke holes are set per match by
+// the committee and shown so the group can call net results; a hole listed
+// twice gives two strokes.
 
 export type TeamId = 'og' | 'south';
 export const TEAMS: TeamId[] = ['og', 'south'];
-export const HOLES_PER_MATCH = 9;
 export const TOTAL_POINTS = 36;
 /** Defending team keeps the cup on a tie, so it only needs half the points. */
 export const DEFENDING_TEAM: TeamId = 'og';
@@ -14,18 +17,17 @@ export const DEFENDING_TEAM: TeamId = 'og';
 export type HoleOutcome = TeamId | 'halved';
 
 export interface HoleEntry {
-  og?: number | null;
-  south?: number | null;
-  /** Beats the gross scores: pickups, conceded holes, marshal corrections. */
-  override?: HoleOutcome | null;
+  result?: HoleOutcome | null;
 }
 
 export interface MatchScoring {
-  /** Hole (1-9) the group tees off on; play wraps from 9 back to 1. */
+  /** 18-hole matches are worth two points: front and back nine. Default 9. */
+  holeCount?: 9 | 18;
+  /** Hole (1-9) a 9-hole group tees off on; play wraps from 9 back to 1. */
   startHole?: number;
   strokes: Record<TeamId, number[]>;
   holes: Record<string, HoleEntry | undefined>;
-  /** The team that conceded the whole match. */
+  /** The team that conceded the match (any nine not already decided). */
   concededBy?: TeamId | null;
 }
 
@@ -35,21 +37,22 @@ export function strokesOn(match: MatchScoring, team: TeamId, hole: number): numb
   return match.strokes[team].filter(h => h === hole).length;
 }
 
-/** Winner of a single hole, or null if it isn't fully entered yet. */
+/** Recorded result of a hole, or null if not entered yet. */
 export function holeOutcome(match: MatchScoring, hole: number): HoleOutcome | null {
-  const entry = match.holes[hole];
-  if (!entry) return null;
-  if (entry.override) return entry.override;
-  if (entry.og == null || entry.south == null) return null;
-  const og = entry.og - strokesOn(match, 'og', hole);
-  const south = entry.south - strokesOn(match, 'south', hole);
-  if (og === south) return 'halved';
-  return og < south ? 'og' : 'south';
+  return match.holes[hole]?.result ?? null;
 }
 
-/** Hole numbers in the order this group plays them. */
+/** Hole numbers in the order a 9-hole group plays them. */
 export function playOrder(startHole = 1): number[] {
-  return Array.from({ length: HOLES_PER_MATCH }, (_, i) => ((startHole - 1 + i) % HOLES_PER_MATCH) + 1);
+  return Array.from({ length: 9 }, (_, i) => ((startHole - 1 + i) % 9) + 1);
+}
+
+/** Each point-bearing nine of a match, as holes in play order. */
+export function segments(match: MatchScoring): number[][] {
+  if (match.holeCount === 18) {
+    return [[1, 2, 3, 4, 5, 6, 7, 8, 9], [10, 11, 12, 13, 14, 15, 16, 17, 18]];
+  }
+  return [playOrder(match.startHole)];
 }
 
 export type MatchPhase = 'not-started' | 'live' | 'final';
@@ -72,14 +75,20 @@ export interface MatchState {
   concededBy: TeamId | null;
 }
 
-export function matchState(match: MatchScoring): MatchState {
+/** Status of every point in a match: one entry per nine. */
+export function matchStates(match: MatchScoring): MatchState[] {
+  return segments(match).map(order => segmentState(match, order));
+}
+
+/** Status of one 9-hole point, given its holes in play order. */
+export function segmentState(match: MatchScoring, order: number[]): MatchState {
   let og = 0;
   let south = 0;
   let thru = 0;
   let closedAt: number | null = null;
   const afterClose: number[] = [];
 
-  for (const hole of playOrder(match.startHole)) {
+  for (const hole of order) {
     const outcome = holeOutcome(match, hole);
     if (!outcome) continue;
     // Holes past a clinched result don't change it, but we flag them so the
@@ -91,16 +100,19 @@ export function matchState(match: MatchScoring): MatchState {
     thru++;
     if (outcome === 'og') og++;
     else if (outcome === 'south') south++;
-    if (Math.abs(og - south) > HOLES_PER_MATCH - thru) closedAt = thru;
+    if (Math.abs(og - south) > order.length - thru) closedAt = thru;
   }
 
   const diff = og - south;
   const up = Math.abs(diff);
   const leader: TeamId | null = diff > 0 ? 'og' : diff < 0 ? 'south' : null;
-  const remaining = HOLES_PER_MATCH - thru;
+  const remaining = order.length - thru;
   const concededBy = match.concededBy ?? null;
+  const decidedByPlay = closedAt !== null || remaining === 0;
 
-  if (concededBy) {
+  // A concession only takes the nines still in play; a finished front nine
+  // keeps its result when the back is conceded.
+  if (concededBy && !decidedByPlay) {
     return {
       phase: 'final', up, leader, thru, remaining, dormie: false,
       winner: other(concededBy), afterClose, label: 'Conceded', concededBy,
@@ -114,7 +126,7 @@ export function matchState(match: MatchScoring): MatchState {
     };
   }
 
-  if (closedAt !== null || remaining === 0) {
+  if (decidedByPlay) {
     // "3&2" when won early, "1 UP"/"2 UP" when it went the distance.
     const label = leader === null ? 'A/S' : remaining > 0 ? `${up}&${remaining}` : `${up} UP`;
     return {
@@ -157,8 +169,7 @@ export interface CupStanding {
 export function cupStanding(matches: MatchScoring[]): CupStanding {
   const points = { og: 0, south: 0 };
   const projected = { og: 0, south: 0 };
-  for (const m of matches) {
-    const s = matchState(m);
+  for (const s of matches.flatMap(matchStates)) {
     const p = matchPoints(s);
     const pr = projectedPoints(s);
     for (const t of TEAMS) {

@@ -24,7 +24,7 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          <Route path="/cup/admin" element={<Suspense fallback={null}><HouseDerbyAdmin /></Suspense>} />
+          <Route path="/cup/admin/:matchId?" element={<Suspense fallback={null}><HouseDerbyAdmin /></Suspense>} />
           <Route path="/travel-coordinator" element={<TravelCoordinator />} />
           <Route path="/golf-leaderboard" element={<GolfLayout />}>
             <Route index element={<GolfLeaderboard />} />

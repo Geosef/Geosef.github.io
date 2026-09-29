@@ -1,48 +1,45 @@
 import { describe, expect, it } from 'vitest';
 import {
-  cupStanding, holeOutcome, matchPoints, matchState, playOrder,
+  cupStanding, holeOutcome, matchPoints, matchStates, playOrder, strokesOn,
   type HoleOutcome, type MatchScoring,
 } from './scoring';
 
+/** State of a 9-hole match (its only point). */
+const matchState = (m: MatchScoring) => matchStates(m)[0];
+
 const noStrokes = { og: [], south: [] };
 
-/** Build a match from hole outcomes in play order via overrides. */
+/** Build a match from hole outcomes in play order. */
 function fromOutcomes(outcomes: HoleOutcome[], extra: Partial<MatchScoring> = {}): MatchScoring {
   const start = extra.startHole ?? 1;
   const holes: MatchScoring['holes'] = {};
   playOrder(start).slice(0, outcomes.length).forEach((h, i) => {
-    holes[h] = { override: outcomes[i] };
+    holes[h] = { result: outcomes[i] };
   });
   return { strokes: noStrokes, holes, ...extra };
 }
 
 describe('holeOutcome', () => {
-  it('is null until both sides have a gross score', () => {
-    const m: MatchScoring = { strokes: noStrokes, holes: { 1: { og: 4 } } };
+  it('is null until a result is recorded', () => {
+    const m: MatchScoring = { strokes: noStrokes, holes: { 1: {}, 2: { result: null } } };
     expect(holeOutcome(m, 1)).toBeNull();
     expect(holeOutcome(m, 2)).toBeNull();
+    expect(holeOutcome(m, 3)).toBeNull();
   });
 
-  it('compares gross when nobody gets a stroke', () => {
-    const m: MatchScoring = { strokes: noStrokes, holes: { 1: { og: 4, south: 5 }, 2: { og: 5, south: 5 } } };
-    expect(holeOutcome(m, 1)).toBe('og');
-    expect(holeOutcome(m, 2)).toBe('halved');
-  });
-
-  it('applies stroke holes, including two strokes on one hole', () => {
-    const m: MatchScoring = {
-      strokes: { og: [], south: [3, 5, 5] },
-      holes: { 3: { og: 4, south: 5 }, 5: { og: 4, south: 5 }, 6: { og: 4, south: 5 } },
-    };
-    expect(holeOutcome(m, 3)).toBe('halved'); // 5 - 1 = 4
-    expect(holeOutcome(m, 5)).toBe('south');  // 5 - 2 = 3
-    expect(holeOutcome(m, 6)).toBe('og');     // no stroke
-  });
-
-  it('lets an override beat the gross scores (pickups, concessions)', () => {
-    const m: MatchScoring = { strokes: noStrokes, holes: { 1: { og: 3, south: 7, override: 'south' }, 2: { override: 'halved' } } };
+  it('returns the recorded result', () => {
+    const m: MatchScoring = { strokes: noStrokes, holes: { 1: { result: 'south' }, 2: { result: 'halved' } } };
     expect(holeOutcome(m, 1)).toBe('south');
     expect(holeOutcome(m, 2)).toBe('halved');
+  });
+});
+
+describe('strokesOn', () => {
+  it('counts a hole listed twice as two strokes', () => {
+    const m: MatchScoring = { strokes: { og: [], south: [3, 5, 5] }, holes: {} };
+    expect(strokesOn(m, 'south', 3)).toBe(1);
+    expect(strokesOn(m, 'south', 5)).toBe(2);
+    expect(strokesOn(m, 'og', 5)).toBe(0);
   });
 });
 
@@ -55,7 +52,7 @@ describe('playOrder', () => {
 
 describe('matchState', () => {
   it('is not started with no decided holes', () => {
-    const s = matchState({ strokes: noStrokes, holes: { 1: { og: 4 } } });
+    const s = matchState({ strokes: noStrokes, holes: { 1: {} } });
     expect(s.phase).toBe('not-started');
     expect(s.label).toBe('Not started');
   });
@@ -109,8 +106,49 @@ describe('matchState', () => {
   });
 
   it('counts a gap in entry as unplayed', () => {
-    const m: MatchScoring = { strokes: noStrokes, holes: { 1: { override: 'og' }, 3: { override: 'og' } } };
+    const m: MatchScoring = { strokes: noStrokes, holes: { 1: { result: 'og' }, 3: { result: 'og' } } };
     expect(matchState(m)).toMatchObject({ thru: 2, up: 2, label: '2 UP thru 2' });
+  });
+});
+
+describe('18-hole matches', () => {
+  /** 18-hole match from outcomes on holes 1..n in order. */
+  const eighteen = (outcomes: HoleOutcome[], extra: Partial<MatchScoring> = {}): MatchScoring => ({
+    holeCount: 18,
+    strokes: noStrokes,
+    holes: Object.fromEntries(outcomes.map((o, i) => [i + 1, { result: o }])),
+    ...extra,
+  });
+
+  it('scores front and back nine as separate points', () => {
+    const [front, back] = matchStates(eighteen([
+      'og', 'og', 'og', 'og', 'og', 'halved', 'halved', 'halved', 'halved', // front: OG 5&4
+      'south', 'south',                                                      // back: live
+    ]));
+    expect(front).toMatchObject({ phase: 'final', winner: 'og', label: '5&4', afterClose: [6, 7, 8, 9] });
+    expect(back).toMatchObject({ phase: 'live', leader: 'south', label: '2 UP thru 2' });
+  });
+
+  it('starts the back nine fresh at all square', () => {
+    const [, back] = matchStates(eighteen(Array(9).fill('og')));
+    expect(back.phase).toBe('not-started');
+  });
+
+  it('counts holes 10-18 toward the back nine only', () => {
+    const [front, back] = matchStates({ holeCount: 18, strokes: noStrokes, holes: { 12: { result: 'south' } } });
+    expect(front.phase).toBe('not-started');
+    expect(back.label).toBe('1 UP thru 1');
+  });
+
+  it('concedes only the nines still in play', () => {
+    const [front, back] = matchStates(eighteen(Array(9).fill('og'), { concededBy: 'og' }));
+    expect(front).toMatchObject({ winner: 'og' });
+    expect(back).toMatchObject({ winner: 'south', label: 'Conceded' });
+  });
+
+  it('counts both nines toward the cup', () => {
+    const s = cupStanding([eighteen([...Array(9).fill('og'), ...Array(9).fill('halved')])]);
+    expect(s.points).toEqual({ og: 1.5, south: 0.5 });
   });
 });
 

@@ -1,11 +1,16 @@
 // Seeds House Derby reference data into Firestore via the REST API, authed as
 // the gcloud account that owns the project (no service-account key on disk).
 //
-//   SEED_ACCOUNT=you@example.com node cup-seed/seed.mjs
+//   SEED_ACCOUNT=you@example.com node cup-seed/seed.mjs [--reset-scores]
 //
-// Real names and marshal emails live in *.local.json (gitignored); only the
-// session layout is committed.
-import { readFileSync } from 'node:fs';
+// Re-running is safe mid-event: match docs are written with an update mask
+// covering only pairing fields, so entered scores are kept. --reset-scores
+// wipes every hole score, concession and edit-log entry (clear test data
+// before the event).
+//
+// Real names, marshal emails and pairings live in *.local.json (gitignored);
+// only the session layout is committed.
+import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 const PROJECT = 'house-derby-2026';
@@ -17,6 +22,12 @@ const load = (f) => JSON.parse(readFileSync(here(f), 'utf8'));
 const roster = load('./roster.local.json');
 const marshals = load('./marshals.local.json');
 const { sessions, allowances } = load('./sessions.json');
+// Optional until captains set them. Shape per session id, one entry per slot:
+//   { "sat-am": [{ "og": ["smith", "jones"], "south": ["brown", "davis"],
+//                  "strokes": { "og": [], "south": [3, 7] } }] }
+// Stroke holes are the match's own hole numbers (1-18 for indoor).
+const pairings = existsSync(here('./pairings.local.json')) ? load('./pairings.local.json') : {};
+const resetScores = process.argv.includes('--reset-scores');
 
 const token = execFileSync('gcloud', ['auth', 'print-access-token', `--account=${ACCOUNT}`], { encoding: 'utf8' }).trim();
 const base = `projects/${PROJECT}/databases/(default)/documents`;
@@ -31,6 +42,8 @@ function v(x) {
   return { mapValue: { fields: Object.fromEntries(Object.entries(x).map(([k, y]) => [k, v(y)])) } };
 }
 const set = (path, data) => ({ update: { name: `${base}/${path}`, fields: v(data).mapValue.fields } });
+// Writes only the listed fields, leaving the rest of the doc (e.g. scores) alone.
+const merge = (path, data) => ({ ...set(path, data), updateMask: { fieldPaths: Object.keys(data) } });
 
 const playerId = (p) => p.last.toLowerCase().replace(/[^a-z]/g, '');
 
@@ -45,13 +58,81 @@ const writes = [
   set('config/marshals', marshals),
 ];
 
-const ids = new Set(roster.players.map(playerId));
-if (ids.size !== roster.players.length) throw new Error('Duplicate player ids from last names');
+const playerIds = new Set(roster.players.map(playerId));
+const matchIds = [];
+for (const session of sessions) {
+  for (let slot = 1; slot <= session.pairings; slot++) {
+    const pairing = pairings[session.id]?.[slot - 1] ?? {};
+    for (const t of ['og', 'south']) {
+      for (const id of pairing[t] ?? []) {
+        if (!playerIds.has(id)) throw new Error(`${session.id} slot ${slot}: unknown player "${id}"`);
+      }
+    }
+    const id = `${session.id}-${slot}`;
+    matchIds.push(id);
+    const fields = {
+      session: session.id, slot, holeCount: session.holes, startHole: pairing.startHole ?? 1,
+      players: { og: pairing.og ?? [], south: pairing.south ?? [] },
+      strokes: { og: pairing.strokes?.og ?? [], south: pairing.strokes?.south ?? [] },
+    };
+    if (resetScores) Object.assign(fields, { holes: {}, concededBy: null });
+    writes.push(merge(`matches/${id}`, fields));
+  }
+}
 
-const res = await fetch(`https://firestore.googleapis.com/v1/${base}:commit`, {
-  method: 'POST',
+if (playerIds.size !== roster.players.length) throw new Error('Duplicate player ids from last names');
+
+const api = (path, init = {}) => fetch(`https://firestore.googleapis.com/v1/${path}`, {
+  ...init,
   headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-  body: JSON.stringify({ writes }),
 });
-if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
-console.log(`Seeded ${writes.length} docs`);
+
+// Matches left over from an older session layout, with their edit logs.
+const stale = [];
+{
+  let pageToken = '';
+  do {
+    const r = await (await api(`${base}/matches?pageSize=300&mask.fieldPaths=session${pageToken && `&pageToken=${pageToken}`}`)).json();
+    for (const d of r.documents ?? []) {
+      const id = d.name.split('/').pop();
+      if (!matchIds.includes(id)) stale.push(id);
+    }
+    pageToken = r.nextPageToken ?? '';
+  } while (pageToken);
+}
+
+async function deleteEdits(id) {
+  let pageToken = '';
+  do {
+    const r = await (await api(`${base}/matches/${id}/edits?pageSize=300&mask.fieldPaths=by${pageToken && `&pageToken=${pageToken}`}`)).json();
+    for (const d of r.documents ?? []) writes.push({ delete: d.name });
+    pageToken = r.nextPageToken ?? '';
+  } while (pageToken);
+}
+
+// Sessions dropped from sessions.json.
+{
+  const r = await (await api(`${base}/sessions?pageSize=300&mask.fieldPaths=order`)).json();
+  const keep = new Set(sessions.map((x) => x.id));
+  for (const d of r.documents ?? []) {
+    if (!keep.has(d.name.split('/').pop())) writes.push({ delete: d.name });
+  }
+}
+
+for (const id of stale) {
+  await deleteEdits(id);
+  writes.push({ delete: `${base}/matches/${id}` });
+}
+if (stale.length) console.log(`Removing ${stale.length} matches no longer in sessions.json: ${stale.join(', ')}`);
+
+if (resetScores) {
+  // Edit logs are subcollections, so they aren't cleared by rewriting the match.
+  for (const id of matchIds) await deleteEdits(id);
+}
+
+// Firestore caps a commit at 500 writes.
+for (let i = 0; i < writes.length; i += 500) {
+  const res = await api(`${base}:commit`, { method: 'POST', body: JSON.stringify({ writes: writes.slice(i, i + 500) }) });
+  if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
+}
+console.log(`Seeded ${writes.length} writes (${matchIds.length} matches${resetScores ? ', scores reset' : ''})`);

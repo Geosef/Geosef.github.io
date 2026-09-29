@@ -1,16 +1,62 @@
 {
   "sessions": [
-    { "id": "fri-wave1", "day": "fri", "order": 1, "name": "Wave 1",     "venue": "OG House",       "format": "alt-shot",     "pairings": 3, "nines": ["front", "back"] },
-    { "id": "fri-wave2", "day": "fri", "order": 2, "name": "Wave 2",     "venue": "OG House",       "format": "alt-shot",     "pairings": 3, "nines": ["front", "back"] },
-    { "id": "sat-am",    "day": "sat", "order": 3, "name": "Scramble",   "venue": "Ballwin GC",     "format": "scramble",     "pairings": 6, "nines": ["only"] },
-    { "id": "sat-mid",   "day": "sat", "order": 4, "name": "Modified Alt", "venue": "Ballwin GC",   "format": "modified-alt", "pairings": 6, "nines": ["only"] },
-    { "id": "sat-pm",    "day": "sat", "order": 5, "name": "Singles",    "venue": "Ballwin GC",     "format": "singles",      "pairings": 12, "nines": ["only"] }
+    {
+      "id": "fri",
+      "day": "fri",
+      "order": 1,
+      "name": "Indoor",
+      "venue": "OG House",
+      "format": "alt-shot",
+      "pairings": 6,
+      "holes": 18,
+      "note": "3 sim bays: matches 1-3 play first, 4-6 second"
+    },
+    {
+      "id": "sat-am",
+      "day": "sat",
+      "order": 2,
+      "name": "Scramble",
+      "venue": "Ballwin GC",
+      "format": "scramble",
+      "pairings": 6,
+      "holes": 9
+    },
+    {
+      "id": "sat-mid",
+      "day": "sat",
+      "order": 3,
+      "name": "Modified Alt",
+      "venue": "Ballwin GC",
+      "format": "modified-alt",
+      "pairings": 6,
+      "holes": 9
+    },
+    {
+      "id": "sat-pm",
+      "day": "sat",
+      "order": 4,
+      "name": "Singles",
+      "venue": "Ballwin GC",
+      "format": "singles",
+      "pairings": 12,
+      "holes": 9
+    }
   ],
   "allowances": {
     "note": "USGA defaults, applied to 9-hole course handicaps. Reference only: stroke holes are set per match.",
-    "alt-shot":     { "combined": 0.5 },
-    "scramble":     { "low": 0.35, "high": 0.15 },
-    "modified-alt": { "low": 0.6,  "high": 0.4 },
-    "singles":      { "each": 1.0 }
+    "alt-shot": {
+      "combined": 0.5
+    },
+    "scramble": {
+      "low": 0.35,
+      "high": 0.15
+    },
+    "modified-alt": {
+      "low": 0.6,
+      "high": 0.4
+    },
+    "singles": {
+      "each": 1.0
+    }
   }
 }
