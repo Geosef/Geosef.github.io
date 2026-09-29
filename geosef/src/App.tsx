@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import TravelCoordinator from './pages/TravelCoordinator/TravelCoordinator';
@@ -15,12 +15,16 @@ import EventDetail from './pages/GolfLeaderboard/EventDetail';
 import NotFound from './pages/GolfLeaderboard/NotFound';
 import './App.css';
 
+// Lazy so the Firebase SDK only loads on /cup, not on every page.
+const HouseDerbyAdmin = lazy(() => import('./pages/HouseDerby/Admin'));
+
 function App() {
   return (
     <AuthProvider>
     <Router>
       <div className="App">
         <Routes>
+          <Route path="/cup/admin" element={<Suspense fallback={null}><HouseDerbyAdmin /></Suspense>} />
           <Route path="/travel-coordinator" element={<TravelCoordinator />} />
           <Route path="/golf-leaderboard" element={<GolfLayout />}>
             <Route index element={<GolfLeaderboard />} />
