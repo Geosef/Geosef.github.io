@@ -27,7 +27,7 @@ service cloud.firestore {
       // Marshals only touch scoring state; pairings and stroke holes are seeded.
       allow update: if isMarshal()
         && request.resource.data.diff(resource.data).affectedKeys()
-             .hasOnly(['holes', 'concession', 'updatedAt', 'updatedBy']);
+             .hasOnly(['holes', 'concededBy', 'updatedAt', 'updatedBy']);
 
       // Append-only audit trail of every score change.
       match /edits/{editId} {
