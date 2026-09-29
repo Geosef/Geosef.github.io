@@ -144,3 +144,35 @@ export function currentSessionId(sessions: Session[], matches: Match[]): string 
   const started = [...sessions].reverse().find(s => phases(s.id).some(p => p !== 'not-started'));
   return (started ?? sessions[0])?.id;
 }
+
+/** Broadcast-style status: "2UP", "3&2", "1UP", "TIED", "HALVED". */
+export function shortLabel(state: MatchState): string {
+  if (state.phase === 'not-started') return '';
+  if (state.concededBy) return 'CONC';
+  if (state.phase === 'final') return state.winner ? state.label.replace(' ', '') : 'HALVED';
+  if (!state.leader) return 'TIED';
+  return `${state.up}UP`;
+}
+
+/** Short status across a match's nines: "3&2", or "F 2&1 · B 1UP" for 18 holes. */
+export function shortStatus(states: MatchState[]): string {
+  if (states.length === 1) return shortLabel(states[0]);
+  return states
+    .map((s, i) => (s.phase === 'not-started' ? '' : `${i === 0 ? 'F' : 'B'} ${shortLabel(s)}`))
+    .filter(Boolean)
+    .join(' · ');
+}
+
+/**
+ * Who the match is "showing" for: the leader of the nine in play, else the
+ * winner of the latest decided nine. Null when level or not started.
+ */
+export function matchLead(states: MatchState[]): { lead: TeamId | null; started: boolean } {
+  const current = states.find(s => s.phase === 'live')
+    ?? [...states].reverse().find(s => s.phase === 'final')
+    ?? states[0];
+  return {
+    lead: current.phase === 'final' ? current.winner : current.leader,
+    started: states.some(s => s.phase !== 'not-started'),
+  };
+}
