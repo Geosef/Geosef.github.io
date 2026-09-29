@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { collection, doc, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { db } from './firebase';
-import type { MatchScoring, MatchState, TeamId } from './scoring';
+import { matchStates, type MatchScoring, type MatchState, type TeamId } from './scoring';
 
 export interface Player {
   id: string;
@@ -113,4 +113,34 @@ export function matchSort(sessions: Session[]) {
 export function statusLabel(states: MatchState[]): string {
   if (states.length === 1) return states[0].label;
   return states.map((s, i) => `${i === 0 ? 'F' : 'B'} ${s.label}`).join(' · ');
+}
+
+/** "Sam Smith & Alex Jones" for the match detail header. */
+export function sideFullName(match: Match, team: TeamId, byId: Map<string, Player>): string {
+  const ids = match.players[team];
+  if (!ids.length) return 'TBD';
+  return ids.map(id => {
+    const p = byId.get(id);
+    return p ? `${p.first} ${p.last}` : id;
+  }).join(' & ');
+}
+
+/** Points with a ½ glyph: 7.5 -> "7½", 0.5 -> "½". */
+export function fmtPoints(n: number): string {
+  const whole = Math.floor(n);
+  const half = n - whole >= 0.5;
+  if (!half) return String(whole);
+  return whole === 0 ? '½' : `${whole}½`;
+}
+
+/**
+ * The session to show first: one with a live match, else the latest that has
+ * any result, else the first.
+ */
+export function currentSessionId(sessions: Session[], matches: Match[]): string | undefined {
+  const phases = (id: string) => matches.filter(m => m.session === id).flatMap(m => matchStates(m).map(s => s.phase));
+  const live = sessions.find(s => phases(s.id).includes('live'));
+  if (live) return live.id;
+  const started = [...sessions].reverse().find(s => phases(s.id).some(p => p !== 'not-started'));
+  return (started ?? sessions[0])?.id;
 }
