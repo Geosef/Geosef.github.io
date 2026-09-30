@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  FORMAT_NAMES, TEAM_NAMES, currentSessionId, fmtPoints, matchLead, matchName, matchSort, nineName, shortStatus, sideName, thruLabel,
+  TEAM_NAMES, currentSessionId, dayAndSession, fmtPoints, formatLabel, matchLead, matchName, matchSort, nineName, shortStatus, sideName, thruLabel,
   useMatches, usePlayers, useSessions, type Match, type Player, type Session,
 } from './data';
 import { TEAMS, cupStanding, matchStates, type HoleOutcome, type TeamId } from './scoring';
@@ -55,7 +55,7 @@ export default function Board() {
 
   return (
     <div className="hd-page hd-board">
-      <Scoreboard standing={standing} moments={moments} />
+      <TeamHeader standing={standing} moments={moments} variant="phone" />
 
       <nav className="hd-tabs" aria-label="Sessions">
         {sessions.map(s => (
@@ -73,10 +73,8 @@ export default function Board() {
       </nav>
 
       <h2 className="hd-session-title">
-        {shown.day === 'fri' ? 'Friday' : 'Saturday'} · {shown.name}
-        <span className="hd-muted">
-          {FORMAT_NAMES[shown.format] !== shown.name && ` · ${FORMAT_NAMES[shown.format] ?? shown.format}`} · {shown.venue}
-        </span>
+        {dayAndSession(shown)}
+        <span className="hd-muted"> · {formatLabel(shown)} · {shown.venue}</span>
       </h2>
       <div className="hd-rows">
         {inSession(shown).map(m => (
@@ -112,26 +110,34 @@ function LeadGlow({ moments, team }: { moments: Moments; team: TeamId }) {
   return g && g.team === team ? <span key={g.key} className="hd-lead-glow" aria-hidden /> : null;
 }
 
-function Scoreboard({ standing, moments }: { standing: Standing; moments: Moments }) {
-  const { points, projected, needed, clinched } = standing;
+/**
+ * The team score header, shared by every view so they stay in step: split
+ * navy/green halves, each with its horseshoe, name, score, points needed and
+ * projection, and the Derby crest on the seam. On the phone and vertical
+ * boards the crest centers on the top edge of the halves; on TV it sits
+ * between them.
+ */
+function TeamHeader({ standing, moments, variant }: {
+  standing: Standing; moments: Moments; variant: 'phone' | 'vert' | 'tv';
+}) {
   return (
-    <header className="hd-score">
-      <Logo name="crest" className="hd-score-crest" label="Gimme House Derby" />
-      <div className="hd-score-row">
+    <header className={`hd-th hd-th-${variant}`}>
+      <div className="hd-th-row">
         {TEAMS.map(t => (
-          <div key={t} className={`hd-score-team ${t}`}>
+          <div key={t} className={`hd-th-team ${t}`}>
             <LeadGlow moments={moments} team={t} />
-            <TeamLogo team={t} moments={moments} />
-            <div className="hd-score-name">{TEAM_NAMES[t]}</div>
-            <Points value={points[t]} className="hd-score-points" />
-            <div className="hd-score-projected">Projected {fmtPoints(projected[t])}</div>
+            <TeamLogo team={t} moments={moments} className="hd-th-logo" />
+            <div className="hd-th-text">
+              <div className="hd-th-name">{TEAM_NAMES[t]}</div>
+              <div className="hd-th-meta">
+                <span>{needLine(standing, t)}</span>
+                {!standing.clinched && <span>Proj {fmtPoints(standing.projected[t])}</span>}
+              </div>
+            </div>
+            <Points value={standing.points[t]} className="hd-th-points" />
           </div>
         ))}
-      </div>
-      <div className="hd-score-foot">
-        {clinched
-          ? `${TEAM_NAMES[clinched]} win the Derby`
-          : TEAMS.map(t => `${TEAM_NAMES[t]} need ${fmtPoints(needed[t])} to win`).join(' · ')}
+        <Logo name="crest" className="hd-th-crest" label="Gimme House Derby" />
       </div>
     </header>
   );
@@ -173,10 +179,10 @@ function MatchRow({ match, byId, stacked = false, flash }: {
 }
 
 /** Words under each team's score: points needed, or the clinch. */
-function needLine(standing: Standing, t: TeamId, long = false): string {
+function needLine(standing: Standing, t: TeamId): string {
   const { needed, clinched } = standing;
   if (clinched) return clinched === t ? 'Derby winners' : '';
-  return `${fmtPoints(needed[t])}${long ? ' points' : ''} to win`;
+  return `${fmtPoints(needed[t])} to win`;
 }
 
 function bannerText(b: Banner): { title: string; detail: string; team: TeamId | null } {
@@ -245,25 +251,9 @@ function VerticalBoard({ standing, session, matches, byId, moments }: {
   return (
     <div className="hd-page hd-vert-page">
       <div className="hd-vert">
-        <div className="hd-vert-top">
-          <Logo name="crest" className="hd-vert-crest" label="Gimme House Derby" />
-        </div>
+        <TeamHeader standing={standing} moments={moments} variant="vert" />
 
-        <div className="hd-vert-score">
-          {TEAMS.map(t => (
-            <div key={t} className={`hd-vert-team ${t}`}>
-              <LeadGlow moments={moments} team={t} />
-              <TeamLogo team={t} moments={moments} />
-              <span className="hd-vert-name">{TEAM_NAMES[t]}</span>
-              <Points value={standing.points[t]} className="hd-vert-points" />
-              <span className="hd-vert-need">{needLine(standing, t)}</span>
-            </div>
-          ))}
-        </div>
-
-        <div className="hd-vert-session">
-          {session.day === 'fri' ? 'Friday' : 'Saturday'} · {session.name}
-        </div>
+        <div className="hd-vert-session">{dayAndSession(session)}</div>
 
         <div className="hd-vert-rows">
           {/* One name per line fits up to 6 rows; Friday's 12 nines need one line per side. */}
@@ -275,7 +265,7 @@ function VerticalBoard({ standing, session, matches, byId, moments }: {
 
         <div className="hd-vert-foot">
           <Venue session={session} />
-          <span>{FORMAT_NAMES[session.format] ?? session.format}</span>
+          <span>{formatLabel(session)}</span>
         </div>
       </div>
     </div>
@@ -306,22 +296,7 @@ function TvBoard({ standing, session, matches, byId, moments }: {
   return (
     <div className="hd-page hd-tv">
       <div className="hd-tv-frame">
-        <header className="hd-tv-head">
-          {TEAMS.map(t => (
-            <div key={t} className={`hd-tv-team ${t}`}>
-              <LeadGlow moments={moments} team={t} />
-              <span className="hd-tv-name">
-                <TeamLogo team={t} moments={moments} />
-                {TEAM_NAMES[t]}
-              </span>
-              <Points value={standing.points[t]} className="hd-tv-points" />
-            </div>
-          ))}
-          <Logo name="crest" className="hd-tv-crest" label="Gimme House Derby" />
-        </header>
-        <div className="hd-tv-sub">
-          {TEAMS.map(t => <span key={t}>{needLine(standing, t, true)}</span>)}
-        </div>
+        <TeamHeader standing={standing} moments={moments} variant="tv" />
 
         <div className="hd-tv-rows">
           {matches.map(m => {
@@ -350,9 +325,9 @@ function TvBoard({ standing, session, matches, byId, moments }: {
         </div>
 
         <footer className="hd-tv-foot">
-          <span>{session.day === 'fri' ? 'Friday' : 'Saturday'}</span>
+          <span>{dayAndSession(session)}</span>
           <Venue session={session} />
-          <span>{session.name}</span>
+          <span>{formatLabel(session)}</span>
         </footer>
       </div>
     </div>

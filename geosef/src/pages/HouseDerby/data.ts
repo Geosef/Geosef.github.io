@@ -24,6 +24,8 @@ export interface Session {
   nines?: Array<'front' | 'back'>;
   /** Town shown under the venue on the TV boards. */
   location?: string;
+  /** Overrides the format's display name (e.g. "Indoor Alt-Shot"). */
+  formatLabel?: string;
   note?: string;
 }
 
@@ -218,4 +220,15 @@ export function thruLabel(match: MatchScoring): string {
 export function activeSessionId(sessions: Session[], matches: Match[]): string | undefined {
   const open = sessions.find(s => matches.some(m => m.session === s.id && matchStates(m).some(st => st.phase !== 'final')));
   return (open ?? sessions[sessions.length - 1])?.id;
+}
+
+/** Display name for a session's format ("Indoor Alt-Shot", "Scramble"). */
+export function formatLabel(session: Session): string {
+  return session.formatLabel ?? FORMAT_NAMES[session.format] ?? session.format;
+}
+
+/** "Friday · Wave 1", or just "Saturday" when the name repeats the format. */
+export function dayAndSession(session: Session): string {
+  const day = session.day === 'fri' ? 'Friday' : 'Saturday';
+  return session.name === formatLabel(session) ? day : `${day} · ${session.name}`;
 }

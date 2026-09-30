@@ -14,7 +14,8 @@
       "nines": [
         "front",
         "back"
-      ]
+      ],
+      "formatLabel": "Indoor Alt-Shot"
     },
     {
       "id": "fri-w2",
@@ -30,7 +31,8 @@
       "nines": [
         "front",
         "back"
-      ]
+      ],
+      "formatLabel": "Indoor Alt-Shot"
     },
     {
       "id": "sat-am",
