@@ -5,7 +5,7 @@ import {
 import { BOARD, decided, playlist, segmentAt, segmentKey, toPlay, type Segment, type SegmentKind } from './director';
 import { TEAMS, TOTAL_POINTS, cupStanding, matchStates, type TeamId } from './scoring';
 import Logo from './Logo';
-import { momentum, momentumStats, type MomentumStep } from './momentum';
+import { momentum, momentumStats, stageBands, type MomentumStep } from './momentum';
 
 /**
  * The segment the TV boards show now. `pinned` (from ?scene=) holds one
@@ -76,7 +76,7 @@ export function RecapView({ session, matches, byId }: { session: Session; matche
   return (
     <div className="hd-seg hd-recap">
       <div className="hd-seg-title">
-        <span>{dayAndSession(session)}</span>
+        <span>{stageTitle(session)}</span>
         <span className="hd-seg-kicker">{partial ? 'Results so far' : 'Results'}</span>
       </div>
       <div className="hd-recap-score">
@@ -95,8 +95,13 @@ export function RecapView({ session, matches, byId }: { session: Session; matche
           return (
             <div key={m.id} className={`hd-recap-item ${winner ?? 'halved'}`}>
               <span className="hd-recap-slot">{matchName(m)}</span>
-              <span className="hd-recap-who">{winner ? sideName(m, winner, byId) : 'Halved'}</span>
-              <span className="hd-recap-margin">{shortStatus(states)}</span>
+              {/* A halved match has no winner to name: show both pairings and the split. */}
+              <span className="hd-recap-who hd-fit">
+                {winner ? sideName(m, winner, byId) : (
+                  <><span className="og">{sideName(m, 'og', byId)}</span> <span className="v">v</span> <span className="south">{sideName(m, 'south', byId)}</span></>
+                )}
+              </span>
+              <span className="hd-recap-margin">{winner ? shortStatus(states) : '½–½'}</span>
             </div>
           );
         })}
@@ -121,8 +126,8 @@ function CardSide({ ids, team, byId }: { ids: string[]; team: TeamId; byId: Map<
           <div key={id} className="hd-card-player">
             <Portrait player={p} team={team} />
             <span className="hd-card-name">
-              <span className="hd-card-first">{p?.first}</span>
-              <span className="hd-card-last">{p?.last ?? id}</span>
+              <span className="hd-card-first hd-fit">{p?.first}</span>
+              <span className="hd-card-last hd-fit">{p?.last ?? id}</span>
             </span>
           </div>
         );
@@ -144,45 +149,72 @@ export function NextView({ session, matches, byId, vertical }: {
   // Count down to the next match still to tee off (the session start if unscheduled).
   const nextTee = left.map(m => m.teeTime).filter((t): t is string => !!t).sort()[0] ?? session.startsAt;
   const n = cards.length;
-  const cols = vertical ? (n <= 3 ? 1 : 2) : n <= 3 ? 3 : n <= 6 ? 3 : 4;
+  const cols = n <= 6 ? 3 : 4;
   return (
     <div className="hd-seg hd-next">
       <div className="hd-seg-title">
-        <span>{started ? 'Still to play' : 'Up next'} · {dayAndSession(session)}</span>
+        <span>{started ? 'Still to play' : 'Up next'} · {stageTitle(session)}</span>
         <span className="hd-seg-kicker">
-          {formatLabel(session)}
-          {nextTee && <Countdown at={nextTee} />}
+          {/* The format, when the stage name doesn't already say it. */}
+          {formatLabel(session) !== session.name && formatLabel(session)}
+          {nextTee && <Countdown at={nextTee} lead={formatLabel(session) !== session.name} />}
         </span>
       </div>
-      <div className="hd-next-grid" style={{ ['--cols' as string]: cols, ['--rows' as string]: Math.ceil(n / cols) }}>
-        {cards.map(([slot, ms]) => {
-          // Both nines left: "F9 6:30 · B9 7:15 PM". One: its name in the tag, one time.
-          const both = ms.length === 2;
-          const tag = both ? '' : ms[0].nine === 'back' ? 'Back 9' : ms[0].nine === 'front' ? 'Front 9' : '';
-          const tees = both
-            ? ms.map((m, i) => m.teeTime && `${m.nine === 'back' ? 'B9' : 'F9'} ${i === 0 ? teeClock(m.teeTime).replace(/ [AP]M$/, '') : teeClock(m.teeTime)}`)
-            : [ms[0].teeTime && teeClock(ms[0].teeTime)];
-          return (
-            <div key={slot} className="hd-card">
-              <div className="hd-card-slot">
-                <span>Match {slot}{tag && <span className="hd-card-tag"> · {tag}</span>}</span>
-                {tees.some(Boolean) && <span className="hd-card-tee">{tees.filter(Boolean).join(' · ')}</span>}
-              </div>
-              <div className="hd-card-sides">
-                <CardSide ids={ms[0].players.og} team="og" byId={byId} />
-                <span className="hd-card-vs">vs</span>
-                <CardSide ids={ms[0].players.south} team="south" byId={byId} />
+      {/* On the narrow 9:16 board, rows the width of the screen (like the live
+          board's) keep names readable where a grid of cards can't. */}
+      {vertical ? (
+        <div className="hd-next-list">
+          {cards.map(([slot, ms]) => (
+            <div key={slot} className="hd-next-row">
+              <div className="hd-next-row-slot">M{slot}</div>
+              {TEAMS.map((t, i) => (
+                <React.Fragment key={t}>
+                  {i === 1 && <span className="hd-next-row-vs">vs</span>}
+                  <div className={`hd-next-row-side ${t}`}>
+                    {ms[0].players[t].length
+                      ? ms[0].players[t].map(id => <span key={id} className="hd-fit">{byId.get(id)?.last ?? id}</span>)
+                      : <span>TBD</span>}
+                  </div>
+                </React.Fragment>
+              ))}
+              <div className="hd-next-row-tee">
+                {ms.map(m => m.teeTime && <span key={m.id}>{teeClock(m.teeTime).replace(/ [AP]M$/, '')}</span>)}
               </div>
             </div>
-          );
-        })}
-      </div>
+          ))}
+        </div>
+      ) : (
+        <div className="hd-next-grid" style={{ ['--cols' as string]: cols, ['--rows' as string]: Math.ceil(n / cols) }}>
+          {cards.map(([slot, ms]) => {
+            // Both nines left: "F9 6:30 · B9 7:15 PM". One: its name in the tag, one time.
+            const both = ms.length === 2;
+            const tag = both ? '' : ms[0].nine === 'back' ? 'Back 9' : ms[0].nine === 'front' ? 'Front 9' : '';
+            const tees = both
+              ? ms.map((m, i) => m.teeTime && `${m.nine === 'back' ? 'B9' : 'F9'} ${i === 0 ? teeClock(m.teeTime).replace(/ [AP]M$/, '') : teeClock(m.teeTime)}`)
+              : [ms[0].teeTime && teeClock(ms[0].teeTime)];
+            return (
+              // Pairs stack OG over South; singles sit side by side.
+              <div key={slot} className={`hd-card ${ms[0].players.og.length > 1 || ms[0].players.south.length > 1 ? 'pairs' : 'singles'}`}>
+                <div className="hd-card-slot">
+                  <span>Match {slot}{tag && <span className="hd-card-tag"> · {tag}</span>}</span>
+                  {tees.some(Boolean) && <span className="hd-card-tee">{tees.filter(Boolean).join(' · ')}</span>}
+                </div>
+                <div className="hd-card-sides">
+                  <CardSide ids={ms[0].players.og} team="og" byId={byId} />
+                  <span className="hd-card-vs">vs</span>
+                  <CardSide ids={ms[0].players.south} team="south" byId={byId} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
 /** "Tee off Fri, Oct 16 · 5:00 PM", then a running clock inside the last day. */
-function Countdown({ at }: { at: string }) {
+function Countdown({ at, lead = true }: { at: string; lead?: boolean }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 1000);
@@ -191,10 +223,11 @@ function Countdown({ at }: { at: string }) {
   const when = Date.parse(at);
   const ms = when - now;
   if (!(ms > 0)) return null;
-  if (ms >= 24 * 3600_000) return <span className="hd-countdown"> · Tee off {teeDay(at)}</span>;
+  const sep = lead ? ' · ' : '';
+  if (ms >= 24 * 3600_000) return <span className="hd-countdown">{sep}Tee off {teeDay(at)}</span>;
   const s = Math.floor(ms / 1000);
   const hms = [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((v, i) => (i ? String(v).padStart(2, '0') : String(v))).join(':');
-  return <span className="hd-countdown"> · Tee off in <b>{hms}</b></span>;
+  return <span className="hd-countdown">{sep}Tee off in <b>{hms}</b></span>;
 }
 
 /** An element's size, kept current as it resizes. */
@@ -282,6 +315,8 @@ function RaceBar({ standing }: { standing: ReturnType<typeof cupStanding> }) {
 const INK = '#2b2d3a';
 const MUTED = '#6b6a62';
 const GRID = '#e2dfcf';
+/** Labels for stages still to come: quieter than muted, still readable. */
+const FUTURE = '#a8a597';
 const GOLD = '#c4935f';
 const SURFACE = '#f8f6ea';
 const TEAM_HEX: Record<TeamId, string> = { og: '#3f4463', south: '#5e7a66' };
@@ -305,15 +340,7 @@ function RaceChart({ steps, sessions, matches, w, h }: {
   const y = (v: number) => pad.t + ph - (v / top) * ph;
   const r = Math.max(3, Math.min(font * 0.3, (pw / TOTAL_POINTS) * 0.3));
 
-  // Stage bands: each stage is as wide as its points.
-  const ordered = [...sessions].sort((a, b) => a.order - b.order);
-  const bands: Array<{ s: Session; from: number; to: number; started: boolean }> = [];
-  let at = 0;
-  for (const s of ordered) {
-    const n = matches.filter(m => m.session === s.id).flatMap(matchStates).length;
-    bands.push({ s, from: at, to: at + n, started: steps.some(st => st.session === s.id) });
-    at += n;
-  }
+  const bands = stageBands(sessions, matches, steps);
 
   const lineFor = (t: TeamId) => [{ v: 0, i: 0 }, ...steps.map((s, k) => ({ v: s.points[t], i: k + 1 }))]
     .map((p, k) => `${k ? 'L' : 'M'}${x(p.i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
@@ -338,7 +365,7 @@ function RaceChart({ steps, sessions, matches, w, h }: {
         <g key={b.s.id}>
           {!b.started && <rect x={x(b.from)} y={pad.t} width={x(b.to) - x(b.from)} height={ph} fill={GRID} fillOpacity={0.35} />}
           {k > 0 && <line x1={x(b.from)} x2={x(b.from)} y1={pad.t} y2={pad.t + ph} stroke={GRID} strokeWidth={2} />}
-          <text x={(x(b.from) + x(b.to)) / 2} y={h - font * 0.5} textAnchor="middle" fontSize={font * 0.72} fill={b.started ? MUTED : GRID}>
+          <text x={(x(b.from) + x(b.to)) / 2} y={h - font * 0.5} textAnchor="middle" fontSize={font * 0.72} fill={b.started ? MUTED : FUTURE}>
             {stageShort(b.s)}
           </text>
         </g>
@@ -372,8 +399,13 @@ function RaceChart({ steps, sessions, matches, w, h }: {
   );
 }
 
+/** "Friday · Wave 1", "Saturday · Scramble": segment titles always name the stage. */
+function stageTitle(s: Session): string {
+  return `${s.day === 'fri' ? 'Friday' : 'Saturday'} · ${s.name}`;
+}
+
 /** "Fri Wave 1", "Sat Scramble": short enough for the chart's bottom axis. */
-function stageShort(s?: Session): string {
+export function stageShort(s?: Session): string {
   if (!s) return '';
   return `${s.day === 'fri' ? 'Fri' : 'Sat'} ${s.name}`;
 }
