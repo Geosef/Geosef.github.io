@@ -4,7 +4,7 @@ import {
   TEAM_NAMES, matchSort, nineName, sideName, teeClock, useMatches, usePlayerPhotos, usePlayers, useSessions,
   type Match, type Player, type Session,
 } from './data';
-import { accolades } from './merit';
+import { accolades, topFirsts } from './merit';
 import { CupLink, vtName } from './nav';
 import { matchStates, type TeamId } from './scoring';
 import { useCupChrome } from './brand';
@@ -30,7 +30,7 @@ export default function PlayerPage() {
 
   const team = player.team;
   const theirs = [...matches].filter(m => m.players[team].includes(player.id)).sort(matchSort(sessions));
-  const a = accolades(player.merit);
+  const a = accolades(player.merit, topFirsts(players.map(p => p.merit)));
 
   return (
     <div className="hd-page hd-player-page">

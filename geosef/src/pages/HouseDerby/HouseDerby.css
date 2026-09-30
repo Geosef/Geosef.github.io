@@ -1092,9 +1092,10 @@ a.hd-th-team { color: inherit; text-decoration: none; }
 .hd-derby-result.live::after { content: ''; display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--hd-gold); vertical-align: middle; }
 
 /* Season: place, then event. */
-.hd-player-season { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
-.hd-player-season li { display: flex; gap: 10px; align-items: baseline; }
-.hd-season-place { min-width: 5.4em; font-family: var(--hd-display); font-size: 1.15rem; letter-spacing: 0.03em; text-transform: uppercase; color: var(--hd-ink); }
+.hd-player-season { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: max-content 1fr; gap: 6px 12px; align-items: baseline; }
+/* Rows share the grid's columns, so every event lines up after the widest place. */
+.hd-player-season li { display: contents; }
+.hd-season-place { font-family: var(--hd-display); font-size: 1.15rem; letter-spacing: 0.03em; text-transform: uppercase; color: var(--hd-ink); }
 .hd-player-season li.podium .hd-season-place { color: var(--hd-gold); }
 .hd-player-also { margin: 10px 0 0; font-size: 0.8rem; color: var(--hd-muted); line-height: 1.4; }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { accolades, place, type MeritResult } from './merit';
+import { accolades, place, topFirsts, type MeritResult } from './merit';
 
 // Made-up players shaped like the real exports.
 const row = (event: string, tournament: string, position: string, points: number): MeritResult =>
@@ -26,7 +26,7 @@ describe('accolades', () => {
       { event: 'Barrel Run', label: 'T12', place: 12 },
     ]);
     expect(a.qualifiers).toEqual([
-      { event: 'Summer League Playoffs', label: 'Qualifier' },
+      { event: 'Summer League Playoffs', label: 'Qualified' },
       { event: 'The Crown', label: 'Qualified' },
     ]);
     expect(a.participation).toEqual(expect.arrayContaining([
@@ -62,6 +62,37 @@ describe('accolades', () => {
 
   it('is empty without results', () => {
     expect(accolades(undefined)).toEqual({ finishes: [], qualifiers: [], participation: [] });
+  });
+});
+
+describe('flight events', () => {
+  // Three flight winners; only the top payout won the event outright.
+  const winner = merit([row('Lionshare 2026', 'Lionshare', '1', 160)]);
+  const flightA = merit([row('Lionshare 2026', 'Lionshare', '1', 80)]);
+  const flightB = merit([row('Lionshare 2026', 'Lionshare', '1', 65)]);
+  const firsts = topFirsts([winner, flightA, flightB]);
+
+  it('keeps the top payout as the 1st', () => {
+    expect(accolades(winner, firsts).finishes).toEqual([{ event: 'Lionshare', label: '1st', place: 1 }]);
+  });
+
+  it('shows the other flight winners as making the shootout', () => {
+    expect(accolades(flightA, firsts)).toMatchObject({ finishes: [], qualifiers: [{ event: 'Lionshare', label: 'Shootout' }] });
+  });
+
+  it('leaves a lone 1st alone', () => {
+    expect(topFirsts([winner]).size).toBe(0);
+  });
+
+  it('a shootout row with no position made the shootout (the name is a payout tier)', () => {
+    const a = accolades(merit([
+      row('Fall Ball 2025', 'Shootout 5th', '-', 40),
+      row('Fall Ball 2025', 'Fall Ball Matches', '1', 15),
+      row('Spring Fling 2026', 'Shootout', '-', 50),
+      row('Spring Fling 2026', 'Best Ball Shamble', '1', 25),
+    ]));
+    expect(a.finishes).toEqual([]);
+    expect(a.qualifiers).toEqual([{ event: 'Fall Ball', label: 'Shootout' }, { event: 'Spring Fling', label: 'Shootout' }]);
   });
 });
 
