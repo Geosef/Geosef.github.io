@@ -1,0 +1,40 @@
+rules_version = '2';
+
+// House Derby scoreboard. The board is public; only allowlisted marshals can
+// enter scores. Roster, sessions, pairings and the marshal list are seeded
+// server-side (admin script), so clients never write them.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isMarshal() {
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email in
+             get(/databases/$(database)/documents/config/marshals).data.emails;
+    }
+
+    // Marshal emails are PII: readable only by the rules engine via get().
+    match /config/{doc} {
+      allow read, write: if false;
+    }
+
+    match /teams/{id}    { allow read: if true; }
+    match /players/{id}  { allow read: if true; }
+    match /sessions/{id} { allow read: if true; }
+
+    match /matches/{matchId} {
+      allow read: if true;
+      // Marshals only touch scoring state; pairings and stroke holes are seeded.
+      allow update: if isMarshal()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['holes', 'concededBy', 'updatedAt', 'updatedBy']);
+
+      // Append-only audit trail of every score change.
+      match /edits/{editId} {
+        allow read: if true;
+        allow create: if isMarshal()
+          && request.resource.data.by == request.auth.token.email;
+      }
+    }
+  }
+}

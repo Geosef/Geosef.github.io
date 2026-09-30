@@ -8,3 +8,6 @@ package-lock.json
 
 ## Environment files
 geosef/.env
+
+## House Derby seed data (real names — never commit)
+cup-seed/*.local.json
