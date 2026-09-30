@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Share2 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import { FORMAT_NAMES, TEAM_NAMES, matchName, nineName, sideFullName, useMatch, usePlayers, useSessions } from './data';
+import { FORMAT_NAMES, TEAM_NAMES, matchName, nineName, sideFullName, useMatch, useMatches, usePlayers, useSessions } from './data';
+import ShareSheet from './ShareSheet';
 import { TEAMS, holeOutcome, matchStates, segments, strokesOn } from './scoring';
 import { useCupChrome } from './brand';
 import Logo from './Logo';
@@ -11,6 +13,9 @@ export default function MatchDetail() {
   const { match, error } = useMatch(matchId);
   const { byId } = usePlayers();
   const { sessions } = useSessions();
+  // Every match, for the cup score on the share card.
+  const { matches } = useMatches();
+  const [sharing, setSharing] = useState(false);
   useCupChrome();
 
   const back = <Link to="/cup" className="hd-back">‹ Scoreboard</Link>;
@@ -24,7 +29,12 @@ export default function MatchDetail() {
 
   return (
     <div className="hd-page hd-detail">
-      <div className="hd-entry-head">{back}</div>
+      <div className="hd-entry-head">
+        {back}
+        {matches && (
+          <button type="button" className="hd-tv-link" onClick={() => setSharing(true)}><Share2 aria-hidden />Share</button>
+        )}
+      </div>
       <div className="hd-muted">
         {session ? `${session.day === 'fri' ? 'Friday' : 'Saturday'} · ${session.name} · ${FORMAT_NAMES[session.format] ?? session.format}` : match.session}
         {` · ${matchName(match)}`}
@@ -87,6 +97,9 @@ export default function MatchDetail() {
         );
       })}
       <p className="hd-muted">• marks a stroke hole. Faded holes were played after the nine was decided.</p>
+      {sharing && matches && (
+        <ShareSheet onClose={() => setSharing(false)} options={[{ label: matchName(match), spec: { kind: 'match', match, session, matches, byId } }]} />
+      )}
     </div>
   );
 }

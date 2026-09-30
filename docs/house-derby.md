@@ -28,6 +28,7 @@ Touching a full-screen board briefly shows an exit button; unattended screens ne
 - `scoring.ts`: pure match-play engine. Covers hole results, match state (N&M, dormie, conceded), and cup totals and clinch.
 - `scoreEvents.ts` + `useScoreMoments.ts`: diff live snapshots into holes won, points, lead changes and clinch, which drive the animations. Nothing fires on first load. Bulk rewrites (more than 3 matches changed at once) report only a clinch.
 - `data.ts`: Firestore hooks, types and labels.
+- `shareCard.ts` + `ShareSheet.tsx`: 9:16 Story cards (standings, stage results, match) drawn on a canvas, previewed, then handed to the system share sheet (download fallback). Share buttons on `/cup` and match pages.
 - `director.ts` + `Segments.tsx`: TV dead-time segments. Driven by scores only, never tee times. Once a stage has a score, the TV holds the live board until every match in it is final (covers gaps between nines and staggered starts). In dead time it cycles board → stage recap → up next on the wall clock, with a team-color wipe. `?scene=board|recap|next` pins one.
 - `display.ts`: which board a URL and screen shape get, page surfaces, wake lock. `CupSplash` is the crest loading screen, bundled with the site so it also covers the lazy /cup download.
 - `Board.tsx`: all three public layouts, sharing one `TeamHeader` and `MatchRow`.
