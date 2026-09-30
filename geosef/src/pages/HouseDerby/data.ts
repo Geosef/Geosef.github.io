@@ -29,6 +29,8 @@ export interface Session {
   location?: string;
   /** Overrides the format's display name (e.g. "Indoor Alt-Shot"). */
   formatLabel?: string;
+  /** The course it's played on (courses.ts). */
+  course?: string;
   /** First tee time, ISO with offset ("2026-10-16T17:00:00-05:00"). */
   startsAt?: string;
   /** Minutes between slots' tee times (outdoor). */

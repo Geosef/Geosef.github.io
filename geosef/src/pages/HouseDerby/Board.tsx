@@ -11,6 +11,7 @@ import CupSplash from './CupSplash';
 import { MomentumView, NextView, RecapView, Wipe, useSegment, useWipe } from './Segments';
 import ShareSheet from './ShareSheet';
 import { RaceStrip } from './RacePage';
+import { COURSES, courseById } from './courses';
 import { decided } from './director';
 import { latestMoment, type ScoreEvent } from './scoreEvents';
 import { useFit } from './fit';
@@ -173,7 +174,11 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
       <div className="hd-session-bar">
         <h2 className="hd-session-title">
           {dayAndSession(shown)}
-          <span className="hd-muted"> · {formatLabel(shown)} · {shown.venue}</span>
+          <span className="hd-muted"> · {formatLabel(shown)} · </span>
+          {/* The course it's played on, linking to its scorecard. */}
+          {courseById(shown.course)
+            ? <CupLink to={`/cup/course/${shown.course}`} className="hd-course-link">{courseById(shown.course)!.name} ›</CupLink>
+            : <span className="hd-muted">{shown.venue}</span>}
         </h2>
         <div className="hd-session-actions">
           <button type="button" className="hd-tv-link" onClick={() => setSharing(true)}><Share2 aria-hidden />Share</button>
@@ -192,6 +197,9 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
       </div>
       <nav className="hd-board-links" aria-label="Teams">
         {TEAMS.map(t => <CupLink key={t} to={`/cup/team/${t}`} className={t}><Logo name={t} className="hd-board-link-logo" />{TEAM_NAMES[t]} roster</CupLink>)}
+      </nav>
+      <nav className="hd-board-courses" aria-label="Courses">
+        {COURSES.map(c => <CupLink key={c.id} to={`/cup/course/${c.id}`}>{c.name}</CupLink>)}
       </nav>
       <footer className="hd-board-foot">
         <Logo name="ggc" className="hd-foot-logo" />

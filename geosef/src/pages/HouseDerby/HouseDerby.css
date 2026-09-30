@@ -1127,3 +1127,28 @@ a.hd-mhero-team, a.hd-player-hero-team { text-decoration: none; }
 /* Full race page: the TV segment in a phone-shaped size container. */
 .hd-page.hd-race-page { max-width: 720px; }
 .hd-race-frame { font-family: var(--hd-display); font-weight: 400; font-synthesis: none; letter-spacing: 0.03em; height: min(80svh, 760px); min-height: 520px; border-radius: 16px; background: var(--hd-cream); box-shadow: inset 0 0 0 1px var(--hd-line); }
+
+/* ---------- Course pages ---------- */
+.hd-course-link { color: var(--hd-og); text-decoration: none; font-size: 0.8rem; letter-spacing: 0.04em; }
+.hd-board-courses { display: flex; justify-content: center; gap: 16px; margin: 12px 0 0; }
+.hd-board-courses a { color: var(--hd-og); font-size: 0.85rem; font-weight: 600; text-decoration: none; }
+.hd-page.hd-course { max-width: 640px; }
+.hd-course-head { display: flex; flex-direction: column; gap: 4px; padding: 16px; border-radius: 18px; background: var(--hd-og); color: #fff; margin: 4px 0 14px; }
+.hd-course-head h1 { margin: 0; font-family: var(--hd-display); font-weight: 400; font-size: 2.4rem; letter-spacing: 0.03em; text-transform: uppercase; line-height: 1; }
+.hd-course-where { color: #f3d9b8; font-size: 0.9rem; }
+.hd-course-played { font-size: 0.8rem; opacity: 0.85; }
+.hd-course-stats { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 10px; }
+.hd-course-stats span { display: flex; flex-direction: column; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85; }
+.hd-course-stats b { font-family: var(--hd-display); font-weight: 400; font-size: 1.7rem; letter-spacing: 0.03em; opacity: 1; }
+.hd-course-about { color: var(--hd-ink); line-height: 1.45; margin: 0 0 18px; }
+.hd-course-stages { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.hd-course-stages li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 10px; background: var(--hd-card); }
+.hd-course-stage { font-family: var(--hd-display); letter-spacing: 0.04em; text-transform: uppercase; font-size: 1.05rem; }
+.hd-scorecard { width: 100%; border-collapse: separate; border-spacing: 0 3px; margin-bottom: 10px; font-variant-numeric: tabular-nums; }
+.hd-scorecard th, .hd-scorecard td { text-align: center; padding: 7px 4px; }
+.hd-scorecard thead th { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--hd-muted); font-weight: 600; padding-bottom: 2px; }
+.hd-scorecard tbody tr { background: var(--hd-card); }
+.hd-scorecard tbody th { font-family: var(--hd-display); font-weight: 400; font-size: 1.1rem; color: var(--hd-og); border-radius: 8px 0 0 8px; }
+.hd-scorecard tbody td:last-child { color: var(--hd-muted); border-radius: 0 8px 8px 0; }
+.hd-scorecard tfoot th, .hd-scorecard tfoot td { font-weight: 700; color: var(--hd-og); }
+.hd-scorecard-total { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; padding: 8px 4px; border-radius: 10px; background: var(--hd-og); color: #fff; font-weight: 700; }

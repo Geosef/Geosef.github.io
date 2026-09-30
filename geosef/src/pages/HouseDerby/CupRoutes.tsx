@@ -4,6 +4,7 @@ import Board from './Board';
 import MatchDetail from './MatchDetail';
 import PlayerPage from './PlayerPage';
 import RacePage from './RacePage';
+import CoursePage from './CoursePage';
 import TeamPage from './TeamPage';
 
 /**
@@ -19,6 +20,7 @@ export default function CupRoutes() {
       <Route path="team/:team" element={<TeamPage />} />
       <Route path="player/:playerId" element={<PlayerPage />} />
       <Route path="race" element={<RacePage />} />
+      <Route path="course/:courseId" element={<CoursePage />} />
     </Routes>
   );
 }
