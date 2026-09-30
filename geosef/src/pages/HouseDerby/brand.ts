@@ -27,17 +27,39 @@ export const LOGO_FILES: Record<LogoName, { svg: string; url: string; aspect: nu
   south: { svg: inline(southSvg), url: southUrl, aspect: 1 },
 };
 
-/** Sets the tab title and favicon for /cup pages, restoring the site's on leave. */
+/** Points a <link rel> at `href` (creating it if needed); returns an undo. */
+function swapLink(rel: string, href: string, type?: string): () => void {
+  let link = document.querySelector<HTMLLinkElement>(`link[rel="${rel}"]`);
+  const created = !link;
+  if (!link) {
+    link = document.createElement('link');
+    link.rel = rel;
+    document.head.appendChild(link);
+  }
+  const prev = { href: link.href, type: link.type };
+  link.href = href;
+  if (type) link.type = type;
+  return () => {
+    if (created) link!.remove();
+    else Object.assign(link!, prev);
+  };
+}
+
+/**
+ * Tab title, favicon and home-screen icon for /cup pages (so a marshal who
+ * adds the page to their iPhone home screen gets the Derby horseshoe),
+ * restoring the site's on leave.
+ */
 export function useCupChrome(title = 'House Derby') {
   useEffect(() => {
     const prevTitle = document.title;
-    const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
-    const prevIcon = link?.href;
     document.title = title;
-    if (link) link.href = '/cup/favicon.png';
+    const undoIcon = swapLink('icon', '/cup/favicon.svg', 'image/svg+xml');
+    const undoTouch = swapLink('apple-touch-icon', '/cup/apple-touch-icon.png');
     return () => {
       document.title = prevTitle;
-      if (link && prevIcon) link.href = prevIcon;
+      undoIcon();
+      undoTouch();
     };
   }, [title]);
 }
