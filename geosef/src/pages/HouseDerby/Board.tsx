@@ -30,7 +30,7 @@ export default function Board() {
   const moments = useScoreMoments(matches);
   useCupChrome('House Derby', LAYOUT_SURFACE[layout]);
   // Boards left running on a TV or a phone in a cart shouldn't sleep.
-  useWakeLock(layout !== 'phone');
+  const awake = useWakeLock(layout !== 'phone');
   // Players too, so names don't pop into rows that rendered without them.
   const ready = !!(sessions && matches && players);
   const intro = useIntro(ready);
@@ -41,14 +41,14 @@ export default function Board() {
   // finished board, so nothing underneath is seen half drawn.
   return (
     <>
-      {ready && <BoardView layout={layout} sessions={sessions} matches={matches} byId={byId} moments={moments} intro={intro} />}
+      {ready && <BoardView layout={layout} sessions={sessions} matches={matches} byId={byId} moments={moments} intro={intro} awake={awake} />}
       {(!ready || intro) && <CupSplash leaving={ready} />}
     </>
   );
 }
 
-function BoardView({ layout, sessions, matches, byId, moments, intro }: {
-  layout: BoardLayout; sessions: Session[]; matches: Match[]; byId: Map<string, Player>; moments: Moments; intro: boolean;
+function BoardView({ layout, sessions, matches, byId, moments, intro, awake }: {
+  layout: BoardLayout; sessions: Session[]; matches: Match[]; byId: Map<string, Player>; moments: Moments; intro: boolean; awake: boolean;
 }) {
   const [picked, setPicked] = useState<string | null>(null);
   const standing = cupStanding(matches);
@@ -67,6 +67,7 @@ function BoardView({ layout, sessions, matches, byId, moments, intro }: {
       <>
         {layout === 'tv' ? <TvBoard {...props} /> : <VerticalBoard {...props} fill={layout === 'portrait'} />}
         <ExitTv />
+        {!awake && <WakeHint />}
         {moments.celebration && <CelebrationOverlay c={moments.celebration} onDone={moments.dismissCelebration} />}
       </>
     );
@@ -154,6 +155,16 @@ function ExitTv() {
     return () => clearTimeout(t);
   }, [shown]);
   return shown ? <Link to="/cup" className="hd-tv-exit" aria-label="Exit TV view"><X aria-hidden /></Link> : null;
+}
+
+/**
+ * iOS only keeps the screen on after a tap, so touch screens get a prompt
+ * until the lock is held. Mouse-driven and unattended screens never see it.
+ */
+function WakeHint() {
+  const touch = window.matchMedia('(pointer: coarse)').matches;
+  if (!touch || !('wakeLock' in navigator)) return null;
+  return <div className="hd-wake-hint">Tap to keep screen on</div>;
 }
 
 /** Big score that counts up and bumps when it changes. */

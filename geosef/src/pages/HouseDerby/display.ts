@@ -61,28 +61,50 @@ export function usePortrait(): boolean {
 
 /**
  * Keeps the screen awake while `on`, for boards left running on a phone or
- * TV. The browser drops the lock whenever the page is hidden, so it's
- * re-requested when the page comes back. No-op where unsupported.
+ * TV. Returns whether the lock is held (false where unsupported or refused).
+ *
+ * iOS only grants the lock during a tap, and every browser drops it when the
+ * page is hidden. So it's requested on mount (enough for desktop and
+ * Android), again on each tap until held, and again when the page returns.
  */
-export function useWakeLock(on: boolean) {
+export function useWakeLock(on: boolean): boolean {
+  const [held, setHeld] = useState(false);
   useEffect(() => {
     if (!on || !('wakeLock' in navigator)) return;
     let lock: WakeLockSentinel | null = null;
+    let pending = false;
     let done = false;
     const request = () => {
-      if (document.visibilityState !== 'visible') return;
+      if (lock || pending || document.visibilityState !== 'visible') return;
+      pending = true;
       navigator.wakeLock.request('screen').then(
-        l => { if (done) l.release(); else lock = l; },
-        // Denied (e.g. low battery mode); the board still works, it just may sleep.
-        () => {},
+        l => {
+          pending = false;
+          if (done) { l.release(); return; }
+          lock = l;
+          setHeld(true);
+          l.addEventListener('release', () => {
+            lock = null;
+            if (!done) setHeld(false);
+          });
+        },
+        // Refused (no tap yet on iOS, low power mode); the next tap retries.
+        () => { pending = false; },
       );
     };
     request();
     document.addEventListener('visibilitychange', request);
+    // Both, since WebKit counts different events as a tap across versions.
+    window.addEventListener('pointerup', request);
+    window.addEventListener('click', request);
     return () => {
       done = true;
       document.removeEventListener('visibilitychange', request);
+      window.removeEventListener('pointerup', request);
+      window.removeEventListener('click', request);
       lock?.release();
+      setHeld(false);
     };
   }, [on]);
+  return held;
 }
