@@ -531,24 +531,27 @@
 .hd-th-phone .hd-th-points, .hd-th-vert .hd-th-points { order: 2; }
 .hd-th-phone .hd-th-meta, .hd-th-vert .hd-th-meta { order: 3; }
 
-/* Phone: team colors run to the top; the crest centers on where the team
-   content begins, above everything (including the lead glow). */
+/* Phone: team colors run full height; the crest fills the center column
+   above everything (including the lead glow), and each half's content
+   shifts outward to clear it. */
 .hd-th-phone { margin: 0 -16px 16px; }
-.hd-th-phone .hd-th-team { padding: 72px 8px 14px; gap: 4px; }
-.hd-th-phone .hd-th-crest { top: 58px; }
+.hd-th-phone .hd-th-team { padding: 16px 8px 14px; gap: 4px; }
+.hd-th-phone .hd-th-team.og { padding-right: 64px; }
+.hd-th-phone .hd-th-team.south { padding-left: 64px; }
 .hd-th-phone .hd-th-team.og { border-bottom-left-radius: 16px; }
 .hd-th-phone .hd-th-team.south { border-bottom-right-radius: 16px; }
-.hd-th-phone .hd-th-crest { height: 96px; width: 75px; }
+.hd-th-phone .hd-th-crest { top: 12px; transform: translateX(-50%); height: 150px; width: 117px; }
 .hd-th-phone .hd-th-logo { width: 34px; height: 34px; }
 .hd-th-phone .hd-th-name { font-size: 1.2rem; }
 .hd-th-phone .hd-th-points { font-size: 4.2rem; }
 .hd-th-phone .hd-th-meta { font-size: 0.75rem; }
 
-/* Vertical: the top of each half doubles as space under Instagram's top overlay. */
+/* Vertical: same as the phone, scaled to the 9:16 frame. */
 .hd-th-vert { flex: 0 0 auto; }
-.hd-th-vert .hd-th-team { padding: 10.4cqh 2cqw 1.2cqh; gap: 0.5cqh; }
-.hd-th-vert .hd-th-crest { top: 9cqh; }
-.hd-th-vert .hd-th-crest { height: 8cqh; }
+.hd-th-vert .hd-th-team { padding: 3cqh 2cqw 1.4cqh; gap: 0.5cqh; }
+.hd-th-vert .hd-th-team.og { padding-right: 17cqw; }
+.hd-th-vert .hd-th-team.south { padding-left: 17cqw; }
+.hd-th-vert .hd-th-crest { top: 2cqh; transform: translateX(-50%); height: 22cqh; }
 .hd-th-vert .hd-th-logo { width: 9cqw; height: 9cqw; }
 .hd-th-vert .hd-th-name { font-size: 4.6cqw; }
 .hd-th-vert .hd-th-points { font-size: 16cqw; }
