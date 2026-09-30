@@ -26,6 +26,12 @@ export interface Session {
   location?: string;
   /** Overrides the format's display name (e.g. "Indoor Alt-Shot"). */
   formatLabel?: string;
+  /** First tee time, ISO with offset ("2026-10-16T17:00:00-05:00"). */
+  startsAt?: string;
+  /** Minutes between slots' tee times (outdoor). */
+  teeInterval?: number;
+  /** When indoor back nines start. */
+  backNineAt?: string;
   note?: string;
 }
 
@@ -36,6 +42,8 @@ export interface Match extends MatchScoring {
   /** Which nine of an indoor pairing this match is. */
   nine?: 'front' | 'back';
   players: Record<TeamId, string[]>;
+  /** Scheduled tee time, ISO with offset (seeded from the session's schedule). */
+  teeTime?: string | null;
   /** True while this client has writes not yet confirmed by the server. */
   pending: boolean;
 }
@@ -146,6 +154,20 @@ export function sideFullName(match: Match, team: TeamId, byId: Map<string, Playe
     const p = byId.get(id);
     return p ? `${p.first} ${p.last}` : id;
   }).join(' & ');
+}
+
+// Tee times are the event's local time wherever the board is watched.
+const EVENT_TZ = 'America/Chicago';
+
+/** "5:45 PM" in the event's time zone. */
+export function teeClock(iso: string): string {
+  return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: EVENT_TZ });
+}
+
+/** "Fri, Oct 16 · 5:00 PM" in the event's time zone. */
+export function teeDay(iso: string): string {
+  const day = new Date(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: EVENT_TZ });
+  return `${day} · ${teeClock(iso)}`;
 }
 
 /** Points with a ½ glyph: 7.5 -> "7½", 0.5 -> "½". */

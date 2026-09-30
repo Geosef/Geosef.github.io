@@ -361,7 +361,8 @@
 .hd-logo { display: inline-block; vertical-align: middle; color: var(--hd-gold); line-height: 0; }
 .hd-logo-art, .hd-logo-art svg { display: block; width: 100%; height: 100%; }
 /* The gleam: a light band masked to the logo's shape, only while animating. */
-.hd-swing::after, .hd-gleam::after {
+.hd-swing::after, .hd-gleam::after,
+.hd-th-tv .hd-th-crest::after, .hd-th-vert .hd-th-crest::after {
   content: ''; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.95) 50%, transparent 60%) no-repeat;
   background-size: 250% 100%; background-position: 150% 0;
@@ -672,3 +673,150 @@
    Safari's bars; the board stays pinned and grows into the freed space. */
 .hd-page.hd-tv.hd-tv-swipe { min-height: calc(100lvh + 80px); align-items: flex-start; }
 .hd-tv-swipe .hd-tv-frame { position: sticky; top: 0; height: 100dvh; }
+
+/* ---------- Ambient motion on the TV boards ----------
+   Slow and small, so it reads as alive without pulling focus from scores:
+   the crest catches the light every so often, and the horseshoes give an
+   occasional idle sway (each on its own beat). */
+.hd-th-tv .hd-th-crest::after, .hd-th-vert .hd-th-crest::after { animation: hd-idle-gleam 24s 6s ease-in-out infinite; }
+@keyframes hd-idle-gleam { 0% { background-position: 150% 0; } 7%, 100% { background-position: -50% 0; } }
+.hd-th-tv .hd-th-logo:not(.hd-swing), .hd-th-vert .hd-th-logo:not(.hd-swing) {
+  transform-origin: 50% 8%; animation: hd-idle-sway 20s 3s ease-in-out infinite;
+}
+.hd-th-tv .south .hd-th-logo:not(.hd-swing), .hd-th-vert .south .hd-th-logo:not(.hd-swing) { animation-delay: 13s; }
+@keyframes hd-idle-sway {
+  0%, 9%, 100% { transform: none; }
+  2% { transform: rotate(-7deg); } 4.5% { transform: rotate(5deg); } 6.5% { transform: rotate(-2deg); }
+}
+
+/* ---------- Dead-time segments (TV + vertical) ----------
+   The board body is a size container; segments swap in it under a
+   team-color wipe while the header and footer stay put. Sized in cq units
+   so the same markup fits the landscape and 9:16 boards. */
+.hd-seg-host { position: relative; flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; container-type: size; overflow: hidden; }
+.hd-seg-host > .hd-tv-rows, .hd-seg-host > .hd-vert-rows { flex: 1 1 auto; min-height: 0; }
+.hd-seg { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 2.5cqh; padding: 3cqh 3cqw; }
+.hd-seg-title {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 2cqw;
+  text-transform: uppercase; letter-spacing: 0.05em; line-height: 1; color: var(--hd-og); font-size: 7cqh;
+}
+.hd-seg-kicker { color: var(--hd-gold); font-size: 4.6cqh; white-space: nowrap; }
+.hd-countdown b { color: var(--hd-og); font-weight: 400; font-variant-numeric: tabular-nums; }
+
+.hd-recap-score { flex: 0 0 auto; display: grid; grid-template-columns: 1fr 1fr; border-radius: 1.4cqh; overflow: hidden; }
+.hd-recap-team { display: flex; align-items: center; gap: 2cqw; padding: 2cqh 3cqw; color: #fff; }
+.hd-recap-team.og { background: var(--hd-og); }
+.hd-recap-team.south { background: var(--hd-south); flex-direction: row-reverse; }
+.hd-recap-logo { width: 11cqh; height: 11cqh; flex: 0 0 auto; }
+.hd-recap-name { font-size: 6cqh; text-transform: uppercase; letter-spacing: 0.04em; }
+.hd-recap-pts { font-size: 15cqh; line-height: 0.9; font-variant-numeric: tabular-nums; }
+.hd-recap-team.og .hd-recap-pts { margin-left: auto; }
+.hd-recap-team.south .hd-recap-pts { margin-right: auto; }
+.hd-recap-list {
+  flex: 1 1 auto; min-height: 0; max-height: calc(var(--rows) * 11cqh);
+  display: grid; grid-template-columns: 1fr 1fr; grid-auto-rows: minmax(0, 1fr); gap: 1.2cqh 1.6cqw;
+}
+.hd-recap-item {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 1.6cqw; min-height: 0;
+  padding: 0 2cqw; border-radius: 1cqh; background: #fff; border-left: 1.2cqh solid var(--hd-gold);
+  font-size: min(4.4cqh, 3cqw); text-transform: uppercase; white-space: nowrap; overflow: hidden;
+}
+.hd-recap-item.og { border-left-color: var(--hd-og); }
+.hd-recap-item.south { border-left-color: var(--hd-south); }
+.hd-recap-slot { color: var(--hd-muted); font-size: 0.72em; letter-spacing: 0.06em; }
+.hd-recap-who { overflow: hidden; text-overflow: ellipsis; }
+.hd-recap-item.og .hd-recap-who, .hd-recap-item.og .hd-recap-margin { color: var(--hd-og); }
+.hd-recap-item.south .hd-recap-who, .hd-recap-item.south .hd-recap-margin { color: var(--hd-south); }
+.hd-recap-item.halved .hd-recap-who, .hd-recap-item.halved .hd-recap-margin { color: var(--hd-gold); }
+
+.hd-next-grid {
+  flex: 1 1 auto; min-height: 0; display: grid; gap: 2cqh 1.8cqw;
+  grid-template-columns: repeat(var(--cols), minmax(0, 1fr)); grid-template-rows: repeat(var(--rows), minmax(0, 1fr));
+}
+/* Each card is its own size container, so it scales with however many share the grid. */
+.hd-card {
+  container-type: size; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
+  background: #fff; border-radius: 1.4cqh; box-shadow: 0 0.4cqh 1.4cqh rgba(0, 0, 0, 0.08);
+}
+.hd-card-slot {
+  flex: 0 0 auto; background: var(--hd-ink); color: #fff; text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: min(9cqh, 6cqw); padding: 2.5cqh 4cqw; line-height: 1;
+}
+.hd-card-slot { display: flex; justify-content: space-between; gap: 2cqw; white-space: nowrap; }
+.hd-card-tag, .hd-card-tee { color: var(--hd-gold); }
+.hd-card-sides { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 3cqh 3cqw; gap: 2cqw; }
+.hd-card-vs { color: var(--hd-gold); font-size: min(10cqh, 6cqw); text-transform: uppercase; }
+.hd-card-side { display: flex; justify-content: center; gap: 3cqw; min-width: 0; }
+.hd-card-player { display: flex; flex-direction: column; align-items: center; gap: 2cqh; min-width: 0; }
+.hd-portrait {
+  --size: min(34cqh, 17cqw);
+  width: var(--size); height: var(--size); border-radius: 50%; flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: calc(var(--size) * 0.42); letter-spacing: 0.02em;
+  box-shadow: 0 0 0 calc(var(--size) * 0.05) var(--hd-gold);
+}
+.hd-portrait.og { background: var(--hd-og); }
+.hd-portrait.south { background: var(--hd-south); }
+.hd-card-name { display: flex; flex-direction: column; align-items: center; line-height: 1; min-width: 0; max-width: 100%; }
+.hd-card-first { color: var(--hd-muted); font-size: min(7cqh, 4cqw); text-transform: uppercase; letter-spacing: 0.06em; }
+.hd-card-last { font-size: min(11cqh, 6.5cqw); text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.hd-card-side.og .hd-card-last { color: var(--hd-og); }
+.hd-card-side.south .hd-card-last { color: var(--hd-south); }
+.hd-card-tbd { color: var(--hd-muted); font-size: min(10cqh, 6cqw); }
+
+/* 9:16 body (roughly square or taller; the landscape body is over 2:1):
+   stack the titles and run results in one column. */
+@container (max-aspect-ratio: 4 / 3) {
+  .hd-seg { padding: 2.5cqh 3cqw; gap: 2cqh; }
+  .hd-seg-title { flex-direction: column; align-items: center; gap: 1cqh; font-size: 8cqw; text-align: center; }
+  .hd-seg-kicker { font-size: 5cqw; white-space: normal; }
+  .hd-recap-team { flex-direction: column; gap: 0.8cqh; padding: 2cqh 2cqw; }
+  .hd-recap-team.south { flex-direction: column; }
+  .hd-recap-team.og .hd-recap-pts, .hd-recap-team.south .hd-recap-pts { margin: 0; }
+  .hd-recap-logo { width: 9cqw; height: 9cqw; }
+  .hd-recap-name { font-size: 5cqw; }
+  .hd-recap-pts { font-size: 16cqw; }
+  .hd-recap-list { grid-template-columns: 1fr; max-height: none; }
+  .hd-recap-item { font-size: min(4.4cqw, 3.4cqh); }
+}
+
+/* A tall card (few pairings on the landscape board): OG above South, bigger portraits. */
+@container (orientation: portrait) {
+  .hd-card-sides { grid-template-columns: 1fr; grid-template-rows: 1fr auto 1fr; padding: 3cqh 4cqw; gap: 1cqh; }
+  .hd-card-vs { text-align: center; font-size: 6cqw; }
+  .hd-card-side { gap: 6cqw; }
+  .hd-portrait { --size: min(20cqh, 28cqw); }
+  .hd-card-first { font-size: min(4cqh, 5.5cqw); }
+  .hd-card-last { font-size: min(6.5cqh, 9cqw); }
+  .hd-card-slot { font-size: min(5cqh, 7cqw); padding: 2cqh 5cqw; }
+}
+
+/* Segment change: navy then green sweep across, crest at the crossover. */
+.hd-wipe { position: absolute; inset: 0; z-index: 6; pointer-events: none; overflow: hidden; }
+.hd-wipe > .og, .hd-wipe > .south {
+  position: absolute; top: 0; bottom: 0; left: -25%; width: 150%;
+  transform: translateX(-120%) skewX(-14deg); animation: hd-wipe 0.95s cubic-bezier(0.7, 0, 0.3, 1) forwards;
+}
+.hd-wipe > .og { background: var(--hd-og); }
+.hd-wipe > .south { background: var(--hd-south); animation-delay: 0.07s; }
+@keyframes hd-wipe {
+  0% { transform: translateX(-120%) skewX(-14deg); }
+  42%, 58% { transform: translateX(0) skewX(-14deg); }
+  100% { transform: translateX(120%) skewX(-14deg); }
+}
+.hd-wipe-crest {
+  position: absolute; left: 50%; top: 50%; height: 44cqh; width: calc(44cqh * 0.7822);
+  transform: translate(-50%, -50%); opacity: 0; animation: hd-wipe-crest 0.95s ease-in-out forwards;
+}
+@keyframes hd-wipe-crest {
+  0%, 30% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+  48%, 58% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  75%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.1); }
+}
+.hd-seg { animation: hd-fade-in 0.3s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hd-th-tv .hd-th-crest::after, .hd-th-vert .hd-th-crest::after,
+  .hd-th-tv .hd-th-logo, .hd-th-vert .hd-th-logo, .hd-seg { animation: none; }
+  .hd-wipe { display: none; }
+}
