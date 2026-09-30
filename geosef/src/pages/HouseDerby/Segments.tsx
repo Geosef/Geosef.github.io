@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   TEAM_NAMES, dayAndSession, fmtPoints, formatLabel, matchName, shortStatus, sideName, teeClock, teeDay, type Match, type Player, type Session,
 } from './data';
 import { BOARD, decided, playlist, segmentAt, segmentKey, toPlay, type Segment, type SegmentKind } from './director';
-import { TEAMS, cupStanding, matchStates, type TeamId } from './scoring';
+import { TEAMS, TOTAL_POINTS, cupStanding, matchStates, type TeamId } from './scoring';
 import Logo from './Logo';
+import { momentum, momentumStats, type MomentumStep } from './momentum';
 
 /**
  * The segment the TV boards show now. `pinned` (from ?scene=) holds one
@@ -14,7 +15,12 @@ import Logo from './Logo';
 export function useSegment(sessions: Session[], matches: Match[], pinned: SegmentKind | null, hold: boolean): Segment {
   const [now, setNow] = useState(() => Date.now());
   const list = playlist(sessions, matches);
-  const { segment, endsIn } = segmentAt(list, now);
+  // The cycle runs from the latest score (when dead time began), so after the
+  // last putt every screen holds the board, then goes recap, race, up next,
+  // in step with each other. Before any score it runs off the clock.
+  const anchor = Math.max(0, ...matches.map(m => m.updatedAt ?? 0));
+  const { segment, endsIn } = segmentAt(list, Math.max(0, now - anchor));
+  useEffect(() => setNow(Date.now()), [anchor]);
   useEffect(() => {
     const t = setTimeout(() => setNow(Date.now()), endsIn + 50);
     return () => clearTimeout(t);
@@ -189,4 +195,185 @@ function Countdown({ at }: { at: string }) {
   const s = Math.floor(ms / 1000);
   const hms = [Math.floor(s / 3600), Math.floor(s / 60) % 60, s % 60].map((v, i) => (i ? String(v).padStart(2, '0') : String(v))).join(':');
   return <span className="hd-countdown"> · Tee off in <b>{hms}</b></span>;
+}
+
+/** An element's size, kept current as it resizes. */
+function useSize(ref: React.RefObject<HTMLElement | null>): { w: number; h: number } | null {
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ro = new ResizeObserver(([e]) => setSize({ w: e.contentRect.width, h: e.contentRect.height }));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [ref]);
+  return size;
+}
+
+/**
+ * The race to 18 (TV dead time): a 270-to-win style bar of points won and
+ * points being led, split at the winning line, over a timeline of each
+ * team's running total through the event.
+ */
+export function MomentumView({ sessions, matches }: { sessions: Session[]; matches: Match[] }) {
+  const steps = momentum(sessions, matches);
+  const { changes } = momentumStats(steps);
+  const standing = cupStanding(matches);
+  const played = standing.points.og + standing.points.south;
+  const plot = useRef<HTMLDivElement>(null);
+  const size = useSize(plot);
+  return (
+    <div className="hd-seg hd-momentum">
+      <div className="hd-seg-title">
+        <span>Race to {TOTAL_POINTS / 2}</span>
+        <span className="hd-seg-kicker">
+          {fmtPoints(played)} of {TOTAL_POINTS} played · {changes} lead change{changes === 1 ? '' : 's'}
+        </span>
+      </div>
+      <RaceBar standing={standing} />
+      <div className="hd-momentum-plot" ref={plot}>
+        {size && size.w > 0 && <RaceChart steps={steps} sessions={sessions} matches={matches} w={size.w} h={size.h} />}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * All 36 points as one bar: OG fill from the left, South from the right.
+ * Solid is won, striped is leading right now, the gray middle is still to
+ * play. The line in the middle is the winning line (OG keep the Derby at
+ * 18; South need 18½).
+ */
+function RaceBar({ standing }: { standing: ReturnType<typeof cupStanding> }) {
+  const pct = (n: number) => `${(n / TOTAL_POINTS) * 100}%`;
+  const { points, projected } = standing;
+  const leading = (t: TeamId) => Math.max(0, projected[t] - points[t]);
+  return (
+    <div className="hd-race">
+      <div className="hd-race-ends">
+        {TEAMS.map(t => (
+          <div key={t} className={`hd-race-end ${t}`}>
+            <Logo name={t} className="hd-race-logo" />
+            <span className="hd-race-pts">{fmtPoints(points[t])}</span>
+            <span className="hd-race-meta">
+              <span>{TEAM_NAMES[t]}</span>
+              <span>Proj {fmtPoints(projected[t])}</span>
+            </span>
+          </div>
+        ))}
+      </div>
+      <div className="hd-race-bar" role="img"
+        aria-label={`OG ${fmtPoints(points.og)} won, ${fmtPoints(leading('og'))} leading; South ${fmtPoints(points.south)} won, ${fmtPoints(leading('south'))} leading; ${TOTAL_POINTS / 2} to win.`}>
+        <span className="won og" style={{ left: 0, width: pct(points.og) }} />
+        <span className="lead og" style={{ left: pct(points.og), width: pct(leading('og')) }} />
+        <span className="won south" style={{ right: 0, width: pct(points.south) }} />
+        <span className="lead south" style={{ right: pct(points.south), width: pct(leading('south')) }} />
+        <span className="hd-race-line" />
+      </div>
+      <div className="hd-race-key">
+        <span><i className="won" />Won</span>
+        <span><i className="lead" />Leading now</span>
+        <span><i className="line" />{TOTAL_POINTS / 2} to win · OG keep the Derby on a tie, South need {fmtPoints(TOTAL_POINTS / 2 + 0.5)}</span>
+      </div>
+    </div>
+  );
+}
+
+const INK = '#2b2d3a';
+const MUTED = '#6b6a62';
+const GRID = '#e2dfcf';
+const GOLD = '#c4935f';
+const SURFACE = '#f8f6ea';
+const TEAM_HEX: Record<TeamId, string> = { og: '#3f4463', south: '#5e7a66' };
+const DRAW_ORDER: TeamId[] = ['south', 'og'];
+
+/**
+ * Each team's running total after every decided point, across the whole
+ * event: the x axis is all 36 points split into stages (stages still to come
+ * are ghosted), so the lines stop at "now" with the rest of the race ahead.
+ */
+function RaceChart({ steps, sessions, matches, w, h }: {
+  steps: MomentumStep[]; sessions: Session[]; matches: Match[]; w: number; h: number;
+}) {
+  const target = TOTAL_POINTS / 2;
+  const top = Math.max(target + 2, ...steps.map(s => Math.max(s.points.og, s.points.south) + 1));
+  const font = Math.max(12, Math.min(h * 0.06, w * 0.028));
+  const pad = { l: font * 1.8, r: font * 5.2, t: font * 0.8, b: font * 2 };
+  const pw = w - pad.l - pad.r;
+  const ph = h - pad.t - pad.b;
+  const x = (i: number) => pad.l + (i / TOTAL_POINTS) * pw;
+  const y = (v: number) => pad.t + ph - (v / top) * ph;
+  const r = Math.max(3, Math.min(font * 0.3, (pw / TOTAL_POINTS) * 0.3));
+
+  // Stage bands: each stage is as wide as its points.
+  const ordered = [...sessions].sort((a, b) => a.order - b.order);
+  const bands: Array<{ s: Session; from: number; to: number; started: boolean }> = [];
+  let at = 0;
+  for (const s of ordered) {
+    const n = matches.filter(m => m.session === s.id).flatMap(matchStates).length;
+    bands.push({ s, from: at, to: at + n, started: steps.some(st => st.session === s.id) });
+    at += n;
+  }
+
+  const lineFor = (t: TeamId) => [{ v: 0, i: 0 }, ...steps.map((s, k) => ({ v: s.points[t], i: k + 1 }))]
+    .map((p, k) => `${k ? 'L' : 'M'}${x(p.i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+  const now = steps.length;
+  const last = steps[now - 1]?.points ?? { og: 0, south: 0 };
+  // End labels: nudge apart when the teams are level or close.
+  const gap = font * 1.1;
+  const ly = { og: y(last.og), south: y(last.south) };
+  if (Math.abs(ly.og - ly.south) < gap) {
+    const mid = (ly.og + ly.south) / 2;
+    const ogHigher = last.og >= last.south;
+    ly.og = mid + (ogHigher ? -gap / 2 : gap / 2);
+    ly.south = mid + (ogHigher ? gap / 2 : -gap / 2);
+  }
+  const ticks = [0, 6, 12, 18].filter(v => v <= top);
+
+  return (
+    <svg className="hd-momentum-svg" width={w} height={h} viewBox={`0 0 ${w} ${h}`} role="img"
+      aria-label={`Running points after each of ${now} decided points: OG ${fmtPoints(last.og)}, South ${fmtPoints(last.south)}. ${target} to win.`}>
+      {/* Stages still to come are ghosted. */}
+      {bands.map((b, k) => (
+        <g key={b.s.id}>
+          {!b.started && <rect x={x(b.from)} y={pad.t} width={x(b.to) - x(b.from)} height={ph} fill={GRID} fillOpacity={0.35} />}
+          {k > 0 && <line x1={x(b.from)} x2={x(b.from)} y1={pad.t} y2={pad.t + ph} stroke={GRID} strokeWidth={2} />}
+          <text x={(x(b.from) + x(b.to)) / 2} y={h - font * 0.5} textAnchor="middle" fontSize={font * 0.72} fill={b.started ? MUTED : GRID}>
+            {stageShort(b.s)}
+          </text>
+        </g>
+      ))}
+
+      {ticks.map(v => (
+        <g key={v}>
+          <line x1={pad.l} x2={pad.l + pw} y1={y(v)} y2={y(v)} stroke={GRID} strokeWidth={1} />
+          <text x={pad.l - font * 0.4} y={y(v)} dy="0.35em" textAnchor="end" fontSize={font * 0.72} fill={MUTED}>{v}</text>
+        </g>
+      ))}
+
+      {/* The winning line. */}
+      <line x1={pad.l} x2={pad.l + pw} y1={y(target)} y2={y(target)} stroke={GOLD} strokeWidth={3} strokeDasharray="10 6" />
+      <text x={pad.l + pw + font * 0.4} y={y(target)} dy="0.35em" fontSize={font * 0.85} fill={GOLD}>{target} to win</text>
+
+      {/* OG drawn last, so it sits on top when level: they hold the tiebreak. */}
+      {DRAW_ORDER.map(t => (
+        <path key={t} className="hd-mo-line" d={lineFor(t)} fill="none" stroke={TEAM_HEX[t]}
+          strokeWidth={Math.max(2.5, font * 0.2)} strokeLinejoin="round" strokeLinecap="round" pathLength={1} />
+      ))}
+      {now > 0 && DRAW_ORDER.map(t => (
+        <g key={t} className="hd-mo-end">
+          <circle cx={x(now)} cy={y(last[t])} r={r * 1.6} fill={TEAM_HEX[t]} stroke={SURFACE} strokeWidth={2} />
+          <text x={x(now) + r * 2.4} y={ly[t]} dy="0.35em" fontSize={font} fill={INK}>
+            {t === 'og' ? 'OG' : 'South'} {fmtPoints(last[t])}
+          </text>
+        </g>
+      ))}
+    </svg>
+  );
+}
+
+/** "Fri Wave 1", "Sat Scramble": short enough for the chart's bottom axis. */
+function stageShort(s?: Session): string {
+  if (!s) return '';
+  return `${s.day === 'fri' ? 'Fri' : 'Sat'} ${s.name}`;
 }

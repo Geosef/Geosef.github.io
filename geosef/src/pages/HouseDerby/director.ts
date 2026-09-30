@@ -2,20 +2,22 @@
 // rounds run long). Once a stage has its first score the boards hold on the
 // live board until every match in it is final, including gaps between nines
 // and staggered starts. In dead time (before a stage's first score, after
-// its last result) they cycle the board with a recap of the stage just played
-// and the pairings coming up. The cycle runs off the wall clock, so every
-// screen showing the board changes segment at the same moment.
+// its last result) they cycle the board with a recap of the stage just
+// played, the race to 18 and the pairings coming up. The cycle is timed from
+// the latest score (the wall clock before any), so every screen showing the
+// board changes segment at the same moment.
 import { matchStates, type MatchPhase, type MatchScoring } from './scoring';
 
 export type Segment =
   | { kind: 'board' }
   | { kind: 'recap'; session: string }
+  | { kind: 'momentum' }
   | { kind: 'next'; session: string };
 
 export type SegmentKind = Segment['kind'];
 
 /** How long each segment holds, in ms. The board is home, so it holds longest. */
-export const DWELL: Record<SegmentKind, number> = { board: 25_000, recap: 12_000, next: 15_000 };
+export const DWELL: Record<SegmentKind, number> = { board: 25_000, recap: 12_000, momentum: 15_000, next: 15_000 };
 
 export const BOARD: Segment = { kind: 'board' };
 
@@ -41,9 +43,12 @@ export function playlist(sessions: Array<{ id: string; order: number }>, matches
   // The latest stage with a result, and the first with a match still to tee off.
   const recap = [...ordered].reverse().find(s => inSession(s.id).some(m => phases(m).includes('final')));
   const next = ordered.find(s => inSession(s.id).some(notStarted));
+  // The momentum chart needs a couple of points to draw a line.
+  const decidedPoints = matches.flatMap(phases).filter(p => p === 'final').length;
   return [
     BOARD,
     ...(recap ? [{ kind: 'recap', session: recap.id } as const] : []),
+    ...(decidedPoints >= 2 ? [{ kind: 'momentum' } as const] : []),
     ...(next ? [{ kind: 'next', session: next.id } as const] : []),
   ];
 }
@@ -61,7 +66,7 @@ export function segmentAt(list: Segment[], now: number): { segment: Segment; end
 }
 
 /** Stable identity for a segment, to key transitions on. */
-export const segmentKey = (s: Segment) => (s.kind === 'board' ? 'board' : `${s.kind}:${s.session}`);
+export const segmentKey = (s: Segment) => ('session' in s ? `${s.kind}:${s.session}` : s.kind);
 
 /** Matches from `session` that haven't teed off yet. */
 export function toPlay<T extends DirectedMatch>(matches: T[], session: string): T[] {

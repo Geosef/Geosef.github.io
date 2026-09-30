@@ -29,10 +29,11 @@ describe('playlist', () => {
     ]);
   });
 
-  it('recaps the stage just played and previews the next', () => {
+  it('recaps the stage just played, charts momentum and previews the next', () => {
     expect(playlist(sessions, [match('w1', 'final'), match('w1', 'final'), match('w2', 'empty')])).toEqual([
       { kind: 'board' },
       { kind: 'recap', session: 'w1' },
+      { kind: 'momentum' },
       { kind: 'next', session: 'w2' },
     ]);
   });
@@ -53,6 +54,7 @@ describe('playlist', () => {
     expect(playlist(sessions, [match('w1', 'final'), match('w2', 'final')])).toEqual([
       { kind: 'board' },
       { kind: 'recap', session: 'w2' },
+      { kind: 'momentum' },
     ]);
   });
 });

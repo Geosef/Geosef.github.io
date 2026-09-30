@@ -30,11 +30,12 @@ Touching a full-screen board briefly shows an exit button; unattended screens ne
 - `scoreEvents.ts` + `useScoreMoments.ts`: diff live snapshots into holes won, points, lead changes and clinch, which drive the animations. Nothing fires on first load. Bulk rewrites (more than 3 matches changed at once) report only a clinch.
 - `data.ts`: Firestore hooks, types and labels.
 - `shareCard.ts` + `ShareSheet.tsx`: 9:16 Story cards (standings, stage results, match) drawn on a canvas, previewed, then handed to the system share sheet (download fallback). Share buttons on `/cup` and match pages.
-- `director.ts` + `Segments.tsx`: TV dead-time segments. Driven by scores only, never tee times. Once a stage has a score, the TV holds the live board until every match in it is final (covers gaps between nines and staggered starts). In dead time it cycles board → stage recap → up next on the wall clock, with a team-color wipe. `?scene=board|recap|next` pins one.
+- `director.ts` + `Segments.tsx`: TV dead-time segments. Driven by scores only, never tee times. Once a stage has a score, the TV holds the live board until every match in it is final (covers gaps between nines and staggered starts). In dead time it cycles board → stage recap → race to 18 → up next, timed from the latest score so every screen flips together, with a team-color wipe. `?scene=board|recap|momentum|next` pins one.
+- `momentum.ts`: data for the race-to-18 segment (points bar + each team's running total), point by point in stage order, then when each match was last scored. Built only from current scores, so `--reset-scores` clears it and demo data drives it.
 - `display.ts`: which board a URL and screen shape get, page surfaces, wake lock. `CupSplash` is the crest loading screen, bundled with the site so it also covers the lazy /cup download.
 - `Board.tsx`: all three public layouts, sharing one `TeamHeader` and `MatchRow`.
 - `Admin.tsx` / `MatchEntry.tsx`: marshal list and entry. Every write is batched with an `edits/` log entry (`writes.ts`).
-- `demo.ts` / `DemoPanel.tsx`: demo states plus simulate/auto-play. **Remove before the event.**
+- `demo.ts` / `DemoPanel.tsx`: demo states (phase × outcome: OG outright, South outright, OG on the tiebreak) and auto-play. "Tournament flow" plays stages in order with staggered tee times and dead time between stages; keep its tab visible or Chrome throttles it. **Remove before the event.**
 - `brand.ts` / `Logo.tsx` / `logos/`: inline SVG logos. The two-tone crest is `crest-color.svg`; the single-color `crest.svg` is kept for the gleam mask. `useCupChrome` sets the tab title, icons and the html/body background (see iOS below).
 - Tests: `npm test` (Vitest).
 

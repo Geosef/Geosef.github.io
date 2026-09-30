@@ -354,6 +354,8 @@
 }
 .hd-demo-buttons button:disabled { opacity: 0.5; }
 .hd-demo-buttons button.on { background: var(--hd-og); color: #fff; }
+.hd-demo-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 10px; }
+.hd-demo-buttons .hd-muted { align-self: center; }
 .hd-demo-links { display: flex; gap: 12px; font-size: 0.85rem; margin-top: 6px; }
 .hd-demo-links a { color: var(--hd-og); font-weight: 600; }
 
@@ -898,4 +900,52 @@
 @keyframes hd-takeover-pop { from { opacity: 0; transform: scale(0.7) translateY(2cqh); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
   .hd-takeover, .hd-takeover::before, .hd-takeover-body > * { animation: none; }
+}
+
+/* ---------- Race to 18 (TV dead time) ---------- */
+.hd-race { flex: 0 0 auto; display: flex; flex-direction: column; gap: 1.2cqh; }
+.hd-race-ends { display: flex; justify-content: space-between; }
+.hd-race-end { display: flex; align-items: center; gap: 1.2cqw; }
+.hd-race-end.south { flex-direction: row-reverse; text-align: right; }
+.hd-race-logo { width: 8cqh; height: 8cqh; }
+.hd-race-pts { font-size: 12cqh; line-height: 0.9; font-variant-numeric: tabular-nums; }
+.hd-race-end.og .hd-race-pts { color: var(--hd-og); }
+.hd-race-end.south .hd-race-pts { color: var(--hd-south); }
+.hd-race-meta { display: flex; flex-direction: column; font-size: 3.6cqh; line-height: 1.1; color: var(--hd-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.hd-race-meta span:first-child { color: var(--hd-ink); }
+.hd-race-bar { position: relative; height: 6cqh; border-radius: 1cqh; background: var(--hd-line); overflow: hidden; }
+.hd-race-bar > span { position: absolute; top: 0; bottom: 0; }
+.hd-race-bar .won.og { background: var(--hd-og); }
+.hd-race-bar .won.south { background: var(--hd-south); }
+/* Leading now: the team color striped, so it reads as not yet banked. */
+.hd-race-bar .lead.og { background: repeating-linear-gradient(135deg, var(--hd-og) 0 0.6cqh, rgba(63, 68, 99, 0.35) 0.6cqh 1.2cqh); }
+.hd-race-bar .lead.south { background: repeating-linear-gradient(45deg, var(--hd-south) 0 0.6cqh, rgba(94, 122, 102, 0.35) 0.6cqh 1.2cqh); }
+.hd-race-bar .won, .hd-race-bar .lead { animation: hd-race-grow 1s 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.hd-race-bar .og { transform-origin: left; }
+.hd-race-bar .south { transform-origin: right; }
+@keyframes hd-race-grow { from { transform: scaleX(0); } to { transform: none; } }
+.hd-race-line { left: calc(50% - 0.25cqh); width: 0.5cqh; background: var(--hd-gold); box-shadow: 0 0 0 0.3cqh var(--hd-cream); }
+.hd-race-key { display: flex; gap: 2.4cqw; justify-content: center; flex-wrap: wrap; font-size: 3cqh; color: var(--hd-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.hd-race-key span { display: inline-flex; align-items: center; gap: 0.6em; }
+.hd-race-key i { display: inline-block; width: 1.4em; height: 0.8em; border-radius: 0.15em; }
+.hd-race-key i.won { background: linear-gradient(90deg, var(--hd-og) 50%, var(--hd-south) 50%); }
+.hd-race-key i.lead { background: repeating-linear-gradient(135deg, var(--hd-og) 0 0.2em, rgba(63, 68, 99, 0.35) 0.2em 0.4em); }
+.hd-race-key i.line { width: 0.25em; height: 1.1em; background: var(--hd-gold); }
+@container (max-aspect-ratio: 4 / 3) {
+  .hd-race-logo { width: 9cqw; height: 9cqw; }
+  .hd-race-pts { font-size: 14cqw; }
+  .hd-race-meta { font-size: 3.6cqw; }
+  .hd-race-bar { height: 3.5cqh; }
+  .hd-race-key { font-size: 3cqw; gap: 1cqh 3cqw; }
+}
+
+.hd-momentum-plot { flex: 1 1 auto; min-height: 0; position: relative; }
+.hd-momentum-svg { position: absolute; inset: 0; display: block; font-family: var(--hd-display); letter-spacing: 0.04em; text-transform: uppercase; }
+/* The lines draw themselves in, then the end labels settle. */
+.hd-mo-line { stroke-dasharray: 1; stroke-dashoffset: 1; animation: hd-mo-draw 1.6s 0.5s ease-in-out forwards; }
+@keyframes hd-mo-draw { to { stroke-dashoffset: 0; } }
+.hd-mo-end { animation: hd-fade-in 0.5s 2s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .hd-mo-line { animation: none; stroke-dashoffset: 0; }
+  .hd-mo-end, .hd-race-bar .won, .hd-race-bar .lead { animation: none; }
 }
