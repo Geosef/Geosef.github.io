@@ -856,3 +856,46 @@
 .hd-share-go { display: flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; font-size: 1rem; }
 .hd-share-go svg { width: 18px; height: 18px; }
 .hd-share-go.disabled { opacity: 0.5; pointer-events: none; }
+
+.hd-share-clip {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--hd-line); background: var(--hd-card); color: var(--hd-og); text-decoration: none; font-weight: 600;
+}
+.hd-share-clip svg { width: 20px; height: 20px; flex: 0 0 auto; }
+.hd-share-clip small { display: block; font-weight: 400; font-size: 0.78rem; color: var(--hd-muted); }
+
+/* ---------- Lead takeover (TV + vertical) ----------
+   Bigger than a match result: the new leader's color sweeps across the board
+   body from their side (gold from the middle when level), the headline pops,
+   and the cup score sits underneath. Sized off the body container. */
+.hd-takeover {
+  position: absolute; inset: 0; z-index: 7; overflow: hidden; pointer-events: none;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--hd-display); text-transform: uppercase; color: #fff; text-align: center;
+  animation: hd-takeover-out 4.4s ease-in forwards;
+}
+.hd-takeover::before { content: ''; position: absolute; inset: 0; animation: hd-takeover-in-og 0.55s cubic-bezier(0.7, 0, 0.3, 1) both; }
+.hd-takeover.og::before { background: var(--hd-og); }
+.hd-takeover.south::before { background: var(--hd-south); animation-name: hd-takeover-in-south; }
+.hd-takeover.even::before { background: var(--hd-gold); animation-name: hd-takeover-in-even; }
+@keyframes hd-takeover-in-og { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0); } }
+@keyframes hd-takeover-in-south { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0); } }
+@keyframes hd-takeover-in-even { from { clip-path: inset(0 50% 0 50%); } to { clip-path: inset(0); } }
+@keyframes hd-takeover-out { 0%, 88% { opacity: 1; } 100% { opacity: 0; } }
+.hd-takeover-body { position: relative; display: flex; flex-direction: column; align-items: center; line-height: 0.95; }
+.hd-takeover-body > * { animation: hd-takeover-pop 0.5s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+.hd-takeover-logo { width: min(16cqh, 12cqw); height: min(16cqh, 12cqw); color: var(--hd-gold); animation-delay: 0.35s; }
+.hd-takeover.even .hd-takeover-logo { width: auto; height: min(22cqh, 18cqw); }
+.hd-takeover-kicker { font-size: min(7cqh, 6cqw); letter-spacing: 0.08em; color: #f3d9b8; margin-top: 1.5cqh; animation-delay: 0.45s; }
+.hd-takeover.even .hd-takeover-kicker { color: #fff; }
+.hd-takeover-title { font-size: min(22cqh, 15cqw); letter-spacing: 0.03em; animation-delay: 0.55s; }
+.hd-takeover-score { display: flex; gap: 0.35em; align-items: baseline; margin-top: 1cqh; font-size: min(12cqh, 10cqw); animation-delay: 0.75s; }
+.hd-takeover-score .og, .hd-takeover-score .south {
+  display: inline-block; min-width: 1.4em; padding: 0.05em 0.25em; border-radius: 0.12em; background: rgba(0, 0, 0, 0.18);
+}
+.hd-takeover-score .dash { color: var(--hd-gold); }
+.hd-takeover.even .hd-takeover-score .dash { color: #fff; }
+@keyframes hd-takeover-pop { from { opacity: 0; transform: scale(0.7) translateY(2cqh); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .hd-takeover, .hd-takeover::before, .hd-takeover-body > * { animation: none; }
+}

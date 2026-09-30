@@ -42,6 +42,8 @@ export interface Match extends MatchScoring {
   /** Which nine of an indoor pairing this match is. */
   nine?: 'front' | 'back';
   players: Record<TeamId, string[]>;
+  /** When a score was last entered (ms). */
+  updatedAt?: number;
   /** Scheduled tee time, ISO with offset (seeded from the session's schedule). */
   teeTime?: string | null;
   /** True while this client has writes not yet confirmed by the server. */
@@ -90,6 +92,8 @@ function toMatch(id: string, d: Record<string, unknown>, pending: boolean): Matc
     strokes: { og: [], south: [] },
     players: { og: [], south: [] },
     ...d,
+    // Firestore Timestamp -> ms; null while a server timestamp is pending.
+    updatedAt: (d.updatedAt as { toMillis?: () => number } | undefined)?.toMillis?.(),
     id,
     pending,
   } as unknown as Match;

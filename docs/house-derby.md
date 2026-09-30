@@ -19,6 +19,7 @@ Live scoreboard for a two-team, Ryder Cup–style match-play event (OG House vs 
 | `/cup?tv` | Full-screen board that follows the screen: landscape broadcast board, or on an upright phone the vertical board edge to edge. The "TV view" button on `/cup` opens it. Keeps the screen awake. |
 | `/cup?tv=landscape` | Pins the landscape board (clubhouse screens, 16:9 stream captures) |
 | `/cup?tv=vertical` | Pins the 9:16 board with bands kept clear for Instagram Live's overlays |
+| `…?tv&replay[=<match id>]` | Loops the latest moment (or one match's result; the clinch once won) for screen-recording Story clips. Holds the live board. Linked as "Record a clip" in the share sheet. |
 | `/cup/admin[/:id]` | Marshal entry (Google sign-in). `?demo` shows demo controls |
 
 Touching a full-screen board briefly shows an exit button; unattended screens never show it. The full-screen boards hold on the current stage: the one with live play, else the latest with results.

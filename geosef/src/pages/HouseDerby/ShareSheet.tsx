@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Share2, X } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Clapperboard, Download, Share2, X } from 'lucide-react';
 import { cardFileName, renderCard, type CardSpec } from './shareCard';
 
 export interface ShareOption {
@@ -14,7 +15,12 @@ export interface ShareOption {
  * has to be ready by then. Falls back to a download where files can't be
  * shared (desktop).
  */
-export default function ShareSheet({ options, onClose }: { options: ShareOption[]; onClose: () => void }) {
+export default function ShareSheet({ options, onClose, clipHref }: {
+  options: ShareOption[];
+  onClose: () => void;
+  /** Replay view for recording a video clip, when there's a moment to replay. */
+  clipHref?: string;
+}) {
   const [picked, setPicked] = useState(0);
   const option = options[picked] ?? options[0];
   const [file, setFile] = useState<File | null>(null);
@@ -77,6 +83,12 @@ export default function ShareSheet({ options, onClose }: { options: ShareOption[
           <a className={`hd-primary hd-share-go ${url ? '' : 'disabled'}`} href={url ?? undefined} download={cardFileName(option.spec)}>
             <Download aria-hidden /> Save image
           </a>
+        )}
+        {clipHref && (
+          <Link to={clipHref} className="hd-share-clip">
+            <Clapperboard aria-hidden />
+            <span>Record a clip<small>Loops the moment full screen. Screen record it for a video Story.</small></span>
+          </Link>
         )}
       </div>
     </div>
