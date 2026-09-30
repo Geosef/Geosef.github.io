@@ -63,6 +63,18 @@ SEED_ACCOUNT=<owner gcloud account> node cup-seed/seed.mjs [--reset-scores]
 - **Re-seeding is safe mid-event.** It only writes pairing fields. It deletes matches and sessions that are no longer in `sessions.json`, and prints them first.
 - **`--reset-scores`** wipes all holes, concessions and edit logs.
 
+## Player photos
+
+Portraits on the TV's up-next cards (initials until a player has one).
+
+```
+SEED_ACCOUNT=<owner gcloud account> node cup-seed/photos.mjs <folder>   # or --clear
+```
+
+- Files are named for the player id (last name, as the seed makes it): `smith.jpg`. The script center-crops each to a square, shrinks it to 200px with macOS `sips`, and writes it to `photos/{id}` as a data URL. Photos never go in the repo. Re-running replaces them.
+- `photos` is public-read, like names. Make sure players are OK with their photo on a public page.
+- Media-day shot list: head and shoulders, face centered, plain background, shot square or portrait. The photos show as small circles, so a full swing reads as a dot.
+
 ## iOS Safari notes
 
 Safari 26+ ignores `theme-color`. It tints its toolbars and overscroll from the html/body background, plus fixed elements near the edges.
@@ -78,6 +90,7 @@ Safari 26+ ignores `theme-color`. It tints its toolbars and overscroll from the 
 
 - [ ] Real pairings and stroke holes in `pairings.local.json`, then seed with `--reset-scores`.
 - [ ] Confirm tee times in `sessions.json`, then seed. They're placeholders (Fri Alt-Shot 1/2 at 5:00/6:30 PM with back nines 45 min later; Sat stages 8 AM, 11 AM and 2 PM, matches 10 min apart). The seed writes `teeTime` on each match from `startsAt`, `backNineAt` and `teeInterval`. They're display only (up-next cards and countdown); the TV never changes what it shows based on them.
+- [ ] Media day (Oct 15): headshots named by player id, then `photos.mjs`. The current photos are Slack avatars.
 - [ ] Final marshal list in `marshals.local.json`, then seed. Every marshal must sign in with a Google account.
 - [ ] Remove the demo panel.
 - [ ] Font: Bebas Neue is a stand-in for the club's Liberator. The personal license forbids web use. If the club's commercial license covers this site, swap `--hd-display` and inject a subset woff2 from a CI secret. Never commit the font file. Declare the file's real weight in its `@font-face` (a bold cut registered as 400 gets faux-bolded, which Safari draws doubled).

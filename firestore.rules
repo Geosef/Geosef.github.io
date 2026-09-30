@@ -21,6 +21,8 @@ service cloud.firestore {
     match /teams/{id}    { allow read: if true; }
     match /players/{id}  { allow read: if true; }
     match /sessions/{id} { allow read: if true; }
+    // Player portraits for the TV, uploaded by cup-seed/photos.mjs.
+    match /photos/{id}   { allow read: if true; }
 
     match /matches/{matchId} {
       allow read: if true;
