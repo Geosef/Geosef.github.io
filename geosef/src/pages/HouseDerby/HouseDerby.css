@@ -285,25 +285,25 @@
 }
 .hd-vert-session {
   background: var(--hd-ink); color: #fff; text-align: center; padding: 0.8cqh 2cqw;
-  font-size: 3.8cqw; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: 4.6cqw; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em;
 }
 .hd-vert-rows {
   flex: 1; display: flex; flex-direction: column; justify-content: flex-start;
   gap: 0.6cqh; padding: 1cqh 2.5cqw; min-height: 0;
 }
 .hd-vert .hd-row { --arrow: 2.4cqw; flex: 1 1 0; max-height: 9cqh; min-height: 0; grid-template-columns: 1fr 22cqw 1fr; border-radius: 1.6cqw; }
-.hd-vert .hd-row-side { flex-direction: column; justify-content: center; font-size: 3.4cqw; text-transform: uppercase; padding: 0 2cqw; line-height: 1.05; }
+.hd-vert .hd-row-side { flex-direction: column; justify-content: center; font-size: 4.8cqw; text-transform: uppercase; padding: 0 2cqw; line-height: 1.05; }
 .hd-vert .hd-row-side.og { align-items: flex-end; }
 .hd-vert .hd-row-side.south { align-items: flex-start; }
 .hd-vert .hd-row.lead-og .hd-row-side.og { padding-right: calc(2cqw + var(--arrow)); }
 .hd-vert .hd-row.lead-south .hd-row-side.south { padding-left: calc(2cqw + var(--arrow)); }
-.hd-vert .hd-row-status { font-size: 3.4cqw; padding-top: 0; padding-bottom: 0; }
-.hd-vert .hd-row-status.idle { font-size: 2.4cqw; font-weight: 600; }
+.hd-vert .hd-row-status { font-size: 4.8cqw; padding-top: 0; padding-bottom: 0; }
+.hd-vert .hd-row-status.idle { font-size: 3.4cqw; font-weight: 600; }
 /* Bottom band: Instagram's comment overlay covers roughly this area. */
 .hd-vert-foot {
   flex: 0 0 10cqh; background: var(--hd-og); color: #fff;
   display: flex; justify-content: space-between; align-items: flex-start; padding: 1.5cqh 5cqw;
-  font-size: 3cqw; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
+  font-size: 4.2cqw; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em;
 }
 .hd-vert-foot span:first-child { color: var(--hd-gold); }
 
@@ -430,7 +430,7 @@
   100% { transform: translate(-50%, 0); opacity: 0; }
 }
 .hd-tv .hd-banner { font-size: 2vw; }
-.hd-vert .hd-banner { font-size: 3.6cqw; bottom: 3%; }
+.hd-vert .hd-banner { font-size: 4.6cqw; bottom: 3%; }
 
 /* Clinch: full-screen crest reveal in the winning team's color. */
 .hd-celebrate {
@@ -496,7 +496,7 @@
 /* Indoor nines: a small F9 / B9 tag above the status so a pairing's two rows read as a pair. */
 .hd-row-status { flex-direction: column; gap: 1px; }
 .hd-row-nine { font-family: var(--hd-display); font-size: 0.62rem; letter-spacing: 0.1em; line-height: 1; opacity: 0.75; }
-.hd-vert .hd-row-nine { font-size: 1.9cqw; }
+.hd-vert .hd-row-nine { font-size: 2.8cqw; }
 .hd-tv-slot { flex-direction: column; justify-content: center; line-height: 1; }
 .hd-tv-nine { font-size: 0.8vw; color: var(--hd-muted); letter-spacing: 0.08em; margin-top: 0.2vw; }
 
@@ -553,9 +553,9 @@
 .hd-th-vert .hd-th-team.south { padding-left: 17cqw; }
 .hd-th-vert .hd-th-crest { top: 2cqh; transform: translateX(-50%); height: 22cqh; }
 .hd-th-vert .hd-th-logo { width: 9cqw; height: 9cqw; }
-.hd-th-vert .hd-th-name { font-size: 4.6cqw; }
+.hd-th-vert .hd-th-name { font-size: 5.8cqw; }
 .hd-th-vert .hd-th-points { font-size: 16cqw; }
-.hd-th-vert .hd-th-meta { font-size: 2.9cqw; }
+.hd-th-vert .hd-th-meta { font-size: 3.8cqw; }
 
 /* TV: each half is a row (logo, name + meta, score toward the center); the
    crest sits between the halves, sized to fit the header's height. */
@@ -571,3 +571,35 @@
 .hd-th-tv .og .hd-th-points { margin-left: auto; margin-right: 5.5vw; }
 .hd-th-tv .south .hd-th-points { margin-right: auto; margin-left: 5.5vw; }
 .hd-th-tv .hd-th-crest { top: 50%; height: 7.6vw; }
+/* Vertical: "to win" and projection on their own lines at the larger size. */
+.hd-th-vert .hd-th-meta { display: flex; flex-direction: column; align-items: center; }
+.hd-th-vert .hd-th-meta span + span::before { content: none; }
+
+/* ---------- iOS Safari (26+) chrome ----------
+   The site uses viewport-fit=cover, so pages keep content clear of the home
+   indicator and, in landscape, the notch. Toolbar tint comes from html/body
+   (set per view by useCupChrome) and fixed elements at the edges. */
+.hd-page {
+  padding-left: max(16px, env(safe-area-inset-left));
+  padding-right: max(16px, env(safe-area-inset-right));
+  padding-bottom: calc(48px + env(safe-area-inset-bottom));
+}
+.hd-top-tint {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50; pointer-events: none;
+  height: max(4px, env(safe-area-inset-top)); background: var(--hd-og);
+}
+.hd-th-phone .hd-th-team { padding-top: calc(16px + env(safe-area-inset-top)); }
+.hd-th-phone .hd-th-crest { top: calc(12px + env(safe-area-inset-top)); }
+
+/* Full-screen boards size to the small viewport (toolbars showing) so they
+   never run under Safari's bars; 100vh is the fallback. */
+.hd-page.hd-vert-page { min-height: 100vh; min-height: 100svh; padding: 0; }
+.hd-vert { height: 100vh; height: 100svh; width: min(100vw, 56.25vh); width: min(100vw, 56.25svh); }
+/* On a phone (or anything taller than 9:16) fill the screen rather than
+   letterboxing: with Safari's toolbars showing, a phone's visible area is
+   often slightly wider than 9:16, which would leave thin dark bars. */
+@media (max-width: 600px), (max-aspect-ratio: 9/16) {
+  .hd-vert { width: 100vw; }
+}
+.hd-page.hd-tv { min-height: 100vh; min-height: 100svh; }
+.hd-tv-frame { height: calc(100vh - 4vw); height: calc(100svh - 4vw); }
