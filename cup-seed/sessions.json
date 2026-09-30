@@ -5,41 +5,49 @@
       "day": "fri",
       "order": 1,
       "name": "Indoor",
-      "venue": "OG House",
+      "venue": "Gimme Golf Club",
       "format": "alt-shot",
       "pairings": 6,
-      "holes": 18,
-      "note": "3 sim bays: matches 1-3 play first, 4-6 second"
+      "holes": 9,
+      "note": "3 sim bays: matches 1-3 play first, 4-6 second. Each pairing's front and back nine are separate points.",
+      "location": "St. Charles, Missouri",
+      "nines": [
+        "front",
+        "back"
+      ]
     },
     {
       "id": "sat-am",
       "day": "sat",
       "order": 2,
       "name": "Scramble",
-      "venue": "Ballwin GC",
+      "venue": "Ballwin Golf Course",
       "format": "scramble",
       "pairings": 6,
-      "holes": 9
+      "holes": 9,
+      "location": "Ballwin, Missouri"
     },
     {
       "id": "sat-mid",
       "day": "sat",
       "order": 3,
       "name": "Modified Alt",
-      "venue": "Ballwin GC",
+      "venue": "Ballwin Golf Course",
       "format": "modified-alt",
       "pairings": 6,
-      "holes": 9
+      "holes": 9,
+      "location": "Ballwin, Missouri"
     },
     {
       "id": "sat-pm",
       "day": "sat",
       "order": 4,
       "name": "Singles",
-      "venue": "Ballwin GC",
+      "venue": "Ballwin Golf Course",
       "format": "singles",
       "pairings": 12,
-      "holes": 9
+      "holes": 9,
+      "location": "Ballwin, Missouri"
     }
   ],
   "allowances": {

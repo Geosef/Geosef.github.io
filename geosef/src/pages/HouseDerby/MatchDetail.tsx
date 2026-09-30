@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { FORMAT_NAMES, TEAM_NAMES, sideFullName, useMatch, usePlayers, useSessions } from './data';
+import { FORMAT_NAMES, TEAM_NAMES, matchName, nineName, sideFullName, useMatch, usePlayers, useSessions } from './data';
 import { TEAMS, holeOutcome, matchStates, segments, strokesOn } from './scoring';
 import { useCupChrome } from './brand';
 import Logo from './Logo';
@@ -27,7 +27,7 @@ export default function MatchDetail() {
       <div className="hd-entry-head">{back}</div>
       <div className="hd-muted">
         {session ? `${session.day === 'fri' ? 'Friday' : 'Saturday'} · ${session.name} · ${FORMAT_NAMES[session.format] ?? session.format}` : match.session}
-        {` · Match ${match.slot}`}
+        {` · ${matchName(match)}`}
       </div>
       <div className="hd-detail-sides">
         {TEAMS.map(t => (
@@ -47,7 +47,7 @@ export default function MatchDetail() {
         return (
           <section key={i} className="hd-nine">
             <div className="hd-nine-head">
-              <span>{segs.length > 1 ? (i === 0 ? 'Front 9' : 'Back 9') : 'Holes'}</span>
+              <span>{nineName(match) || 'Holes'}</span>
               <span className={`hd-status ${lead ?? 'even'}`}>
                 {lead && state.phase !== 'not-started' ? `${TEAM_NAMES[lead]} ` : ''}
                 {state.phase === 'final' && !state.winner ? 'Halved' : state.label}

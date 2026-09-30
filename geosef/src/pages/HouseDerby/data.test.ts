@@ -14,9 +14,8 @@ describe('thruLabel', () => {
   it('shows F once decided, including early close-outs', () => {
     expect(thruLabel(m(['og', 'og', 'og', 'og', 'og']))).toBe('F');
   });
-  it('counts through 18 for indoor matches', () => {
-    const front = Array<HoleOutcome>(9).fill('halved');
-    expect(thruLabel(m([...front, 'og', 'og'], { holeCount: 18 }))).toBe('11');
+  it('shows course hole numbers on an indoor back nine', () => {
+    expect(thruLabel({ firstHole: 10, strokes: { og: [], south: [] }, holes: { 10: { result: 'og' }, 11: { result: 'og' } } })).toBe('11');
   });
   it('follows play order on a shotgun start', () => {
     expect(thruLabel({ strokes: { og: [], south: [] }, startHole: 8, holes: { 8: { result: 'og' }, 9: { result: 'og' }, 1: { result: 'og' } } })).toBe('1');

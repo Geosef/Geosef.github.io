@@ -71,7 +71,7 @@ function MatchList({ email }: { email: string }) {
           <summary>
             <span className="hd-session-title">
               {session.day === 'fri' ? 'Fri' : 'Sat'} · {session.name}
-              <span className="hd-muted"> · {FORMAT_NAMES[session.format] ?? session.format} · {session.holes} holes</span>
+              <span className="hd-muted"> · {FORMAT_NAMES[session.format] ?? session.format} · {session.nines ? 'front & back nines' : `${session.holes} holes`}</span>
             </span>
             <span className={`hd-stage-progress ${session.id === active ? 'active' : ''}`}>
               {session.id === active && finals < list.length ? 'Now playing · ' : ''}{progress}
@@ -86,7 +86,7 @@ function MatchList({ email }: { email: string }) {
               ?? states[0];
             return (
               <Link key={m.id} to={`/cup/admin/${m.id}`} className="hd-match-row">
-                <span className="hd-match-slot">{m.slot}</span>
+                <span className="hd-match-slot">{m.slot}{m.nine ? (m.nine === 'front' ? 'F' : 'B') : ''}</span>
                 <span className="hd-match-sides">
                   <span className="og">{sideName(m, 'og', byId)}</span>
                   <span className="south">{sideName(m, 'south', byId)}</span>

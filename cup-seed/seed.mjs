@@ -25,7 +25,8 @@ const { sessions, allowances } = load('./sessions.json');
 // Optional until captains set them. Shape per session id, one entry per slot:
 //   { "sat-am": [{ "og": ["smith", "jones"], "south": ["brown", "davis"],
 //                  "strokes": { "og": [], "south": [3, 7] } }] }
-// Stroke holes are the match's own hole numbers (1-18 for indoor).
+// Stroke holes are course hole numbers; indoor pairings give 1-18 and they're
+// split across the front (1-9) and back (10-18) nine matches.
 const pairings = existsSync(here('./pairings.local.json')) ? load('./pairings.local.json') : {};
 const resetScores = process.argv.includes('--reset-scores');
 
@@ -42,8 +43,9 @@ function v(x) {
   return { mapValue: { fields: Object.fromEntries(Object.entries(x).map(([k, y]) => [k, v(y)])) } };
 }
 const set = (path, data) => ({ update: { name: `${base}/${path}`, fields: v(data).mapValue.fields } });
-// Writes only the listed fields, leaving the rest of the doc (e.g. scores) alone.
-const merge = (path, data) => ({ ...set(path, data), updateMask: { fieldPaths: Object.keys(data) } });
+// Writes only the listed fields, leaving the rest of the doc (e.g. scores)
+// alone. Paths in `remove` are in the mask but not the data, so they're deleted.
+const merge = (path, data, remove = []) => ({ ...set(path, data), updateMask: { fieldPaths: [...Object.keys(data), ...remove] } });
 
 const playerId = (p) => p.last.toLowerCase().replace(/[^a-z]/g, '');
 
@@ -68,15 +70,21 @@ for (const session of sessions) {
         if (!playerIds.has(id)) throw new Error(`${session.id} slot ${slot}: unknown player "${id}"`);
       }
     }
-    const id = `${session.id}-${slot}`;
-    matchIds.push(id);
-    const fields = {
-      session: session.id, slot, holeCount: session.holes, startHole: pairing.startHole ?? 1,
-      players: { og: pairing.og ?? [], south: pairing.south ?? [] },
-      strokes: { og: pairing.strokes?.og ?? [], south: pairing.strokes?.south ?? [] },
-    };
-    if (resetScores) Object.assign(fields, { holes: {}, concededBy: null });
-    writes.push(merge(`matches/${id}`, fields));
+    // Indoor pairings become two matches (front and back nine); others one.
+    for (const nine of session.nines ?? [null]) {
+      const id = nine ? `${session.id}-${slot}-${nine}` : `${session.id}-${slot}`;
+      const firstHole = nine === 'back' ? 10 : 1;
+      const inNine = (h) => h >= firstHole && h < firstHole + 9;
+      matchIds.push(id);
+      const fields = {
+        session: session.id, slot, nine, firstHole, startHole: pairing.startHole ?? 1,
+        players: { og: pairing.og ?? [], south: pairing.south ?? [] },
+        strokes: { og: (pairing.strokes?.og ?? []).filter(inNine), south: (pairing.strokes?.south ?? []).filter(inNine) },
+      };
+      if (resetScores) Object.assign(fields, { holes: {}, concededBy: null });
+      // holeCount is left over from when indoor pairings were one 18-hole doc.
+      writes.push(merge(`matches/${id}`, fields, ['holeCount']));
+    }
   }
 }
 

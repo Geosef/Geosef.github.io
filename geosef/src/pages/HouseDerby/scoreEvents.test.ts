@@ -38,14 +38,15 @@ describe('diffEvents', () => {
     });
   });
 
-  it('names the nine for 18-hole matches', () => {
-    // Level through 8, so the front nine is decided on the 9th.
-    const front = Array<HoleOutcome>(8).fill('halved');
-    const events = diffEvents(
-      [match('fri-2', front, { holeCount: 18, session: 'fri' })],
-      [match('fri-2', [...front, 'south'], { holeCount: 18, session: 'fri' })],
-    );
-    expect(events.find(e => e.kind === 'point')).toMatchObject({ nine: 'front', winner: 'south' });
+  it('names the nine for indoor matches', () => {
+    // Level through 8, so the back nine is decided on the 9th.
+    const holes = Object.fromEntries([...Array(8).keys()].map(i => [10 + i, { result: 'halved' as const }]));
+    const back = (extra: Record<number, { result: HoleOutcome }>): EventMatch => ({
+      id: 'fri-2-back', slot: 2, session: 'fri', nine: 'back', firstHole: 10,
+      strokes: { og: [], south: [] }, holes: { ...holes, ...extra },
+    });
+    const events = diffEvents([back({})], [back({ 18: { result: 'south' } })]);
+    expect(events.find(e => e.kind === 'point')).toMatchObject({ nine: 'back', winner: 'south', slot: 2 });
   });
 
   it('reports a lead change once points exist', () => {
@@ -64,7 +65,7 @@ describe('diffEvents', () => {
   it('reports only a clinch for bulk rewrites', () => {
     const before = Array.from({ length: 36 }, (_, i) => match(`m-${i + 1}`, []));
     const after = before.map((m, i) => match(m.id, Array(9).fill(i < 18 ? 'og' : 'south')));
-    expect(diffEvents(before, after)).toEqual([{ kind: 'clinch', team: 'og', how: 'retains' }]);
+    expect(diffEvents(before, after)).toEqual([{ kind: 'clinch', team: 'og' }]);
   });
 
   it('stays quiet for bulk rewrites that do not clinch', () => {

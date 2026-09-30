@@ -18,7 +18,12 @@ export interface Session {
   name: string;
   venue: string;
   format: string;
-  holes: 9 | 18;
+  /** Holes per match (every match is a nine). */
+  holes: 9;
+  /** Indoor pairings play a front and a back nine as separate matches. */
+  nines?: Array<'front' | 'back'>;
+  /** Town shown under the venue on the TV boards. */
+  location?: string;
   note?: string;
 }
 
@@ -26,6 +31,8 @@ export interface Match extends MatchScoring {
   id: string;
   session: string;
   slot: number;
+  /** Which nine of an indoor pairing this match is. */
+  nine?: 'front' | 'back';
   players: Record<TeamId, string[]>;
   /** True while this client has writes not yet confirmed by the server. */
   pending: boolean;
@@ -102,11 +109,25 @@ export function sideName(match: Match, team: TeamId, byId: Map<string, Player>):
   return ids.map(id => byId.get(id)?.last ?? id).join(' / ');
 }
 
-/** Sort key: session order, then slot. */
+const NINE_ORDER = { front: 0, back: 1 };
+
+/** Sort key: session order, then slot, then front nine before back. */
 export function matchSort(sessions: Session[]) {
   const order = new Map(sessions.map(s => [s.id, s.order]));
   return (a: Match, b: Match) =>
-    (order.get(a.session) ?? 0) - (order.get(b.session) ?? 0) || a.slot - b.slot;
+    (order.get(a.session) ?? 0) - (order.get(b.session) ?? 0)
+    || a.slot - b.slot
+    || NINE_ORDER[a.nine ?? 'front'] - NINE_ORDER[b.nine ?? 'front'];
+}
+
+/** "Front 9" / "Back 9" for indoor nines, else empty. */
+export function nineName(match: { nine?: 'front' | 'back' }): string {
+  return match.nine ? (match.nine === 'front' ? 'Front 9' : 'Back 9') : '';
+}
+
+/** "Match 3", or "Match 3 · Back 9" for an indoor nine. */
+export function matchName(match: { slot: number; nine?: 'front' | 'back' }): string {
+  return match.nine ? `Match ${match.slot} · ${nineName(match)}` : `Match ${match.slot}`;
 }
 
 /** Status line for a match: one label per nine ("F 2&1 · B 1 UP thru 3"). */

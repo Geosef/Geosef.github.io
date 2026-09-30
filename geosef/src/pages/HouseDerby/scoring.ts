@@ -1,8 +1,8 @@
 // Match-play scoring for the House Derby. Pure functions over match data so the
 // board, marshal view and tests all agree on one set of rules.
 //
-// Every point is a 9-hole match. Most matches are 9 holes; the indoor matches
-// are 18 holes scored as two separate points (front and back nine).
+// Every point is a 9-hole match. Indoor pairings play 18 holes as two separate
+// matches: a front nine (holes 1-9) and a back nine (holes 10-18).
 //
 // Marshals record only who won each hole. Stroke holes are set per match by
 // the committee and shown so the group can call net results; a hole listed
@@ -11,8 +11,8 @@
 export type TeamId = 'og' | 'south';
 export const TEAMS: TeamId[] = ['og', 'south'];
 export const TOTAL_POINTS = 36;
-/** Defending team keeps the cup on a tie, so it only needs half the points. */
-export const DEFENDING_TEAM: TeamId = 'og';
+/** An 18-18 tie goes to this team, so it wins at half the points. */
+export const TIE_WINNER: TeamId = 'og';
 
 export type HoleOutcome = TeamId | 'halved';
 
@@ -21,13 +21,13 @@ export interface HoleEntry {
 }
 
 export interface MatchScoring {
-  /** 18-hole matches are worth two points: front and back nine. Default 9. */
-  holeCount?: 9 | 18;
-  /** Hole (1-9) a 9-hole group tees off on; play wraps from 9 back to 1. */
+  /** First hole of this nine: 1, or 10 for an indoor back nine. */
+  firstHole?: number;
+  /** Position (1-9) within the nine a group tees off on; play wraps around. */
   startHole?: number;
   strokes: Record<TeamId, number[]>;
   holes: Record<string, HoleEntry | undefined>;
-  /** The team that conceded the match (any nine not already decided). */
+  /** The team that conceded the match (only counts if not already decided). */
   concededBy?: TeamId | null;
 }
 
@@ -47,12 +47,13 @@ export function playOrder(startHole = 1): number[] {
   return Array.from({ length: 9 }, (_, i) => ((startHole - 1 + i) % 9) + 1);
 }
 
-/** Each point-bearing nine of a match, as holes in play order. */
+/**
+ * The match's holes in play order, as a list of nines. Every match is a single
+ * nine today; the list shape lets callers stay agnostic.
+ */
 export function segments(match: MatchScoring): number[][] {
-  if (match.holeCount === 18) {
-    return [[1, 2, 3, 4, 5, 6, 7, 8, 9], [10, 11, 12, 13, 14, 15, 16, 17, 18]];
-  }
-  return [playOrder(match.startHole)];
+  const offset = (match.firstHole ?? 1) - 1;
+  return [playOrder(match.startHole).map(h => h + offset)];
 }
 
 export type MatchPhase = 'not-started' | 'live' | 'final';
@@ -160,10 +161,10 @@ function projectedPoints(state: MatchState): Record<TeamId, number> {
 export interface CupStanding {
   points: Record<TeamId, number>;
   projected: Record<TeamId, number>;
-  /** Points each team still needs to win (challenger) or retain (defender). */
+  /** Points each team still needs to win (the tie winner needs half). */
   needed: Record<TeamId, number>;
-  /** Set once the result can no longer change. */
-  clinched: { team: TeamId; how: 'wins' | 'retains' } | null;
+  /** The winning team, once the result can no longer change. */
+  clinched: TeamId | null;
 }
 
 export function cupStanding(matches: MatchScoring[]): CupStanding {
@@ -179,19 +180,13 @@ export function cupStanding(matches: MatchScoring[]): CupStanding {
   }
 
   const half = TOTAL_POINTS / 2;
-  const target = (t: TeamId) => (t === DEFENDING_TEAM ? half : half + 0.5);
+  const target = (t: TeamId) => (t === TIE_WINNER ? half : half + 0.5);
   const needed = {
     og: Math.max(0, target('og') - points.og),
     south: Math.max(0, target('south') - points.south),
   };
 
-  let clinched: CupStanding['clinched'] = null;
-  for (const t of TEAMS) {
-    if (points[t] >= half + 0.5) clinched = { team: t, how: 'wins' };
-  }
-  if (!clinched && points[DEFENDING_TEAM] >= half) {
-    clinched = { team: DEFENDING_TEAM, how: 'retains' };
-  }
+  const clinched = TEAMS.find(t => points[t] >= target(t)) ?? null;
 
   return { points, projected, needed, clinched };
 }

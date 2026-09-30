@@ -1,16 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  FORMAT_NAMES, TEAM_NAMES, currentSessionId, fmtPoints, matchLead, matchSort, shortStatus, sideName, thruLabel,
+  FORMAT_NAMES, TEAM_NAMES, currentSessionId, fmtPoints, matchLead, matchName, matchSort, nineName, shortStatus, sideName, thruLabel,
   useMatches, usePlayers, useSessions, type Match, type Player, type Session,
 } from './data';
-import { DEFENDING_TEAM, TEAMS, cupStanding, matchStates, type HoleOutcome, type TeamId } from './scoring';
+import { TEAMS, cupStanding, matchStates, type HoleOutcome, type TeamId } from './scoring';
 import { useCupChrome } from './brand';
 import Logo from './Logo';
 import { useCountUp, useScoreMoments, type Banner, type Celebration } from './useScoreMoments';
 import './HouseDerby.css';
 
-const CHALLENGER: TeamId = DEFENDING_TEAM === 'og' ? 'south' : 'og';
 
 type Standing = ReturnType<typeof cupStanding>;
 type Moments = ReturnType<typeof useScoreMoments>;
@@ -118,16 +117,12 @@ function Scoreboard({ standing, moments }: { standing: Standing; moments: Moment
   return (
     <header className="hd-score">
       <Logo name="crest" className="hd-score-crest" label="Gimme House Derby" />
-      <div className="hd-score-title">2026 House Derby</div>
       <div className="hd-score-row">
         {TEAMS.map(t => (
           <div key={t} className={`hd-score-team ${t}`}>
             <LeadGlow moments={moments} team={t} />
             <TeamLogo team={t} moments={moments} />
-            <div className="hd-score-name">
-              {TEAM_NAMES[t]}
-              {t === DEFENDING_TEAM && <span className="hd-defending">Defending</span>}
-            </div>
+            <div className="hd-score-name">{TEAM_NAMES[t]}</div>
             <Points value={points[t]} className="hd-score-points" />
             <div className="hd-score-projected">Projected {fmtPoints(projected[t])}</div>
           </div>
@@ -135,8 +130,8 @@ function Scoreboard({ standing, moments }: { standing: Standing; moments: Moment
       </div>
       <div className="hd-score-foot">
         {clinched
-          ? `${TEAM_NAMES[clinched.team]} ${clinched.how === 'wins' ? 'win the Derby' : 'retain the Derby'}`
-          : `${TEAM_NAMES[DEFENDING_TEAM]} need ${fmtPoints(needed[DEFENDING_TEAM])} to retain · ${TEAM_NAMES[CHALLENGER]} need ${fmtPoints(needed[CHALLENGER])} to win`}
+          ? `${TEAM_NAMES[clinched]} win the Derby`
+          : TEAMS.map(t => `${TEAM_NAMES[t]} need ${fmtPoints(needed[t])} to win`).join(' · ')}
       </div>
     </header>
   );
@@ -157,6 +152,7 @@ function MatchRow({ match, byId, stacked = false, flash }: {
   const states = matchStates(match);
   const { lead, started } = matchLead(states);
   const tone = lead ?? (started ? 'tied' : 'idle');
+  // The F9/B9 tag names the nine, so an idle row only needs the match number.
   const status = shortStatus(states) || `Match ${match.slot}`;
   // Stacked puts each player on their own line (narrow vertical layout).
   const names = (t: TeamId) => stacked
@@ -166,7 +162,10 @@ function MatchRow({ match, byId, stacked = false, flash }: {
     <div className={`hd-row lead-${tone}`}>
       <div className={`hd-row-side og ${lead === 'og' ? 'filled' : ''}`}>{names('og')}</div>
       {/* Keyed on the text so the flip replays whenever the status changes. */}
-      <div className={`hd-row-status ${tone}`}><span key={status} className="hd-flip">{status}</span></div>
+      <div className={`hd-row-status ${tone}`}>
+        {match.nine && <span className="hd-row-nine">{match.nine === 'front' ? 'F9' : 'B9'}</span>}
+        <span key={status} className="hd-flip">{status}</span>
+      </div>
       <div className={`hd-row-side south ${lead === 'south' ? 'filled' : ''}`}>{names('south')}</div>
       <FlashOverlay flash={flash} />
     </div>
@@ -176,9 +175,8 @@ function MatchRow({ match, byId, stacked = false, flash }: {
 /** Words under each team's score: points needed, or the clinch. */
 function needLine(standing: Standing, t: TeamId, long = false): string {
   const { needed, clinched } = standing;
-  if (clinched) return clinched.team === t ? (clinched.how === 'wins' ? 'Derby winners' : 'Retain the Derby') : '';
-  const pts = `${fmtPoints(needed[t])}${long ? ' points' : ''}`;
-  return t === DEFENDING_TEAM ? `${pts} to retain` : `${pts} to win`;
+  if (clinched) return clinched === t ? 'Derby winners' : '';
+  return `${fmtPoints(needed[t])}${long ? ' points' : ''} to win`;
 }
 
 function bannerText(b: Banner): { title: string; detail: string; team: TeamId | null } {
@@ -187,7 +185,7 @@ function bannerText(b: Banner): { title: string; detail: string; team: TeamId | 
       ? { title: `${TEAM_NAMES[b.leader]} take the lead`, detail: '', team: b.leader }
       : { title: 'All square', detail: 'The Derby is level', team: null };
   }
-  const nine = b.nine ? ` · ${b.nine === 'front' ? 'Front 9' : 'Back 9'}` : '';
+  const nine = b.nine ? ` · ${nineName({ nine: b.nine })}` : '';
   return b.winner
     ? { title: `${TEAM_NAMES[b.winner]} win Match ${b.slot}`, detail: `${b.label}${nine}`, team: b.winner }
     : { title: `Match ${b.slot} halved`, detail: `½ point each${nine}`, team: null };
@@ -210,7 +208,7 @@ function ResultBanner({ banner }: { banner: Banner | null }) {
 
 const CONFETTI = Array.from({ length: 48 }, (_, i) => i);
 
-/** Full-screen crest reveal when the Derby is won or retained. Tap to dismiss. */
+/** Full-screen crest reveal when the Derby is won. Tap to dismiss. */
 function CelebrationOverlay({ c, onDone }: { c: Celebration; onDone: () => void }) {
   return (
     <div className={`hd-celebrate ${c.team}`} onClick={onDone} role="alert">
@@ -229,7 +227,7 @@ function CelebrationOverlay({ c, onDone }: { c: Celebration; onDone: () => void 
       </div>
       <Logo name="crest" className="hd-celebrate-crest hd-gleam" label="Gimme House Derby" />
       <div className="hd-celebrate-title">
-        {TEAM_NAMES[c.team]} {c.how === 'wins' ? 'win the Derby' : 'retain the Derby'}
+        {TEAM_NAMES[c.team]} win the Derby
       </div>
       <Logo name={c.team} className="hd-celebrate-team hd-swing" />
     </div>
@@ -249,7 +247,6 @@ function VerticalBoard({ standing, session, matches, byId, moments }: {
       <div className="hd-vert">
         <div className="hd-vert-top">
           <Logo name="crest" className="hd-vert-crest" label="Gimme House Derby" />
-          <span className="hd-vert-title">2026 House Derby</span>
         </div>
 
         <div className="hd-vert-score">
@@ -257,13 +254,7 @@ function VerticalBoard({ standing, session, matches, byId, moments }: {
             <div key={t} className={`hd-vert-team ${t}`}>
               <LeadGlow moments={moments} team={t} />
               <TeamLogo team={t} moments={moments} />
-              <span className="hd-vert-name">
-                {TEAM_NAMES[t]}
-                {/* Rendered on both sides (hidden on one) so the scores line up. */}
-                <span className="hd-defending" style={t === DEFENDING_TEAM ? undefined : { visibility: 'hidden' }}>
-                  Defending
-                </span>
-              </span>
+              <span className="hd-vert-name">{TEAM_NAMES[t]}</span>
               <Points value={standing.points[t]} className="hd-vert-points" />
               <span className="hd-vert-need">{needLine(standing, t)}</span>
             </div>
@@ -275,16 +266,36 @@ function VerticalBoard({ standing, session, matches, byId, moments }: {
         </div>
 
         <div className="hd-vert-rows">
-          {matches.map(m => <MatchRow key={m.id} match={m} byId={byId} stacked flash={moments.flashes[m.id]} />)}
+          {/* One name per line fits up to 6 rows; Friday's 12 nines need one line per side. */}
+          {matches.map(m => (
+            <MatchRow key={m.id} match={m} byId={byId} stacked={matches.length <= 6} flash={moments.flashes[m.id]} />
+          ))}
           <ResultBanner banner={moments.banner} />
         </div>
 
         <div className="hd-vert-foot">
-          <span className="hd-foot-venue"><Logo name="ggc" className="hd-foot-logo" />{session.venue}</span>
+          <Venue session={session} />
           <span>{FORMAT_NAMES[session.format] ?? session.format}</span>
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * Venue and town for the TV footers. The Gimme mark only appears when the
+ * venue is Gimme's own; elsewhere it's just a location.
+ */
+function Venue({ session }: { session: Session }) {
+  const gimme = session.venue === 'Gimme Golf Club';
+  return (
+    <span className="hd-venue">
+      {gimme && <Logo name="ggc" className="hd-foot-logo" />}
+      <span className="hd-venue-text">
+        <span className="hd-venue-name">{session.venue}</span>
+        {session.location && <span className="hd-venue-town">{session.location}</span>}
+      </span>
+    </span>
   );
 }
 
@@ -325,7 +336,10 @@ function TvBoard({ standing, session, matches, byId, moments }: {
                 <span className={`hd-tv-status og ${lead === 'og' ? 'filled' : ''}`}>{cell('og')}</span>
                 <span className={`hd-tv-side og ${lead === 'og' ? 'filled' : ''}`}>{sideName(m, 'og', byId)}</span>
                 {/* Hole the match is through, like the broadcast "thru" column. */}
-                <span className="hd-tv-slot" title={`Match ${m.slot}`}><span key={thruLabel(m)} className="hd-flip">{thruLabel(m)}</span></span>
+                <span className="hd-tv-slot" title={matchName(m)}>
+                  <span key={thruLabel(m)} className="hd-flip">{thruLabel(m)}</span>
+                  {m.nine && <span className="hd-tv-nine">{m.nine === 'front' ? 'F9' : 'B9'}</span>}
+                </span>
                 <span className={`hd-tv-side south ${lead === 'south' ? 'filled' : ''}`}>{sideName(m, 'south', byId)}</span>
                 <span className={`hd-tv-status south ${lead === 'south' ? 'filled' : ''}`}>{cell('south')}</span>
                 <FlashOverlay flash={moments.flashes[m.id]} />
@@ -337,7 +351,7 @@ function TvBoard({ standing, session, matches, byId, moments }: {
 
         <footer className="hd-tv-foot">
           <span>{session.day === 'fri' ? 'Friday' : 'Saturday'}</span>
-          <span className="hd-foot-venue"><Logo name="ggc" className="hd-foot-logo" />{session.venue}</span>
+          <Venue session={session} />
           <span>{session.name}</span>
         </footer>
       </div>

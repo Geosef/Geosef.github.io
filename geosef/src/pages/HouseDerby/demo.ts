@@ -90,7 +90,7 @@ export const SCENARIOS: Scenario[] = [
     },
   },
   {
-    id: 'og-retains', label: 'OG retains 18–18',
+    id: 'og-ties', label: 'OG wins 18–18',
     plan: (s, n) => decided(split(n, { fri: 6, 'sat-am': 3, 'sat-mid': 3, 'sat-pm': 6 }[s])),
   },
   {
@@ -102,7 +102,8 @@ export const SCENARIOS: Scenario[] = [
 /** Hole maps for every match under a scenario. */
 export function buildScenario(scenario: Scenario, matches: Match[]): Record<string, Holes> {
   const bySession = new Map<string, Match[]>();
-  for (const m of [...matches].sort((a, b) => a.slot - b.slot)) {
+  const nineOrder = (m: Match) => (m.nine === 'back' ? 1 : 0);
+  for (const m of [...matches].sort((a, b) => a.slot - b.slot || nineOrder(a) - nineOrder(b))) {
     bySession.set(m.session, [...(bySession.get(m.session) ?? []), m]);
   }
   const out: Record<string, Holes> = {};
@@ -125,6 +126,11 @@ export function pickNextHole(matches: Match[], sessionOrder: string[]): { matchI
     const open = matches
       .filter(m => m.session === session)
       .map(m => {
+        // A pairing's back nine starts only once its front nine is decided.
+        if (m.nine === 'back') {
+          const front = matches.find(f => f.session === m.session && f.slot === m.slot && f.nine === 'front');
+          if (front && segments(front).some(order => segmentState(front, order).phase !== 'final')) return null;
+        }
         // First nine that isn't decided, and its next empty hole.
         const nine = segments(m).find(order => segmentState(m, order).phase !== 'final');
         const hole = nine?.find(h => !m.holes[h]?.result);

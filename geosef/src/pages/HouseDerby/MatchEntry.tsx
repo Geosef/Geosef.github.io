@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import type { User } from 'firebase/auth';
-import { FORMAT_NAMES, TEAM_NAMES, sideName, useMatch, usePlayers, useSessions } from './data';
+import { FORMAT_NAMES, TEAM_NAMES, matchName, sideName, useMatch, usePlayers, useSessions } from './data';
 import { saveHole, setConcession } from './writes';
 import {
   TEAMS, holeOutcome, matchStates, segments, strokesOn,
@@ -67,12 +67,11 @@ export default function MatchEntry({ user }: { user: User }) {
 
       <div className="hd-entry-title">
         <div className="hd-muted">
-          {session?.name ?? match.session} · Match {match.slot}
+          {session?.name ?? match.session} · {matchName(match)}
           {session && ` · ${FORMAT_NAMES[session.format] ?? session.format}`}
         </div>
         {states.map((state, i) => (
           <div key={i} className={`hd-status ${state.leader ?? 'even'}`}>
-            {states.length > 1 && <span className="hd-status-nine">{i === 0 ? 'Front' : 'Back'}</span>}
             {state.leader && state.phase !== 'not-started' ? `${TEAM_NAMES[state.leader]} ` : ''}{state.label}
           </div>
         ))}
@@ -85,7 +84,7 @@ export default function MatchEntry({ user }: { user: User }) {
       )}
 
       {segs.map((seg, i) => (
-        <div key={i} className="hd-holes" role="tablist" aria-label={segs.length > 1 ? (i === 0 ? 'Front nine' : 'Back nine') : 'Holes'}>
+        <div key={i} className="hd-holes" role="tablist" aria-label="Holes">
           {seg.map(h => {
             const o = holeOutcome(match, h);
             return (
@@ -108,7 +107,6 @@ export default function MatchEntry({ user }: { user: User }) {
           <div className="hd-final-tag">Final</div>
           {states.map((state, i) => (
             <div key={i} className={`hd-final-line ${state.winner ?? 'even'}`}>
-              {states.length > 1 && <span className="hd-status-nine">{i === 0 ? 'Front' : 'Back'}</span>}
               {finalText(state)}
             </div>
           ))}

@@ -3,13 +3,18 @@ import { SCENARIOS, buildScenario, pickNextHole } from './demo';
 import { cupStanding, matchStates } from './scoring';
 import type { Match } from './data';
 
-// Same layout as sessions.json: 6 indoor 18-hole matches, then three 9-hole sessions.
-const layout: Array<[string, number, 9 | 18]> = [['fri', 6, 18], ['sat-am', 6, 9], ['sat-mid', 6, 9], ['sat-pm', 12, 9]];
-const blank: Match[] = layout.flatMap(([session, count, holeCount]) =>
-  Array.from({ length: count }, (_, i) => ({
-    id: `${session}-${i + 1}`, session, slot: i + 1, holeCount,
-    players: { og: [], south: [] }, strokes: { og: [], south: [] }, holes: {}, pending: false,
-  })));
+// Same layout as sessions.json: 6 indoor pairings as front and back nines,
+// then three outdoor sessions.
+const outdoor: Array<[string, number]> = [['sat-am', 6], ['sat-mid', 6], ['sat-pm', 12]];
+const base = { players: { og: [], south: [] }, strokes: { og: [], south: [] }, holes: {}, pending: false };
+const blank: Match[] = [
+  ...Array.from({ length: 6 }, (_, i) => (['front', 'back'] as const).map(nine => ({
+    ...base, id: `fri-${i + 1}-${nine}`, session: 'fri', slot: i + 1, nine, firstHole: nine === 'back' ? 10 : 1,
+  }))).flat(),
+  ...outdoor.flatMap(([session, count]) => Array.from({ length: count }, (_, i) => ({
+    ...base, id: `${session}-${i + 1}`, session, slot: i + 1,
+  }))),
+];
 
 function run(id: string) {
   const holes = buildScenario(SCENARIOS.find(s => s.id === id)!, blank);
@@ -58,11 +63,11 @@ describe('demo scenarios', () => {
     }
   });
 
-  it('OG retains at 18-18', () => {
+  it('OG wins at 18-18', () => {
     for (let i = 0; i < REPEAT; i++) {
-      const s = cupStanding(run('og-retains'));
+      const s = cupStanding(run('og-ties'));
       expect(s.points).toEqual({ og: 18, south: 18 });
-      expect(s.clinched).toEqual({ team: 'og', how: 'retains' });
+      expect(s.clinched).toBe('og');
     }
   });
 
@@ -70,7 +75,7 @@ describe('demo scenarios', () => {
     for (let i = 0; i < REPEAT; i++) {
       const s = cupStanding(run('south-wins'));
       expect(s.points).toEqual({ og: 16.5, south: 19.5 });
-      expect(s.clinched).toEqual({ team: 'south', how: 'wins' });
+      expect(s.clinched).toBe('south');
     }
   });
 
@@ -88,6 +93,20 @@ describe('pickNextHole', () => {
 
   it('starts with the first session', () => {
     expect(pickNextHole(blank, order)).toMatchObject({ hole: 1, matchId: expect.stringMatching(/^fri-/) });
+  });
+
+  it('never starts a back nine before its front nine is decided', () => {
+    let ms = blank;
+    for (let i = 0; i < 400; i++) {
+      const next = pickNextHole(ms, order);
+      if (!next) break;
+      const m = ms.find(x => x.id === next.matchId)!;
+      if (m.nine === 'back') {
+        const front = ms.find(x => x.session === m.session && x.slot === m.slot && x.nine === 'front')!;
+        expect(matchStates(front)[0].phase).toBe('final');
+      }
+      ms = ms.map(x => (x.id === next.matchId ? { ...x, holes: { ...x.holes, [next.hole]: { result: next.result } } } : x));
+    }
   });
 
   it('plays a match through to the end and then moves on', () => {
