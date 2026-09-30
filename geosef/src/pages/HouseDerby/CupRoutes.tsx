@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import Board from './Board';
 import MatchDetail from './MatchDetail';
 import PlayerPage from './PlayerPage';
+import RacePage from './RacePage';
 import TeamPage from './TeamPage';
 
 /**
@@ -17,6 +18,7 @@ export default function CupRoutes() {
       <Route path="match/:matchId" element={<MatchDetail />} />
       <Route path="team/:team" element={<TeamPage />} />
       <Route path="player/:playerId" element={<PlayerPage />} />
+      <Route path="race" element={<RacePage />} />
     </Routes>
   );
 }

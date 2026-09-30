@@ -10,6 +10,7 @@ import { useCupChrome } from './brand';
 import CupSplash from './CupSplash';
 import { MomentumView, NextView, RecapView, Wipe, useSegment, useWipe } from './Segments';
 import ShareSheet from './ShareSheet';
+import { RaceStrip } from './RacePage';
 import { decided } from './director';
 import { latestMoment, type ScoreEvent } from './scoreEvents';
 import { useFit } from './fit';
@@ -152,6 +153,7 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
   return (
     <div className={`hd-page hd-board ${intro ? 'hd-intro' : ''}`}>
       <TeamHeader standing={standing} moments={moments} variant="phone" />
+      <RaceStrip standing={standing} />
 
       <nav className="hd-tabs" aria-label="Sessions">
         {sessions.map(s => (

@@ -1110,3 +1110,20 @@ a.hd-th-team { color: inherit; text-decoration: none; }
 
 /* Team names link to their rosters. */
 a.hd-mhero-team, a.hd-player-hero-team { text-decoration: none; }
+
+/* ---------- Race to 18 on the phone ---------- */
+/* Slim strip under the board's header (the race bar, sized in px here). */
+.hd-race-strip {
+  display: flex; flex-direction: column; gap: 6px; margin: -4px 0 14px; padding: 10px 12px; border-radius: 12px;
+  background: var(--hd-card); color: var(--hd-ink); text-decoration: none;
+}
+.hd-race-strip-head { display: flex; justify-content: space-between; align-items: baseline; font-family: var(--hd-display); letter-spacing: 0.05em; text-transform: uppercase; font-size: 1rem; color: var(--hd-og); }
+.hd-race-strip-head .hd-muted { font-size: 0.85rem; }
+.hd-race-bar.hd-race-strip-bar { display: block; height: 12px; border-radius: 6px; }
+.hd-race-strip-bar .lead.og { background: repeating-linear-gradient(135deg, var(--hd-og) 0 3px, rgba(63, 68, 99, 0.35) 3px 6px); }
+.hd-race-strip-bar .lead.south { background: repeating-linear-gradient(45deg, var(--hd-south) 0 3px, rgba(94, 122, 102, 0.35) 3px 6px); }
+.hd-race-strip-bar .hd-race-line { left: calc(50% - 1.5px); width: 3px; box-shadow: 0 0 0 2px var(--hd-card); }
+
+/* Full race page: the TV segment in a phone-shaped size container. */
+.hd-page.hd-race-page { max-width: 720px; }
+.hd-race-frame { font-family: var(--hd-display); font-weight: 400; font-synthesis: none; letter-spacing: 0.03em; height: min(80svh, 760px); min-height: 520px; border-radius: 16px; background: var(--hd-cream); box-shadow: inset 0 0 0 1px var(--hd-line); }
