@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
-  TEAM_NAMES, fmtPoints, formatLabel, nineName, shortStatus, sideName, teeClock, teeDay, type Match, type Player, type Session,
+  TEAM_NAMES, fmtPoints, formatLabel, nineName, shortStatus, sideName, teeClock, teeDay, usePhotos, type Match, type Player, type Session,
 } from './data';
 import { BOARD, decided, playlist, segmentAt, segmentKey, toPlay, type Segment, type SegmentKind } from './director';
 import { TEAMS, TOTAL_POINTS, cupStanding, matchStates, type TeamId } from './scoring';
@@ -111,13 +111,17 @@ export function RecapView({ session, matches, byId }: { session: Session; matche
   );
 }
 
-/** A player's placeholder portrait: initials on the team color. Photos slot in here later. */
-function Portrait({ player, team }: { player?: Player; team: TeamId }) {
+/** A player's portrait: their photo when one's been uploaded, else initials on the team color. */
+function Portrait({ player, team, photo }: { player?: Player; team: TeamId; photo?: string }) {
   const initials = player ? `${player.first[0] ?? ''}${player.last[0] ?? ''}` : '?';
-  return <span className={`hd-portrait ${team}`}>{initials}</span>;
+  return (
+    <span className={`hd-portrait ${team}`}>
+      {photo ? <img src={photo} alt="" /> : initials}
+    </span>
+  );
 }
 
-function CardSide({ ids, team, byId }: { ids: string[]; team: TeamId; byId: Map<string, Player> }) {
+function CardSide({ ids, team, byId, photos }: { ids: string[]; team: TeamId; byId: Map<string, Player>; photos: Map<string, string> }) {
   if (!ids.length) return <div className={`hd-card-side ${team}`}><span className="hd-card-tbd">TBD</span></div>;
   return (
     <div className={`hd-card-side ${team}`}>
@@ -125,7 +129,7 @@ function CardSide({ ids, team, byId }: { ids: string[]; team: TeamId; byId: Map<
         const p = byId.get(id);
         return (
           <div key={id} className="hd-card-player">
-            <Portrait player={p} team={team} />
+            <Portrait player={p} team={team} photo={photos.get(id)} />
             <span className="hd-card-name">
               <span className="hd-card-first hd-fit">{p?.first}</span>
               <span className="hd-card-last hd-fit">{p?.last ?? id}</span>
@@ -141,6 +145,7 @@ function CardSide({ ids, team, byId }: { ids: string[]; team: TeamId; byId: Map<
 export function NextView({ session, matches, byId, vertical }: {
   session: Session; matches: Match[]; byId: Map<string, Player>; vertical: boolean;
 }) {
+  const photos = usePhotos();
   const left = toPlay(matches, session.id);
   // Indoor pairings are two matches (front and back nine) with the same players.
   const bySlot = new Map<number, Match[]>();
@@ -200,9 +205,9 @@ export function NextView({ session, matches, byId, vertical }: {
                   <span className="hd-card-tee">{tees.filter(Boolean).join(' · ')}</span>
                 </div>
                 <div className="hd-card-sides">
-                  <CardSide ids={ms[0].players.og} team="og" byId={byId} />
+                  <CardSide ids={ms[0].players.og} team="og" byId={byId} photos={photos} />
                   <span className="hd-card-vs">vs</span>
-                  <CardSide ids={ms[0].players.south} team="south" byId={byId} />
+                  <CardSide ids={ms[0].players.south} team="south" byId={byId} photos={photos} />
                 </div>
               </div>
             );

@@ -81,6 +81,16 @@ export function usePlayers() {
   return { players: items, byId, error };
 }
 
+/**
+ * Player portraits (player id -> image data URL), from cup-seed/photos.mjs.
+ * Only the views that show portraits subscribe, so the phone board never
+ * downloads them.
+ */
+export function usePhotos(): Map<string, string> {
+  const { items } = useCollection<{ id: string; data: string }>('photos', (id, d) => ({ id, data: String(d.data ?? '') }));
+  return new Map((items ?? []).filter(p => p.data).map(p => [p.id, p.data]));
+}
+
 export function useSessions() {
   const { items, error } = useCollection<Session>('sessions', (id, d) => ({ id, ...d } as Session), 'order');
   return { sessions: items, error };
