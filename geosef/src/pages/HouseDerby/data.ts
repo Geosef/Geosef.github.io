@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, doc, onSnapshot, orderBy, query } from 'firebase/firestore';
+import { collection, doc, getDoc, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { db } from './firebase';
 import { holeOutcome, matchStates, segments, type MatchScoring, type MatchState, type TeamId } from './scoring';
 
@@ -89,6 +89,33 @@ export function usePlayers() {
 export function usePhotos(): Map<string, string> {
   const { items } = useCollection<{ id: string; data: string }>('photos', (id, d) => ({ id, data: String(d.data ?? '') }));
   return new Map((items ?? []).filter(p => p.data).map(p => [p.id, p.data]));
+}
+
+const photoCache = new Map<string, Promise<string | null>>();
+
+/**
+ * Photos for just these players, fetched once each (the match and team pages
+ * show a handful, so they don't pull the whole collection over a phone
+ * connection).
+ */
+export function usePlayerPhotos(ids: string[]): Map<string, string> {
+  const [photos, setPhotos] = useState<Map<string, string>>(new Map());
+  const key = ids.join(',');
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all(ids.map(id => {
+      if (!photoCache.has(id)) {
+        photoCache.set(id, getDoc(doc(db, 'photos', id)).then(s => (s.exists() ? String(s.data().data ?? '') || null : null), () => null));
+      }
+      return photoCache.get(id)!.then(data => [id, data] as const);
+    })).then(entries => {
+      if (!cancelled) setPhotos(new Map(entries.filter((e): e is readonly [string, string] => !!e[1])));
+    });
+    return () => { cancelled = true; };
+    // Keyed on the ids' contents, not the array's identity.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
+  return photos;
 }
 
 export function useSessions() {
@@ -185,6 +212,19 @@ export function teeClock(iso: string): string {
 export function teeDay(iso: string): string {
   const day = new Date(iso).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: EVENT_TZ });
   return `${day} · ${teeClock(iso)}`;
+}
+
+/**
+ * One line for where a match stands, and whose color it's in: "OG House 2 up
+ * thru 6", "South House win 3&2", "Halved", "All square thru 4", or the tee
+ * time before it starts.
+ */
+export function matchHeadline(match: Match): { text: string; team: TeamId | null; final: boolean } {
+  const state = matchStates(match)[0];
+  const lead = state.phase === 'final' ? state.winner : state.leader;
+  if (state.phase === 'not-started') return { text: match.teeTime ? `Tees off ${teeClock(match.teeTime)}` : 'Not started', team: null, final: false };
+  if (state.phase === 'final') return { text: state.winner ? `${TEAM_NAMES[state.winner]} win ${shortStatus([state])}` : 'Halved', team: lead, final: true };
+  return { text: lead ? `${TEAM_NAMES[lead]} ${state.up} up thru ${state.thru}` : `All square thru ${state.thru}`, team: lead, final: false };
 }
 
 /** Points with a ½ glyph: 7.5 -> "7½", 0.5 -> "½". */

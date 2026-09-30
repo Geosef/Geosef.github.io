@@ -12,6 +12,7 @@
 // only the session layout is committed.
 import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
+import { loadMerit } from './merit.mjs';
 
 const PROJECT = 'house-derby-2026';
 const ACCOUNT = process.env.SEED_ACCOUNT;
@@ -29,6 +30,8 @@ const { sessions, allowances } = load('./sessions.json');
 // split across the front (1-9) and back (10-18) nine matches.
 const pairings = existsSync(here('./pairings.local.json')) ? load('./pairings.local.json') : {};
 const resetScores = process.argv.includes('--reset-scores');
+// Season Order of Merit per player, from order_of_merit/<id>.txt (gitignored).
+const merit = loadMerit(here('./order_of_merit/'));
 
 const token = execFileSync('gcloud', ['auth', 'print-access-token', `--account=${ACCOUNT}`], { encoding: 'utf8' }).trim();
 const base = `projects/${PROJECT}/databases/(default)/documents`;
@@ -54,6 +57,7 @@ const writes = [
   ...roster.players.map((p) => set(`players/${playerId(p)}`, {
     first: p.first, last: p.last, team: p.team,
     ghin: p.ghin, trackman: p.trackman, captain: p.captain,
+    ...(merit.has(playerId(p)) ? { merit: merit.get(playerId(p)) } : {}),
   })),
   ...sessions.map(({ id, ...s }) => set(`sessions/${id}`, s)),
   set('config/allowances', allowances),
@@ -103,6 +107,7 @@ for (const session of sessions) {
 }
 
 if (playerIds.size !== roster.players.length) throw new Error('Duplicate player ids from last names');
+for (const id of merit.keys()) if (!playerIds.has(id)) console.log(`Order of Merit file for unknown player: ${id}`);
 
 const api = (path, init = {}) => fetch(`https://firestore.googleapis.com/v1/${path}`, {
   ...init,

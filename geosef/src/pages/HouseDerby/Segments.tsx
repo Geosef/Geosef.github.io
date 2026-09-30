@@ -5,6 +5,7 @@ import {
 import { BOARD, decided, playlist, segmentAt, segmentKey, toPlay, type Segment, type SegmentKind } from './director';
 import { TEAMS, TOTAL_POINTS, cupStanding, matchStates, type TeamId } from './scoring';
 import Logo from './Logo';
+import Portrait from './Portrait';
 import { momentum, momentumStats, stageBands, type MomentumStep } from './momentum';
 
 /**
@@ -111,15 +112,6 @@ export function RecapView({ session, matches, byId }: { session: Session; matche
   );
 }
 
-/** A player's portrait: their photo when one's been uploaded, else initials on the team color. */
-function Portrait({ player, team, photo }: { player?: Player; team: TeamId; photo?: string }) {
-  const initials = player ? `${player.first[0] ?? ''}${player.last[0] ?? ''}` : '?';
-  return (
-    <span className={`hd-portrait ${team}`}>
-      {photo ? <img src={photo} alt="" /> : initials}
-    </span>
-  );
-}
 
 function CardSide({ ids, team, byId, photos }: { ids: string[]; team: TeamId; byId: Map<string, Player>; photos: Map<string, string> }) {
   if (!ids.length) return <div className={`hd-card-side ${team}`}><span className="hd-card-tbd">TBD</span></div>;

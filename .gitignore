@@ -11,3 +11,5 @@ geosef/.env
 
 ## House Derby seed data (real names — never commit)
 cup-seed/*.local.json
+# Season Order of Merit results (real names, results): seeded, never committed
+cup-seed/order_of_merit/
