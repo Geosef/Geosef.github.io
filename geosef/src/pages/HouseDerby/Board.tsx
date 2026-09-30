@@ -5,10 +5,12 @@ import {
   useMatches, usePlayers, useSessions, type Match, type Player, type Session,
 } from './data';
 import { TEAMS, cupStanding, matchStates, type HoleOutcome, type TeamId } from './scoring';
-import { Maximize, Minimize, Tv, X } from 'lucide-react';
+import { Maximize, Minimize, Share2, Tv, X } from 'lucide-react';
 import { useCupChrome } from './brand';
 import CupSplash from './CupSplash';
 import { NextView, RecapView, Wipe, useSegment, useWipe } from './Segments';
+import ShareSheet from './ShareSheet';
+import { decided } from './director';
 import type { SegmentKind } from './director';
 import {
   COMPACT_LANDSCAPE, LAYOUT_SURFACE, STANDALONE, boardLayout, canFullscreen, toggleFullscreen, useFullscreen, useMedia, usePortrait, useWakeLock,
@@ -84,6 +86,7 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
   scene: SegmentKind | null;
 }) {
   const [picked, setPicked] = useState<string | null>(null);
+  const [sharing, setSharing] = useState(false);
   // Dead-time segments for the TV boards; score moments hold the live board.
   const { shown: segment, wipe } = useWipe(useSegment(sessions, matches, scene, !!(moments.banner || moments.celebration)));
   const standing = cupStanding(matches);
@@ -139,7 +142,10 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
           {dayAndSession(shown)}
           <span className="hd-muted"> · {formatLabel(shown)} · {shown.venue}</span>
         </h2>
-        <Link to="/cup?tv" className="hd-tv-link"><Tv aria-hidden />TV view</Link>
+        <div className="hd-session-actions">
+          <button type="button" className="hd-tv-link" onClick={() => setSharing(true)}><Share2 aria-hidden />Share</button>
+          <Link to="/cup?tv" className="hd-tv-link"><Tv aria-hidden />TV view</Link>
+        </div>
       </div>
       <div className="hd-rows">
         {inSession(shown).map((m, i) => (
@@ -153,6 +159,16 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
         <span>Gimme Golf Club</span>
       </footer>
       {moments.celebration && <CelebrationOverlay c={moments.celebration} onDone={moments.dismissCelebration} />}
+      {sharing && (
+        <ShareSheet
+          onClose={() => setSharing(false)}
+          options={[
+            { label: 'Standings', spec: { kind: 'standings', sessions, matches } },
+            // The stage on screen, once it has a result.
+            ...(decided(matches, shown.id).length ? [{ label: `${shown.name} results`, spec: { kind: 'recap' as const, session: shown, matches, byId } }] : []),
+          ]}
+        />
+      )}
     </div>
   );
 }
