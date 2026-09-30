@@ -65,6 +65,8 @@ Safari 26+ ignores `theme-color`. It tints its toolbars and overscroll from the 
 - Full-screen boards use `100svh`.
 - Pages pad for safe areas, since the site uses `viewport-fit=cover`.
 - Don't add fixed strips at the top of `/cup`: on a phone they read as a sticky bar.
+- Safari's bars only collapse on scroll, so on a landscape phone the TV board gets 80px of scroll room and stays pinned (`hd-tv-swipe`). The real full-screen option on iPhone is Add to Home Screen. `/cup` swaps in its own manifest (`public/cup/manifest.json`, or `tv.webmanifest` on the TV boards) so the icon opens the board rather than the site root.
+- Wake lock needs a tap on iOS. The board retries on every tap and shows a hint until the lock is held.
 
 ## Before the event
 

@@ -54,7 +54,7 @@ function swapLink(rel: string, href: string, type?: string): () => void {
  * tints its floating toolbars and overscroll from the html/body background,
  * so each view paints those to match itself.
  */
-export function useCupChrome(title = 'House Derby', surface: CupSurface = SURFACES.page) {
+export function useCupChrome(title = 'House Derby', surface: CupSurface = SURFACES.page, manifest = '/cup/manifest.json') {
   useEffect(() => {
     const prevTitle = document.title;
     document.title = title;
@@ -66,6 +66,10 @@ export function useCupChrome(title = 'House Derby', surface: CupSurface = SURFAC
       undoTouch();
     };
   }, [title]);
+
+  // Add to Home Screen reads the manifest: without this it would launch the
+  // site's golf league home page instead of the board.
+  useEffect(() => swapLink('manifest', manifest), [manifest]);
 
   useEffect(() => {
     // index.html paints a placeholder background before the app loads.
