@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { collection, doc, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { db } from './firebase';
-import { matchStates, type MatchScoring, type MatchState, type TeamId } from './scoring';
+import { holeOutcome, matchStates, segments, type MatchScoring, type MatchState, type TeamId } from './scoring';
 
 export interface Player {
   id: string;
@@ -175,4 +175,26 @@ export function matchLead(states: MatchState[]): { lead: TeamId | null; started:
     lead: current.phase === 'final' ? current.winner : current.leader,
     started: states.some(s => s.phase !== 'not-started'),
   };
+}
+
+/**
+ * Broadcast "thru" column: F when every nine is decided, – before the first
+ * hole, otherwise the last hole played in play order (1-18 for indoor).
+ */
+export function thruLabel(match: MatchScoring): string {
+  const states = matchStates(match);
+  if (states.every(s => s.phase === 'final')) return 'F';
+  const order = segments(match).flat();
+  let last: number | null = null;
+  for (const h of order) if (holeOutcome(match, h)) last = h;
+  return last === null ? '–' : String(last);
+}
+
+/**
+ * The stage being played now. Sessions run one at a time in order, so it's
+ * the first with an unfinished match; once everything is final, the last.
+ */
+export function activeSessionId(sessions: Session[], matches: Match[]): string | undefined {
+  const open = sessions.find(s => matches.some(m => m.session === s.id && matchStates(m).some(st => st.phase !== 'final')));
+  return (open ?? sessions[sessions.length - 1])?.id;
 }

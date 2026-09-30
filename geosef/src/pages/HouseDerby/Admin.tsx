@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useMarshal } from './useMarshal';
-import { FORMAT_NAMES, matchSort, sideName, statusLabel, useMatches, usePlayers, useSessions } from './data';
+import { FORMAT_NAMES, activeSessionId, matchSort, sideName, statusLabel, useMatches, usePlayers, useSessions } from './data';
 import { matchStates } from './scoring';
 import MatchEntry from './MatchEntry';
 import DemoPanel, { useDemoMode } from './DemoPanel';
@@ -54,18 +54,31 @@ function MatchList({ email }: { email: string }) {
   if (!sessions || !matches) return <p className="hd-muted">Loading…</p>;
 
   const sorted = [...matches].sort(matchSort(sessions));
+  // Stages are played one at a time, so only the current one starts open.
+  const active = activeSessionId(sessions, matches);
 
   return (
     <div className="hd-list">
       {demo && <DemoPanel matches={matches} email={email} sessionOrder={sessions.map(s => s.id)} />}
-      {sessions.map(session => (
-        <section key={session.id}>
-          <h2 className="hd-session-title">
-            {session.day === 'fri' ? 'Fri' : 'Sat'} · {session.name}
-            <span className="hd-muted"> · {FORMAT_NAMES[session.format] ?? session.format} · {session.holes} holes</span>
-          </h2>
+      {sessions.map(session => {
+        const list = sorted.filter(m => m.session === session.id);
+        const finals = list.filter(m => matchStates(m).every(s => s.phase === 'final')).length;
+        const started = list.some(m => matchStates(m).some(s => s.phase !== 'not-started'));
+        const progress = finals === list.length ? 'Complete' : started ? `${finals}/${list.length} final` : 'Not started';
+        return (
+        // Keyed on the active stage so manual expand/collapse resets when play moves on.
+        <details key={`${session.id}-${active}`} className="hd-stage" open={session.id === active}>
+          <summary>
+            <span className="hd-session-title">
+              {session.day === 'fri' ? 'Fri' : 'Sat'} · {session.name}
+              <span className="hd-muted"> · {FORMAT_NAMES[session.format] ?? session.format} · {session.holes} holes</span>
+            </span>
+            <span className={`hd-stage-progress ${session.id === active ? 'active' : ''}`}>
+              {session.id === active && finals < list.length ? 'Now playing · ' : ''}{progress}
+            </span>
+          </summary>
           {session.note && <p className="hd-muted hd-session-note">{session.note}</p>}
-          {sorted.filter(m => m.session === session.id).map(m => {
+          {list.map(m => {
             const states = matchStates(m);
             // Color by the nine in play, else the latest one with a result.
             const current = states.find(s => s.phase === 'live')
@@ -84,8 +97,9 @@ function MatchList({ email }: { email: string }) {
               </Link>
             );
           })}
-        </section>
-      ))}
+        </details>
+        );
+      })}
     </div>
   );
 }

@@ -2,8 +2,10 @@ import React from 'react';
 import { LOGO_FILES, type LogoName } from './brand';
 
 /**
- * A club logo painted in `currentColor` through its SVG as a mask, so CSS can
- * recolor it and effects (like the gleam) stay inside the logo's shape.
+ * A club logo as inline SVG in `currentColor`, so CSS can recolor it. Inline
+ * (not a CSS mask) because Chrome re-rasterizes SVG masks asynchronously on
+ * repaint, which made logos blink on every live score update. The gleam layer
+ * still uses the file as a mask, but it only exists while animating.
  */
 export default function Logo({ name, className = '', label, animKey }: {
   name: LogoName;
@@ -13,15 +15,18 @@ export default function Logo({ name, className = '', label, animKey }: {
   /** Changing this replays the logo's animation. */
   animKey?: string | number;
 }) {
-  const { src, aspect } = LOGO_FILES[name];
+  const { svg, url, aspect } = LOGO_FILES[name];
   return (
     <span
       key={animKey}
       className={`hd-logo hd-logo-${name} ${className}`}
-      style={{ ['--logo' as string]: `url(${src})`, aspectRatio: String(aspect) }}
+      style={{ ['--logo' as string]: `url(${url})`, aspectRatio: String(aspect) }}
       role={label ? 'img' : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}
-    />
+    >
+      {/* Static, bundled club artwork. */}
+      <span className="hd-logo-art" dangerouslySetInnerHTML={{ __html: svg }} />
+    </span>
   );
 }

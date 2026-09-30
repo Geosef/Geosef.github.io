@@ -418,21 +418,19 @@
 .hd-demo-links { display: flex; gap: 12px; font-size: 0.85rem; margin-top: 6px; }
 .hd-demo-links a { color: var(--hd-og); font-weight: 600; }
 
-/* ---------- Logos: SVG as a mask over currentColor ---------- */
-.hd-logo {
-  display: inline-block; overflow: hidden; vertical-align: middle;
-  color: var(--hd-gold); background: currentColor;
+/* ---------- Logos: inline SVG in currentColor ---------- */
+.hd-logo { display: inline-block; vertical-align: middle; color: var(--hd-gold); line-height: 0; }
+.hd-logo-art, .hd-logo-art svg { display: block; width: 100%; height: 100%; }
+/* The gleam: a light band masked to the logo's shape, only while animating. */
+.hd-swing::after, .hd-gleam::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.95) 50%, transparent 60%) no-repeat;
+  background-size: 250% 100%; background-position: 150% 0;
   -webkit-mask: var(--logo) center / contain no-repeat;
   mask: var(--logo) center / contain no-repeat;
 }
-/* A light band that sweeps across, clipped to the logo by the mask. */
 /* Positioned for the ::after band; absolute logos (the TV crest) keep theirs. */
 .hd-swing:not(.hd-tv-crest), .hd-gleam:not(.hd-tv-crest) { position: relative; }
-.hd-swing::after, .hd-gleam::after {
-  content: ''; position: absolute; inset: -20% -60%;
-  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.95) 50%, transparent 60%);
-  transform: translateX(-100%);
-}
 
 /* ---------- Score moments ---------- */
 .hd-row, .hd-tv-row, .hd-tv-team, .hd-vert-team { position: relative; }
@@ -460,7 +458,7 @@
   0% { transform: rotate(0); } 20% { transform: rotate(-16deg) scale(1.12); }
   45% { transform: rotate(11deg) scale(1.12); } 70% { transform: rotate(-5deg); } 100% { transform: rotate(0); }
 }
-@keyframes hd-gleam { to { transform: translateX(100%); } }
+@keyframes hd-gleam { from { background-position: 150% 0; } to { background-position: -50% 0; } }
 .hd-gleam::after { animation: hd-gleam 1.6s 0.6s ease-in-out infinite; }
 
 /* Lead change: the new leader's block glows gold and fades. */
@@ -532,3 +530,17 @@
   .hd-banner { animation: none; transform: translate(-50%, 0); }
   .hd-confetti { display: none; }
 }
+
+/* Marshal list: one collapsible section per stage; the active one starts open. */
+.hd-stage { margin: 14px 0; }
+.hd-stage summary {
+  list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: baseline;
+  gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--hd-line);
+}
+.hd-stage summary::-webkit-details-marker { display: none; }
+.hd-stage summary .hd-session-title { margin: 0; }
+.hd-stage summary::before { content: '▸'; color: var(--hd-gold); margin-right: 4px; }
+.hd-stage[open] summary::before { content: '▾'; }
+.hd-stage[open] summary { margin-bottom: 8px; }
+.hd-stage-progress { font-size: 0.75rem; color: var(--hd-muted); white-space: nowrap; }
+.hd-stage-progress.active { color: var(--hd-og); font-weight: 700; }

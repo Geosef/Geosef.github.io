@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  FORMAT_NAMES, TEAM_NAMES, currentSessionId, fmtPoints, matchLead, matchSort, shortStatus, sideName,
+  FORMAT_NAMES, TEAM_NAMES, currentSessionId, fmtPoints, matchLead, matchSort, shortStatus, sideName, thruLabel,
   useMatches, usePlayers, useSessions, type Match, type Player, type Session,
 } from './data';
 import { DEFENDING_TEAM, TEAMS, cupStanding, matchStates, type HoleOutcome, type TeamId } from './scoring';
@@ -335,7 +335,8 @@ function TvBoard({ standing, session, matches, byId, moments }: {
               <div key={m.id} className="hd-tv-row">
                 <span className={`hd-tv-status og ${lead === 'og' ? 'filled' : ''}`}>{cell('og')}</span>
                 <span className={`hd-tv-side og ${lead === 'og' ? 'filled' : ''}`}>{sideName(m, 'og', byId)}</span>
-                <span className="hd-tv-slot">{m.slot}</span>
+                {/* Hole the match is through, like the broadcast "thru" column. */}
+                <span className="hd-tv-slot" title={`Match ${m.slot}`}><span key={thruLabel(m)} className="hd-flip">{thruLabel(m)}</span></span>
                 <span className={`hd-tv-side south ${lead === 'south' ? 'filled' : ''}`}>{sideName(m, 'south', byId)}</span>
                 <span className={`hd-tv-status south ${lead === 'south' ? 'filled' : ''}`}>{cell('south')}</span>
                 <FlashOverlay flash={moments.flashes[m.id]} />
