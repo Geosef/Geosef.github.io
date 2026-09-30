@@ -4,18 +4,21 @@ import { useMarshal } from './useMarshal';
 import { FORMAT_NAMES, matchSort, sideName, statusLabel, useMatches, usePlayers, useSessions } from './data';
 import { matchStates } from './scoring';
 import MatchEntry from './MatchEntry';
+import { LOGOS, useCupChrome } from './brand';
 import './HouseDerby.css';
 
 export default function Admin() {
   const { user, ready, signIn, signOut } = useMarshal();
   const { matchId } = useParams();
   const [signInError, setSignInError] = useState('');
+  useCupChrome('House Derby · Marshal');
 
   if (!ready) return <div className="hd-page"><p className="hd-muted">Loading…</p></div>;
 
   if (!user) {
     return (
       <div className="hd-page hd-signin">
+        <img className="hd-signin-crest" src={LOGOS.crest} alt="" />
         <h1>House Derby</h1>
         <p className="hd-muted">Marshal score entry</p>
         <button className="hd-primary" onClick={() => signIn().catch(e => setSignInError(e.message))}>

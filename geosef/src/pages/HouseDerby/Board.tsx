@@ -5,6 +5,7 @@ import {
   useMatches, usePlayers, useSessions, type Match, type Player, type Session,
 } from './data';
 import { DEFENDING_TEAM, TEAMS, cupStanding, matchStates, type TeamId } from './scoring';
+import { LOGOS, useCupChrome } from './brand';
 import './HouseDerby.css';
 
 const TV_ROTATE_MS = 20_000;
@@ -22,6 +23,7 @@ export default function Board() {
   const { byId } = usePlayers();
   const [picked, setPicked] = useState<string | null>(null);
   const [tvIndex, setTvIndex] = useState(0);
+  useCupChrome();
 
   useEffect(() => {
     if (!tv) return;
@@ -85,6 +87,10 @@ export default function Board() {
           </Link>
         ))}
       </div>
+      <footer className="hd-board-foot">
+        <img src={LOGOS.ggc} alt="" />
+        <span>Gimme Golf Club</span>
+      </footer>
     </div>
   );
 }
@@ -93,10 +99,12 @@ function Scoreboard({ standing }: { standing: Standing }) {
   const { points, projected, needed, clinched } = standing;
   return (
     <header className="hd-score">
+      <img className="hd-score-crest" src={LOGOS.crest} alt="Gimme House Derby" />
       <div className="hd-score-title">2026 House Derby</div>
       <div className="hd-score-row">
         {TEAMS.map(t => (
           <div key={t} className={`hd-score-team ${t}`}>
+            <img className="hd-team-logo" src={LOGOS.team[t]} alt="" />
             <div className="hd-score-name">
               {TEAM_NAMES[t]}
               {t === DEFENDING_TEAM && <span className="hd-defending">Defending</span>}
@@ -155,13 +163,14 @@ function VerticalBoard({ standing, session, matches, byId }: {
     <div className="hd-page hd-vert-page">
       <div className="hd-vert">
         <div className="hd-vert-top">
-          <span className="hd-vert-crest">House<br />Derby</span>
+          <img className="hd-vert-crest" src={LOGOS.crest} alt="Gimme House Derby" />
           <span className="hd-vert-title">2026 House Derby</span>
         </div>
 
         <div className="hd-vert-score">
           {TEAMS.map(t => (
             <div key={t} className={`hd-vert-team ${t}`}>
+              <img className="hd-team-logo" src={LOGOS.team[t]} alt="" />
               <span className="hd-vert-name">
                 {TEAM_NAMES[t]}
                 {/* Rendered on both sides (hidden on one) so the scores line up. */}
@@ -184,7 +193,7 @@ function VerticalBoard({ standing, session, matches, byId }: {
         </div>
 
         <div className="hd-vert-foot">
-          <span>{session.venue}</span>
+          <span className="hd-foot-venue"><img src={LOGOS.ggc} alt="" />{session.venue}</span>
           <span>{FORMAT_NAMES[session.format] ?? session.format}</span>
         </div>
       </div>
@@ -207,11 +216,14 @@ function TvBoard({ standing, session, matches, byId }: {
         <header className="hd-tv-head">
           {TEAMS.map(t => (
             <div key={t} className={`hd-tv-team ${t}`}>
-              <span className="hd-tv-name">{TEAM_NAMES[t]}</span>
+              <span className="hd-tv-name">
+                <img className="hd-team-logo" src={LOGOS.team[t]} alt="" />
+                {TEAM_NAMES[t]}
+              </span>
               <span className="hd-tv-points">{fmtPoints(points[t])}</span>
             </div>
           ))}
-          <div className="hd-tv-crest">House<br />Derby</div>
+          <img className="hd-tv-crest" src={LOGOS.crest} alt="Gimme House Derby" />
         </header>
         <div className="hd-tv-sub">
           {TEAMS.map(t => <span key={t}>{sub(t)}</span>)}
@@ -240,7 +252,7 @@ function TvBoard({ standing, session, matches, byId }: {
 
         <footer className="hd-tv-foot">
           <span>{session.day === 'fri' ? 'Friday' : 'Saturday'}</span>
-          <span>{session.venue}</span>
+          <span className="hd-foot-venue"><img src={LOGOS.ggc} alt="" />{session.venue}</span>
           <span>{session.name}</span>
         </footer>
       </div>
