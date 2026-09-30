@@ -5,7 +5,7 @@ import {
   useMatches, usePlayers, useSessions, type Match, type Player, type Session,
 } from './data';
 import { TEAMS, cupStanding, matchStates, type HoleOutcome, type TeamId } from './scoring';
-import { useCupChrome } from './brand';
+import { SURFACES, useCupChrome } from './brand';
 import Logo from './Logo';
 import { useCountUp, useScoreMoments, type Banner, type Celebration } from './useScoreMoments';
 import './HouseDerby.css';
@@ -25,7 +25,7 @@ export default function Board() {
   const { byId } = usePlayers();
   const [picked, setPicked] = useState<string | null>(null);
   const moments = useScoreMoments(matches);
-  useCupChrome();
+  useCupChrome('House Derby', vertical ? SURFACES.vertical : tv ? SURFACES.tv : SURFACES.page);
 
   const error = sErr ?? mErr;
   if (error) return <div className="hd-page"><p className="hd-error">{error}</p></div>;
@@ -55,6 +55,9 @@ export default function Board() {
 
   return (
     <div className="hd-page hd-board">
+      {/* Safari tints its top toolbar from a fixed element at the top edge;
+          this strip makes it navy to sit with the header (it can't split). */}
+      <div className="hd-top-tint" aria-hidden />
       <TeamHeader standing={standing} moments={moments} variant="phone" />
 
       <nav className="hd-tabs" aria-label="Sessions">

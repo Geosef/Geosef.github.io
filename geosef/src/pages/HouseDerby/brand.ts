@@ -47,12 +47,28 @@ function swapLink(rel: string, href: string, type?: string): () => void {
   };
 }
 
+/** Page color behind a view, and whether it's a fixed full-screen board. */
+export interface CupSurface {
+  background: string;
+  /** Full-screen boards: no page scroll or rubber-band overscroll. */
+  lock?: boolean;
+}
+
+// Hex values mirror the CSS tokens (--hd-cream etc.); Safari reads them off
+// html/body directly, so they're set inline rather than through CSS vars.
+export const SURFACES = {
+  page: { background: '#f8f6ea' },
+  tv: { background: '#3f4463', lock: true },
+  vertical: { background: '#1d1f2b', lock: true },
+} satisfies Record<string, CupSurface>;
+
 /**
- * Tab title, favicon and home-screen icon for /cup pages (so a marshal who
- * adds the page to their iPhone home screen gets the Derby horseshoe),
- * restoring the site's on leave.
+ * Tab title, favicon, home-screen icon and page surface for /cup pages,
+ * restoring the site's on leave. iOS Safari (26+) ignores theme-color and
+ * tints its floating toolbars and overscroll from the html/body background,
+ * so each view paints those to match itself.
  */
-export function useCupChrome(title = 'House Derby') {
+export function useCupChrome(title = 'House Derby', surface: CupSurface = SURFACES.page) {
   useEffect(() => {
     const prevTitle = document.title;
     document.title = title;
@@ -64,4 +80,21 @@ export function useCupChrome(title = 'House Derby') {
       undoTouch();
     };
   }, [title]);
+
+  useEffect(() => {
+    const roots = [document.documentElement, document.body];
+    const prev = roots.map(el => ({ bg: el.style.backgroundColor, overflow: el.style.overflow, overscroll: el.style.overscrollBehavior }));
+    for (const el of roots) {
+      el.style.backgroundColor = surface.background;
+      if (surface.lock) {
+        el.style.overflow = 'hidden';
+        el.style.overscrollBehavior = 'none';
+      }
+    }
+    return () => roots.forEach((el, i) => {
+      el.style.backgroundColor = prev[i].bg;
+      el.style.overflow = prev[i].overflow;
+      el.style.overscrollBehavior = prev[i].overscroll;
+    });
+  }, [surface.background, surface.lock]);
 }
