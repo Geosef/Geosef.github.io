@@ -19,6 +19,7 @@ Viewer screens never show match numbers: each player plays once per stage, so th
 | `/cup` | Public board: team header, stage tabs, match rows |
 | `/cup/match/:id` | Match hero (status, both pairings with photos) and hole-by-hole grid |
 | `/cup/team/og\|south` | Roster: captains first, then by season Order of Merit (points not shown); one row per player with their best finish. Opened from the phone header's team halves and the roster links |
+| `/cup/race` | Race to 18 at phone size (the TV segment in a size container) with Share. Opened from the slim race strip under the board's header |
 | `/cup/player/:id` | Player: photo hero, their Derby matches (with partner and opponents), full season highlights (`merit.ts`) |
 | `/cup?tv` | Full-screen board that follows the screen: landscape broadcast board, or on an upright phone the vertical board edge to edge. The "TV view" button on `/cup` opens it. Keeps the screen awake. |
 | `/cup?tv=landscape` | Pins the landscape board (clubhouse screens, 16:9 stream captures) |
