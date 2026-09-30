@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Share2 } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { TEAM_NAMES, dayAndSession, formatLabel, matchHeadline, nineName, sideName, useMatch, useMatches, usePlayerPhotos, usePlayers, useSessions } from './data';
 import Portrait from './Portrait';
+import CupSplash from './CupSplash';
+import { CupLink, vtName } from './nav';
 import ShareSheet from './ShareSheet';
 import { TEAMS, holeOutcome, matchStates, segments, strokesOn } from './scoring';
 import { useCupChrome } from './brand';
@@ -20,9 +22,9 @@ export default function MatchDetail() {
   const photos = usePlayerPhotos(match ? [...match.players.og, ...match.players.south] : []);
   useCupChrome();
 
-  const back = <Link to="/cup" className="hd-back">‹ Scoreboard</Link>;
+  const back = <CupLink to="/cup" className="hd-back">‹ Scoreboard</CupLink>;
   if (error) return <div className="hd-page">{back}<p className="hd-error">{error}</p></div>;
-  if (match === undefined) return <div className="hd-page"><p className="hd-muted">Loading…</p></div>;
+  if (match === undefined) return <CupSplash />;
   if (match === null) return <div className="hd-page">{back}<p className="hd-error">Match not found.</p></div>;
 
   const session = sessions?.find(s => s.id === match.session);
@@ -39,7 +41,8 @@ export default function MatchDetail() {
         )}
       </div>
       {/* Hero: where it stands, then who's playing, with their photos. */}
-      <section className="hd-mhero">
+      {/* Named to match its row on the board, so opening a match morphs the row into this. */}
+      <section className="hd-mhero" style={vtName(`match-${match.id}`)}>
         <div className="hd-mhero-stage">
           {[session ? dayAndSession(session) : match.session, nineName(match), session && formatLabel(session)].filter(Boolean).join(' · ')}
         </div>
@@ -47,14 +50,15 @@ export default function MatchDetail() {
         <div className="hd-mhero-sides">
           {TEAMS.map(t => (
             <div key={t} className={`hd-mhero-side ${t}`}>
-              <div className="hd-mhero-team"><Logo name={t} className="hd-mhero-logo" />{TEAM_NAMES[t]}</div>
+              <CupLink to={`/cup/team/${t}`} className="hd-mhero-team"><Logo name={t} className="hd-mhero-logo" />{TEAM_NAMES[t]} ›</CupLink>
               {match.players[t].length ? match.players[t].map(id => {
                 const p = byId.get(id);
                 return (
-                  <div key={id} className="hd-mhero-player">
-                    <Portrait player={p} team={t} photo={photos.get(id)} className="hd-mhero-portrait" />
+                  // Each player opens their page; the portrait morphs into its hero.
+                  <CupLink key={id} to={`/cup/player/${id}`} className="hd-mhero-player">
+                    <Portrait player={p} team={t} photo={photos.get(id)} className="hd-mhero-portrait" style={vtName(`player-${id}`)} />
                     <span className="hd-mhero-name"><span>{p?.first}</span><span>{p?.last ?? id}</span></span>
-                  </div>
+                  </CupLink>
                 );
               }) : <div className="hd-mhero-player">TBD</div>}
             </div>

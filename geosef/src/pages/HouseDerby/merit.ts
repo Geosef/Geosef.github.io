@@ -17,7 +17,8 @@ export interface Merit { points: number; events: number; results: MeritResult[] 
 export interface Finish { event: string; label: string; place: number }
 export interface Accolades {
   finishes: Finish[];
-  qualifiers: string[];
+  /** Made the field: "Qualifier · Summer League Playoffs", "Qualified · The Crown". */
+  qualifiers: Array<{ event: string; label: string }>;
   /** Events they took part in, with how many times (Summer League months). */
   participation: Array<{ event: string; times: number }>;
 }
@@ -81,7 +82,7 @@ export function accolades(merit: Merit | undefined): Accolades {
     const name = eventName(best);
     const p = place(best.position);
     if (isQualifier(best) || p === null) {
-      out.qualifiers.push(/playoff/i.test(best.event) ? `${name.replace(/ Playoffs$/, '')} Playoff Qualifier` : `Qualified · ${name}`);
+      out.qualifiers.push({ event: name, label: /playoff/i.test(best.event) ? 'Qualifier' : 'Qualified' });
     } else {
       out.finishes.push({ event: name, label: finishLabel(best.position), place: p });
     }

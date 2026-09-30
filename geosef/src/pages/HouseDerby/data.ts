@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, doc, getDoc, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { db } from './firebase';
 import { holeOutcome, matchStates, segments, type MatchScoring, type MatchState, type TeamId } from './scoring';
+import type { Merit } from './merit';
 
 export interface Player {
   id: string;
@@ -9,6 +10,8 @@ export interface Player {
   last: string;
   team: TeamId;
   captain: boolean;
+  /** Season Order of Merit, seeded from cup-seed/order_of_merit. */
+  merit?: Merit;
 }
 
 export interface Session {
@@ -59,15 +62,26 @@ export const FORMAT_NAMES: Record<string, string> = {
   singles: 'Singles',
 };
 
+// The latest snapshot of each collection, so a page mounted on navigation
+// renders at once from what's already known (then refreshes live) instead of
+// flashing a loading state. That's also what lets view transitions morph
+// straight into the new page.
+const snapshots = new Map<string, unknown[]>();
+
 function useCollection<T>(path: string, map: (id: string, data: Record<string, unknown>, pending: boolean) => T, order?: string) {
-  const [items, setItems] = useState<T[] | null>(null);
+  const key = `${path}|${order ?? ''}`;
+  const [items, setItems] = useState<T[] | null>(() => (snapshots.get(key) as T[] | undefined) ?? null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     const ref = collection(db, path);
     return onSnapshot(
       order ? query(ref, orderBy(order)) : ref,
       { includeMetadataChanges: true },
-      snap => setItems(snap.docs.map(d => map(d.id, d.data(), d.metadata.hasPendingWrites))),
+      snap => {
+        const next = snap.docs.map(d => map(d.id, d.data(), d.metadata.hasPendingWrites));
+        snapshots.set(key, next);
+        setItems(next);
+      },
       e => setError(e.message),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -92,6 +106,7 @@ export function usePhotos(): Map<string, string> {
 }
 
 const photoCache = new Map<string, Promise<string | null>>();
+const loadedPhotos = new Map<string, string>();
 
 /**
  * Photos for just these players, fetched once each (the match and team pages
@@ -99,13 +114,20 @@ const photoCache = new Map<string, Promise<string | null>>();
  * connection).
  */
 export function usePlayerPhotos(ids: string[]): Map<string, string> {
-  const [photos, setPhotos] = useState<Map<string, string>>(new Map());
+  // Photos already fetched show on the first render (no initials flash).
+  const [photos, setPhotos] = useState<Map<string, string>>(
+    () => new Map(ids.filter(id => loadedPhotos.has(id)).map(id => [id, loadedPhotos.get(id)!])),
+  );
   const key = ids.join(',');
   useEffect(() => {
     let cancelled = false;
     Promise.all(ids.map(id => {
       if (!photoCache.has(id)) {
-        photoCache.set(id, getDoc(doc(db, 'photos', id)).then(s => (s.exists() ? String(s.data().data ?? '') || null : null), () => null));
+        photoCache.set(id, getDoc(doc(db, 'photos', id)).then(s => {
+          const data = s.exists() ? String(s.data().data ?? '') || null : null;
+          if (data) loadedPhotos.set(id, data);
+          return data;
+        }, () => null));
       }
       return photoCache.get(id)!.then(data => [id, data] as const);
     })).then(entries => {
@@ -142,7 +164,10 @@ export function useMatches() {
 }
 
 export function useMatch(id: string) {
-  const [match, setMatch] = useState<Match | null | undefined>(undefined);
+  // Start from the board's copy, if it's loaded.
+  const [match, setMatch] = useState<Match | null | undefined>(
+    () => (snapshots.get('matches|') as Match[] | undefined)?.find(m => m.id === id),
+  );
   const [error, setError] = useState<string | null>(null);
   useEffect(() => onSnapshot(
     doc(db, 'matches', id),

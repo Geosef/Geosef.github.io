@@ -13,6 +13,7 @@ import ShareSheet from './ShareSheet';
 import { decided } from './director';
 import { latestMoment, type ScoreEvent } from './scoreEvents';
 import { useFit } from './fit';
+import { CupLink, vtName } from './nav';
 import type { SegmentKind } from './director';
 import {
   COMPACT_LANDSCAPE, LAYOUT_SURFACE, STANDALONE, boardLayout, canFullscreen, toggleFullscreen, useFullscreen, useMedia, usePortrait, useWakeLock,
@@ -179,11 +180,17 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
       </div>
       <div className="hd-rows">
         {inSession(shown).map((m, i) => (
-          <Link key={m.id} to={`/cup/match/${m.id}`} className="hd-row-link" style={stagger(i)} onClick={() => remember(RETURN_KEY, JSON.stringify({ stage: shown.id, y: window.scrollY }))}>
+          <CupLink
+            key={m.id} to={`/cup/match/${m.id}`} className="hd-row-link" style={{ ...stagger(i), ...vtName(`match-${m.id}`) }}
+            onClick={() => remember(RETURN_KEY, JSON.stringify({ stage: shown.id, y: window.scrollY }))}
+          >
             <MatchRow match={m} byId={byId} flash={moments.flashes[m.id]} />
-          </Link>
+          </CupLink>
         ))}
       </div>
+      <nav className="hd-board-links" aria-label="Teams">
+        {TEAMS.map(t => <CupLink key={t} to={`/cup/team/${t}`} className={t}><Logo name={t} className="hd-board-link-logo" />{TEAM_NAMES[t]} roster</CupLink>)}
+      </nav>
       <footer className="hd-board-foot">
         <Logo name="ggc" className="hd-foot-logo" />
         <span>Gimme Golf Club</span>
@@ -208,7 +215,8 @@ const INTRO_MS = 1600;
 
 /** True for the board's first moments on screen, while its entrance plays. */
 function useIntro(ready: boolean): boolean {
-  const [done, setDone] = useState(false);
+  // Returning to a board whose data is already in memory skips the splash.
+  const [done, setDone] = useState(ready);
   useEffect(() => {
     if (!ready) return;
     const t = setTimeout(() => setDone(true), INTRO_MS);
@@ -357,8 +365,13 @@ function TeamHeader({ standing, moments, variant }: {
   return (
     <header className={`hd-th hd-th-${variant}`}>
       <div className="hd-th-row">
-        {TEAMS.map(t => (
-          <div key={t} className={`hd-th-team ${t}`}>
+        {TEAMS.map(t => {
+          // On the phone board each half opens that team's roster, morphing
+          // into its header.
+          const phone = variant === 'phone';
+          const Half = phone ? CupLink : 'div';
+          return (
+          <Half key={t} to={`/cup/team/${t}`} className={`hd-th-team ${t}`} style={phone ? vtName(`team-${t}`) : undefined}>
             <LeadGlow moments={moments} team={t} />
             <TeamLogo team={t} moments={moments} className="hd-th-logo" />
             <div className="hd-th-text">
@@ -369,8 +382,9 @@ function TeamHeader({ standing, moments, variant }: {
               </div>
             </div>
             <Points value={standing.points[t]} className="hd-th-points" />
-          </div>
-        ))}
+          </Half>
+          );
+        })}
         <Logo name="crest" className="hd-th-crest" label="Gimme House Derby" />
       </div>
     </header>

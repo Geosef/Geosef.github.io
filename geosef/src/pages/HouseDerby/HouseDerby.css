@@ -1005,7 +1005,7 @@
 .hd-mhero-side.south { background: var(--hd-south); }
 .hd-mhero-team { display: flex; align-items: center; gap: 6px; font-family: var(--hd-display); font-size: 1.05rem; letter-spacing: 0.06em; text-transform: uppercase; color: #f3d9b8; }
 .hd-mhero-logo { width: 24px; height: 24px; }
-.hd-mhero-player { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.hd-mhero-player { display: flex; align-items: center; gap: 10px; min-width: 0; color: inherit; text-decoration: none; }
 .hd-portrait.hd-mhero-portrait { --size: 54px; }
 .hd-mhero-name { display: flex; flex-direction: column; min-width: 0; line-height: 1.05; }
 .hd-mhero-name span:first-child { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.8; }
@@ -1015,3 +1015,98 @@
   .hd-mhero-name span:last-child { font-size: 1.8rem; }
   .hd-mhero-status { font-size: 2.4rem; }
 }
+
+/* ---------- Team pages ---------- */
+/* The phone header's halves are links to the rosters. */
+a.hd-th-team { color: inherit; text-decoration: none; }
+.hd-board-links { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 28px 0 0; }
+.hd-board-links a {
+  display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 999px;
+  color: #fff; text-decoration: none; font-family: var(--hd-display); letter-spacing: 0.05em; font-size: 0.95rem; text-transform: uppercase;
+}
+.hd-board-links a.og { background: var(--hd-og); }
+.hd-board-links a.south { background: var(--hd-south); }
+.hd-board-link-logo { width: 18px; height: 18px; }
+
+.hd-page.hd-team { max-width: 720px; }
+.hd-team-head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; color: #fff; margin: 4px 0 16px; }
+.hd-team-head.og { background: var(--hd-og); }
+.hd-team-head.south { background: var(--hd-south); }
+.hd-team-head-logo { width: 52px; height: 52px; flex: 0 0 auto; }
+.hd-team-head-text { flex: 1; display: flex; flex-direction: column; font-family: var(--hd-display); text-transform: uppercase; letter-spacing: 0.05em; }
+.hd-team-head-text h1 { margin: 0; font-size: 2rem; font-weight: 400; line-height: 1; }
+.hd-team-head-text span { color: #f3d9b8; font-size: 0.95rem; }
+.hd-team-head-pts { font-family: var(--hd-display); font-size: 3.4rem; line-height: 0.9; }
+
+.hd-captain {
+  flex: 0 0 auto; padding: 2px 7px; border-radius: 999px;
+  background: var(--hd-gold); color: #fff; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+}
+
+/* Roster: one quiet row per player. */
+.hd-roster { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.hd-roster-row {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px;
+  background: var(--hd-card); color: var(--hd-ink); text-decoration: none;
+}
+.hd-portrait.hd-roster-portrait { --size: 48px; }
+.hd-roster-name { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.hd-roster-full { font-size: 1rem; }
+.hd-roster-full b { font-family: var(--hd-display); font-weight: 400; font-size: 1.35rem; letter-spacing: 0.03em; text-transform: uppercase; }
+.hd-roster-row.og .hd-roster-full b { color: var(--hd-og); }
+.hd-roster-row.south .hd-roster-full b { color: var(--hd-south); }
+.hd-roster-best { font-size: 0.78rem; color: var(--hd-muted); }
+.hd-roster-go { color: var(--hd-muted); font-size: 1.3rem; }
+
+/* Player page */
+.hd-page.hd-player-page { max-width: 640px; }
+.hd-player-hero { display: flex; align-items: center; gap: 16px; padding: 16px; border-radius: 18px; color: #fff; margin: 4px 0 18px; }
+.hd-player-hero.og { background: var(--hd-og); }
+.hd-player-hero.south { background: var(--hd-south); }
+.hd-portrait.hd-player-hero-portrait { --size: 112px; }
+.hd-player-hero-text { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; min-width: 0; line-height: 1.05; }
+.hd-player-hero-team { display: flex; align-items: center; gap: 6px; font-family: var(--hd-display); letter-spacing: 0.06em; text-transform: uppercase; color: #f3d9b8; }
+.hd-player-hero-logo { width: 22px; height: 22px; }
+.hd-player-first { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.85; }
+.hd-player-hero-last { font-family: var(--hd-display); font-size: 2.6rem; letter-spacing: 0.03em; text-transform: uppercase; overflow-wrap: anywhere; }
+.hd-player-section { margin: 0 0 20px; }
+.hd-player-section h2 { font-family: var(--hd-display); font-weight: 400; font-size: 1.2rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--hd-og); margin: 0 0 8px; }
+
+/* Derby matches from the player's side. */
+.hd-player-derby { display: flex; flex-direction: column; gap: 6px; }
+.hd-derby-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 12px;
+  background: var(--hd-card); color: var(--hd-ink); text-decoration: none; border-left: 5px solid var(--hd-line);
+}
+.hd-derby-row.og.up { border-left-color: var(--hd-og); }
+.hd-derby-row.south.up { border-left-color: var(--hd-south); }
+.hd-derby-row.even { border-left-color: var(--hd-gold); }
+.hd-derby-where { display: flex; flex-direction: column; gap: 2px; min-width: 0; font-size: 0.8rem; color: var(--hd-muted); }
+.hd-derby-where b { font-family: var(--hd-display); font-weight: 400; font-size: 1.05rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--hd-ink); }
+.hd-derby-result { flex: 0 0 auto; font-family: var(--hd-display); font-size: 1.4rem; letter-spacing: 0.03em; text-transform: uppercase; }
+.hd-derby-row.og.up .hd-derby-result { color: var(--hd-og); }
+.hd-derby-row.south.up .hd-derby-result { color: var(--hd-south); }
+.hd-derby-row.even .hd-derby-result { color: var(--hd-gold); }
+.hd-derby-row.idle .hd-derby-result { color: var(--hd-muted); font-size: 1.1rem; }
+.hd-derby-result.live::after { content: ''; display: inline-block; width: 7px; height: 7px; margin-left: 6px; border-radius: 50%; background: var(--hd-gold); vertical-align: middle; }
+
+/* Season: place, then event. */
+.hd-player-season { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.hd-player-season li { display: flex; gap: 10px; align-items: baseline; }
+.hd-season-place { min-width: 5.4em; font-family: var(--hd-display); font-size: 1.15rem; letter-spacing: 0.03em; text-transform: uppercase; color: var(--hd-ink); }
+.hd-player-season li.podium .hd-season-place { color: var(--hd-gold); }
+.hd-player-also { margin: 10px 0 0; font-size: 0.8rem; color: var(--hd-muted); line-height: 1.4; }
+
+/* ---------- Page transitions (see nav.tsx) ----------
+   Shared elements (match row -> match hero, team half -> team header,
+   portrait -> player hero) morph; everything else crossfades. */
+::view-transition-group(*) { animation-duration: 0.34s; animation-timing-function: cubic-bezier(0.2, 0, 0, 1); }
+::view-transition-old(root), ::view-transition-new(root) { animation-duration: 0.22s; }
+/* Morphing boxes stretch their snapshots; fading between them hides the squash. */
+::view-transition-old(*), ::view-transition-new(*) { height: 100%; object-fit: cover; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
+/* Team names link to their rosters. */
+a.hd-mhero-team, a.hd-player-hero-team { text-decoration: none; }
