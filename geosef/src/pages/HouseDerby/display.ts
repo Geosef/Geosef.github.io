@@ -45,18 +45,63 @@ export const LAYOUT_SURFACE: Record<BoardLayout, CupSurface> = {
   portrait: SURFACES.vertical,
 };
 
-const PORTRAIT = '(orientation: portrait)';
-
-/** Whether the viewport is taller than it is wide; updates on rotate/resize. */
-export function usePortrait(): boolean {
-  const [portrait, setPortrait] = useState(() => window.matchMedia(PORTRAIT).matches);
+/** Whether a media query matches; updates as it changes (rotate, resize). */
+export function useMedia(query: string): boolean {
+  const [matches, setMatches] = useState(() => window.matchMedia(query).matches);
   useEffect(() => {
-    const mq = window.matchMedia(PORTRAIT);
-    const onChange = () => setPortrait(mq.matches);
+    const mq = window.matchMedia(query);
+    const onChange = () => setMatches(mq.matches);
+    onChange();
     mq.addEventListener('change', onChange);
     return () => mq.removeEventListener('change', onChange);
+  }, [query]);
+  return matches;
+}
+
+export const usePortrait = () => useMedia('(orientation: portrait)');
+
+/** A phone on its side, where the browser's bars take a big share of the height. */
+export const COMPACT_LANDSCAPE = '(orientation: landscape) and (max-height: 500px)';
+/** Launched from the Home Screen: no browser bars at all. */
+export const STANDALONE = '(display-mode: standalone), (display-mode: fullscreen)';
+
+// Safari only ships the prefixed Fullscreen API on some versions.
+type WebkitDocument = Document & { webkitFullscreenEnabled?: boolean; webkitFullscreenElement?: Element | null; webkitExitFullscreen?: () => void };
+type WebkitElement = HTMLElement & { webkitRequestFullscreen?: () => void };
+
+/** Whether this browser lets a page go full screen (not iPhone Safari, historically). */
+export function canFullscreen(): boolean {
+  const d = document as WebkitDocument;
+  return !!(d.fullscreenEnabled || d.webkitFullscreenEnabled);
+}
+
+function fullscreenElement(): Element | null {
+  const d = document as WebkitDocument;
+  return d.fullscreenElement ?? d.webkitFullscreenElement ?? null;
+}
+
+/** Enters or leaves full screen. Call from a tap. */
+export function toggleFullscreen() {
+  const d = document as WebkitDocument;
+  const el = document.documentElement as WebkitElement;
+  if (fullscreenElement()) (d.exitFullscreen?.bind(d) ?? d.webkitExitFullscreen?.bind(d))?.();
+  else if (el.requestFullscreen) el.requestFullscreen().catch(() => {});
+  else el.webkitRequestFullscreen?.();
+}
+
+/** Whether the page is full screen right now. */
+export function useFullscreen(): boolean {
+  const [on, setOn] = useState(() => !!fullscreenElement());
+  useEffect(() => {
+    const onChange = () => setOn(!!fullscreenElement());
+    document.addEventListener('fullscreenchange', onChange);
+    document.addEventListener('webkitfullscreenchange', onChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', onChange);
+      document.removeEventListener('webkitfullscreenchange', onChange);
+    };
   }, []);
-  return portrait;
+  return on;
 }
 
 /**

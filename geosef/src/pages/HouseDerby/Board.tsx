@@ -5,10 +5,13 @@ import {
   useMatches, usePlayers, useSessions, type Match, type Player, type Session,
 } from './data';
 import { TEAMS, cupStanding, matchStates, type HoleOutcome, type TeamId } from './scoring';
-import { Tv, X } from 'lucide-react';
+import { Maximize, Minimize, Tv, X } from 'lucide-react';
 import { useCupChrome } from './brand';
 import CupSplash from './CupSplash';
-import { LAYOUT_SURFACE, boardLayout, usePortrait, useWakeLock, type BoardLayout } from './display';
+import {
+  COMPACT_LANDSCAPE, LAYOUT_SURFACE, STANDALONE, boardLayout, canFullscreen, toggleFullscreen, useFullscreen, useMedia, usePortrait, useWakeLock,
+  type BoardLayout,
+} from './display';
 import Logo from './Logo';
 import { useCountUp, useScoreMoments, type Banner, type Celebration } from './useScoreMoments';
 import './HouseDerby.css';
@@ -28,7 +31,18 @@ export default function Board() {
   const { matches, error: mErr } = useMatches();
   const { players, byId, error: pErr } = usePlayers();
   const moments = useScoreMoments(matches);
-  useCupChrome('House Derby', LAYOUT_SURFACE[layout]);
+  // On a phone on its side Safari's bars eat the height, and they only
+  // collapse on scroll. So there the landscape board scrolls a little (and
+  // stays pinned) instead of locking, unless the bars are already gone.
+  const fullscreen = useFullscreen();
+  const compact = useMedia(COMPACT_LANDSCAPE);
+  const standalone = useMedia(STANDALONE);
+  const swipe = layout === 'tv' && compact && !standalone && !fullscreen;
+  useCupChrome(
+    'House Derby',
+    swipe ? { ...LAYOUT_SURFACE.tv, lock: false } : LAYOUT_SURFACE[layout],
+    layout === 'phone' ? '/cup/manifest.json' : '/cup/tv.webmanifest',
+  );
   // Boards left running on a TV or a phone in a cart shouldn't sleep.
   const awake = useWakeLock(layout !== 'phone');
   // Players too, so names don't pop into rows that rendered without them.
@@ -41,14 +55,16 @@ export default function Board() {
   // finished board, so nothing underneath is seen half drawn.
   return (
     <>
-      {ready && <BoardView layout={layout} sessions={sessions} matches={matches} byId={byId} moments={moments} intro={intro} awake={awake} />}
+      {ready && <BoardView layout={layout} sessions={sessions} matches={matches} byId={byId} moments={moments} intro={intro} awake={awake} swipe={swipe} />}
       {(!ready || intro) && <CupSplash leaving={ready} />}
     </>
   );
 }
 
-function BoardView({ layout, sessions, matches, byId, moments, intro, awake }: {
+function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swipe }: {
   layout: BoardLayout; sessions: Session[]; matches: Match[]; byId: Map<string, Player>; moments: Moments; intro: boolean; awake: boolean;
+  /** Landscape phone in the browser: scroll room so a swipe hides the bars. */
+  swipe: boolean;
 }) {
   const [picked, setPicked] = useState<string | null>(null);
   const standing = cupStanding(matches);
@@ -65,9 +81,9 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake }: {
     const props = { standing, session: shown, matches: inSession(shown), byId, moments, intro };
     return (
       <>
-        {layout === 'tv' ? <TvBoard {...props} /> : <VerticalBoard {...props} fill={layout === 'portrait'} />}
-        <ExitTv />
-        {!awake && <WakeHint />}
+        {layout === 'tv' ? <TvBoard {...props} swipe={swipe} /> : <VerticalBoard {...props} fill={layout === 'portrait'} />}
+        <TvControls />
+        {!awake ? <WakeHint /> : swipe && <SwipeHint />}
         {moments.celebration && <CelebrationOverlay c={moments.celebration} onDone={moments.dismissCelebration} />}
       </>
     );
@@ -134,11 +150,12 @@ function useIntro(ready: boolean): boolean {
 const stagger = (i: number) => ({ ['--i' as string]: i });
 
 /**
- * Way back to the phone board from a full-screen one. Hidden until the screen
- * is touched or the mouse moves, so it never shows on an unattended TV or a
- * stream capture.
+ * Exit (back to the phone board) and, where the browser allows it, full
+ * screen. Hidden until the screen is touched or the mouse moves, so they
+ * never show on an unattended TV or a stream capture.
  */
-function ExitTv() {
+function TvControls() {
+  const fullscreen = useFullscreen();
   const [shown, setShown] = useState(0);
   useEffect(() => {
     const show = () => setShown(n => n + 1);
@@ -154,7 +171,28 @@ function ExitTv() {
     const t = setTimeout(() => setShown(0), 3000);
     return () => clearTimeout(t);
   }, [shown]);
-  return shown ? <Link to="/cup" className="hd-tv-exit" aria-label="Exit TV view"><X aria-hidden /></Link> : null;
+  if (!shown) return null;
+  return (
+    <div className="hd-tv-controls">
+      <Link to="/cup" aria-label="Exit TV view"><X aria-hidden /></Link>
+      {canFullscreen() && (
+        <button type="button" onClick={toggleFullscreen} aria-label={fullscreen ? 'Exit full screen' : 'Full screen'}>
+          {fullscreen ? <Minimize aria-hidden /> : <Maximize aria-hidden />}
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** Nudge to swipe the browser's bars away, until the board is scrolled. */
+function SwipeHint() {
+  const [scrolled, setScrolled] = useState(() => window.scrollY > 0);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 0);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+  return scrolled ? null : <div className="hd-wake-hint">Swipe up for full screen</div>;
 }
 
 /**
@@ -366,9 +404,9 @@ function Venue({ session }: { session: Session }) {
 }
 
 /** Full-screen broadcast layout for the clubhouse / OG House screens. */
-function TvBoard({ standing, session, matches, byId, moments, intro }: BoardProps) {
+function TvBoard({ standing, session, matches, byId, moments, intro, swipe = false }: BoardProps & { swipe?: boolean }) {
   return (
-    <div className={`hd-page hd-tv ${intro ? 'hd-intro' : ''}`}>
+    <div className={`hd-page hd-tv ${intro ? 'hd-intro' : ''} ${swipe ? 'hd-tv-swipe' : ''}`}>
       <div className="hd-tv-frame">
         <TeamHeader standing={standing} moments={moments} variant="tv" />
 

@@ -1,0 +1,22 @@
+{
+  "short_name": "House Derby",
+  "name": "Gimme House Derby",
+  "icons": [
+    {
+      "src": "/cup/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/cup/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "display": "standalone",
+  "background_color": "#1d1f2b",
+  "theme_color": "#3f4463",
+  "start_url": "/cup",
+  "scope": "/cup",
+  "id": "/cup"
+}

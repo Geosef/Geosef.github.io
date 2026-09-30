@@ -618,14 +618,16 @@
 }
 .hd-tv-link svg { width: 15px; height: 15px; }
 /* Shown briefly on touch/mouse over a full-screen board. */
-.hd-tv-exit {
-  position: fixed; z-index: 20;
+.hd-tv-controls {
+  position: fixed; z-index: 20; display: flex; gap: 8px;
   top: calc(12px + env(safe-area-inset-top)); left: calc(12px + env(safe-area-inset-left));
-  display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
-  border-radius: 50%; background: rgba(29, 31, 43, 0.72); color: #fff;
   animation: hd-fade-in 0.2s ease-out;
 }
-.hd-tv-exit svg { width: 22px; height: 22px; }
+.hd-tv-controls > * {
+  display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; padding: 0;
+  border: none; border-radius: 50%; background: rgba(29, 31, 43, 0.72); color: #fff; cursor: pointer;
+}
+.hd-tv-controls svg { width: 22px; height: 22px; }
 
 /* Portrait phone board: the vertical layout without the bands kept clear for
    Instagram Live's overlays; safe areas instead. */
@@ -643,7 +645,7 @@
 }
 @keyframes hd-intro-row { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
-  .hd-intro .hd-row-link, .hd-intro .hd-vert .hd-row, .hd-intro .hd-tv-row, .hd-tv-exit { animation: none; }
+  .hd-intro .hd-row-link, .hd-intro .hd-vert .hd-row, .hd-intro .hd-tv-row, .hd-tv-controls { animation: none; }
 }
 
 /* Phone turned sideways: fill the short screen edge to edge (clear of the
@@ -665,3 +667,8 @@
   font: 600 0.8rem system-ui, -apple-system, sans-serif;
   pointer-events: none; animation: hd-fade-in 0.4s 1.5s ease-out both;
 }
+
+/* Landscape phone in the browser: a little scroll room so a swipe collapses
+   Safari's bars; the board stays pinned and grows into the freed space. */
+.hd-page.hd-tv.hd-tv-swipe { min-height: calc(100lvh + 80px); align-items: flex-start; }
+.hd-tv-swipe .hd-tv-frame { position: sticky; top: 0; height: 100dvh; }

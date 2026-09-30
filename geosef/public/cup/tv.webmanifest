@@ -1,0 +1,22 @@
+{
+  "short_name": "Derby TV",
+  "name": "Gimme House Derby TV",
+  "icons": [
+    {
+      "src": "/cup/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/cup/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "display": "standalone",
+  "background_color": "#1d1f2b",
+  "theme_color": "#3f4463",
+  "start_url": "/cup?tv",
+  "scope": "/cup",
+  "id": "/cup?tv"
+}
