@@ -10,6 +10,10 @@
 //   equivalent place (Runner Up 2, Semi Finalist 3, Round of 16 9...).
 // Within an event, the highest-paying row is the real result: a qualifying
 // round's "1st" gives way to the final's 4th.
+// Some events report flight places: several players "1st" in the same
+// tournament at different payouts (flight winners who went on to a
+// shootout). Only the top payout there is a real 1st; the others made the
+// shootout. That takes the whole field to see (see topFirsts).
 
 export interface MeritResult { event: string; tournament: string; date: string; position: string; points: number }
 export interface Merit { points: number; events: number; results: MeritResult[] }
@@ -17,7 +21,7 @@ export interface Merit { points: number; events: number; results: MeritResult[] 
 export interface Finish { event: string; label: string; place: number }
 export interface Accolades {
   finishes: Finish[];
-  /** Made the field: "Qualifier · Summer League Playoffs", "Qualified · The Crown". */
+  /** Made the field, in the past tense: "Qualified · The Crown", "Shootout · Lionshare". */
   qualifiers: Array<{ event: string; label: string }>;
   /** Events they took part in, with how many times (Summer League months). */
   participation: Array<{ event: string; times: number }>;
@@ -36,6 +40,21 @@ const isTrip = (r: MeritResult) => /Camp Gimme|Scout Trip/i.test(r.event) || /Ca
 const isParticipation = (r: MeritResult) =>
   r.points <= PARTICIPATION_MAX || isTrip(r) || /Partic|Partis/i.test(r.tournament) || /Participated/i.test(r.tournament);
 const isQualifier = (r: MeritResult) => /^Qualified$/i.test(r.tournament) || /^CUT$/i.test(r.position);
+
+const tourneyKey = (r: MeritResult) => `${r.event}|${r.tournament}`;
+
+/**
+ * For each tournament where more than one player placed "1" (flights), the
+ * top payout among them: the real winner. Pass it to accolades.
+ */
+export function topFirsts(field: Array<Merit | undefined>): Map<string, number> {
+  const firsts = new Map<string, number[]>();
+  for (const r of field.flatMap(m => m?.results ?? [])) {
+    if (r.position !== '1' || r.points <= PARTICIPATION_MAX) continue;
+    firsts.set(tourneyKey(r), [...(firsts.get(tourneyKey(r)) ?? []), r.points]);
+  }
+  return new Map([...firsts].filter(([, pts]) => pts.length > 1).map(([k, pts]) => [k, Math.max(...pts)]));
+}
 
 /** Equivalent place for sorting and labels; null when there isn't one. */
 export function place(position: string): number | null {
@@ -61,7 +80,7 @@ function finishLabel(position: string): string {
   return position.replace(/\bround\b/i, 'Round');
 }
 
-export function accolades(merit: Merit | undefined): Accolades {
+export function accolades(merit: Merit | undefined, firsts: Map<string, number> = new Map()): Accolades {
   const out: Accolades = { finishes: [], qualifiers: [], participation: [] };
   if (!merit) return out;
   const byEvent = new Map<string, MeritResult[]>();
@@ -80,11 +99,20 @@ export function accolades(merit: Merit | undefined): Accolades {
     }
     const best = scored.reduce((a, b) => (b.points > a.points ? b : a));
     const name = eventName(best);
-    const p = place(best.position);
-    if (isQualifier(best) || p === null) {
-      out.qualifiers.push({ event: name, label: /playoff/i.test(best.event) ? 'Qualifier' : 'Qualified' });
+    const position = best.position;
+    const p = place(position);
+    const top = firsts.get(tourneyKey(best));
+    // Made the shootout without placing in it: a shootout row with no
+    // position ("Shootout 5th" names a payout tier, not a finish), or a flight
+    // winner below the event's top payout.
+    const madeShootout = (/shootout/i.test(best.tournament) && p === null)
+      || (top !== undefined && position === '1' && best.points < top);
+    if (madeShootout) {
+      out.qualifiers.push({ event: name, label: 'Shootout' });
+    } else if (isQualifier(best) || p === null) {
+      out.qualifiers.push({ event: name, label: 'Qualified' });
     } else {
-      out.finishes.push({ event: name, label: finishLabel(best.position), place: p });
+      out.finishes.push({ event: name, label: finishLabel(position), place: p });
     }
   }
   out.finishes.sort((a, b) => a.place - b.place);

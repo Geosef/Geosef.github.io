@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { TEAM_NAMES, fmtPoints, useMatches, usePlayerPhotos, usePlayers, type Player } from './data';
-import { accolades } from './merit';
+import { accolades, topFirsts } from './merit';
 import { CupLink, vtName } from './nav';
 import { cupStanding, type TeamId } from './scoring';
 import { useCupChrome } from './brand';
@@ -33,6 +33,7 @@ export default function TeamPage() {
   if (error) return <div className="hd-page"><p className="hd-error">{error}</p></div>;
   if (!players || !matches) return <CupSplash />;
   const standing = cupStanding(matches);
+  const firsts = topFirsts(players.map(p => p.merit));
 
   return (
     <div className="hd-page hd-team">
@@ -53,7 +54,7 @@ export default function TeamPage() {
 
       <ul className="hd-roster">
         {roster.map(p => {
-          const a = accolades(p.merit);
+          const a = accolades(p.merit, firsts);
           const top = a.finishes[0] ?? a.qualifiers[0];
           return (
             <li key={p.id}>
