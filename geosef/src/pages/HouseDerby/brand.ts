@@ -1,7 +1,9 @@
 import { useEffect } from 'react';
 import type { TeamId } from './scoring';
 
-import crestSvg from './logos/crest.svg?raw';
+// Two-tone crest (white art, gold lettering and crown, navy fill); the
+// single-color crest.svg is kept for the gleam mask.
+import crestSvg from './logos/crest-color.svg?raw';
 import crestUrl from './logos/crest.svg';
 import markSvg from './logos/mark.svg?raw';
 import markUrl from './logos/mark.svg';
@@ -20,7 +22,7 @@ export type LogoName = 'crest' | 'mark' | 'ggc' | TeamId;
 const inline = (svg: string) => svg.replace('fill="#000000"', 'fill="currentColor"');
 
 export const LOGO_FILES: Record<LogoName, { svg: string; url: string; aspect: number }> = {
-  crest: { svg: inline(crestSvg), url: crestUrl, aspect: 0.7822 },
+  crest: { svg: crestSvg, url: crestUrl, aspect: 0.7822 },
   mark: { svg: inline(markSvg), url: markUrl, aspect: 1 },
   ggc: { svg: inline(ggcSvg), url: ggcUrl, aspect: 1.1703 },
   og: { svg: inline(ogSvg), url: ogUrl, aspect: 1 },

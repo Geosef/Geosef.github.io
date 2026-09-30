@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  cupStanding, holeOutcome, matchPoints, matchStates, playOrder, strokesOn,
+  cupStanding, holeOutcome, matchPoints, matchStates, playOrder, segments, strokesOn,
   type HoleOutcome, type MatchScoring,
 } from './scoring';
 
@@ -111,44 +111,28 @@ describe('matchState', () => {
   });
 });
 
-describe('18-hole matches', () => {
-  /** 18-hole match from outcomes on holes 1..n in order. */
-  const eighteen = (outcomes: HoleOutcome[], extra: Partial<MatchScoring> = {}): MatchScoring => ({
-    holeCount: 18,
+describe('back nine (indoor holes 10-18)', () => {
+  const back = (results: Record<number, HoleOutcome>, extra: Partial<MatchScoring> = {}): MatchScoring => ({
+    firstHole: 10,
     strokes: noStrokes,
-    holes: Object.fromEntries(outcomes.map((o, i) => [i + 1, { result: o }])),
+    holes: Object.fromEntries(Object.entries(results).map(([h, r]) => [h, { result: r }])),
     ...extra,
   });
 
-  it('scores front and back nine as separate points', () => {
-    const [front, back] = matchStates(eighteen([
-      'og', 'og', 'og', 'og', 'og', 'halved', 'halved', 'halved', 'halved', // front: OG 5&4
-      'south', 'south',                                                      // back: live
-    ]));
-    expect(front).toMatchObject({ phase: 'final', winner: 'og', label: '5&4', afterClose: [6, 7, 8, 9] });
-    expect(back).toMatchObject({ phase: 'live', leader: 'south', label: '2 UP thru 2' });
+  it('plays holes 10-18', () => {
+    expect(segments(back({}))).toEqual([[10, 11, 12, 13, 14, 15, 16, 17, 18]]);
   });
 
-  it('starts the back nine fresh at all square', () => {
-    const [, back] = matchStates(eighteen(Array(9).fill('og')));
-    expect(back.phase).toBe('not-started');
+  it('scores results on holes 10-18', () => {
+    expect(matchState(back({ 10: 'og', 11: 'og', 12: 'south' }))).toMatchObject({ phase: 'live', label: '1 UP thru 3' });
   });
 
-  it('counts holes 10-18 toward the back nine only', () => {
-    const [front, back] = matchStates({ holeCount: 18, strokes: noStrokes, holes: { 12: { result: 'south' } } });
-    expect(front.phase).toBe('not-started');
-    expect(back.label).toBe('1 UP thru 1');
+  it('closes out using play order within the nine', () => {
+    expect(matchState(back({ 10: 'south', 11: 'south', 12: 'south', 13: 'south', 14: 'south' }))).toMatchObject({ label: '5&4' });
   });
 
-  it('concedes only the nines still in play', () => {
-    const [front, back] = matchStates(eighteen(Array(9).fill('og'), { concededBy: 'og' }));
-    expect(front).toMatchObject({ winner: 'og' });
-    expect(back).toMatchObject({ winner: 'south', label: 'Conceded' });
-  });
-
-  it('counts both nines toward the cup', () => {
-    const s = cupStanding([eighteen([...Array(9).fill('og'), ...Array(9).fill('halved')])]);
-    expect(s.points).toEqual({ og: 1.5, south: 0.5 });
+  it('ignores stray front-nine holes', () => {
+    expect(matchState(back({ 1: 'og', 2: 'og' })).phase).toBe('not-started');
   });
 });
 
@@ -166,21 +150,21 @@ describe('cupStanding', () => {
     expect(s.clinched).toBeNull();
   });
 
-  it('lets the defending team retain at 18', () => {
+  it('gives OG the win at 18-18', () => {
     const s = cupStanding([...Array(18).fill(0).map(() => won('og')), ...Array(18).fill(0).map(() => won('south'))]);
     expect(s.points).toEqual({ og: 18, south: 18 });
-    expect(s.clinched).toEqual({ team: 'og', how: 'retains' });
+    expect(s.clinched).toBe('og');
   });
 
-  it('requires the challenger to reach 18.5', () => {
+  it('requires South to reach 18.5', () => {
     const at18 = cupStanding(Array(18).fill(0).map(() => won('south')));
     expect(at18.clinched).toBeNull();
     const at185 = cupStanding([...Array(18).fill(0).map(() => won('south')), halved()]);
-    expect(at185.clinched).toEqual({ team: 'south', how: 'wins' });
+    expect(at185.clinched).toBe('south');
   });
 
-  it('marks the defender as outright winners past 18', () => {
+  it('has OG winning past 18 too', () => {
     const s = cupStanding([...Array(18).fill(0).map(() => won('og')), halved()]);
-    expect(s.clinched).toEqual({ team: 'og', how: 'wins' });
+    expect(s.clinched).toBe('og');
   });
 });

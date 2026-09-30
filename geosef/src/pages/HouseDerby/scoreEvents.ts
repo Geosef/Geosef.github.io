@@ -10,18 +10,19 @@ export interface EventMatch extends MatchScoring {
   id: string;
   slot: number;
   session: string;
+  nine?: 'front' | 'back';
 }
 
 export type ScoreEvent =
   | { kind: 'hole'; matchId: string; result: HoleOutcome }
   | {
       kind: 'point'; matchId: string; slot: number; session: string;
-      /** Which nine, for 18-hole matches. */
+      /** Which nine, for indoor matches. */
       nine: 'front' | 'back' | null;
       winner: TeamId | null; label: string;
     }
   | { kind: 'lead'; leader: TeamId | null }
-  | { kind: 'clinch'; team: TeamId; how: 'wins' | 'retains' };
+  | { kind: 'clinch'; team: TeamId };
 
 /**
  * More matches than this changing in one update means a bulk rewrite (demo
@@ -64,15 +65,14 @@ export function diffEvents(prev: EventMatch[], next: EventMatch[]): ScoreEvent[]
       if (st.phase !== 'final' || s0[i]?.phase === 'final') return;
       pointEvents.push({
         kind: 'point', matchId: m.id, slot: m.slot, session: m.session,
-        nine: s1.length > 1 ? (i === 0 ? 'front' : 'back') : null,
-        winner: st.winner, label: st.label,
+        nine: m.nine ?? null, winner: st.winner, label: st.label,
       });
     });
   }
 
   const c0 = cupStanding(prev);
   const c1 = cupStanding(next);
-  const clinch: ScoreEvent[] = c1.clinched && !c0.clinched ? [{ kind: 'clinch', ...c1.clinched }] : [];
+  const clinch: ScoreEvent[] = c1.clinched && !c0.clinched ? [{ kind: 'clinch', team: c1.clinched }] : [];
   if (changed > BULK_THRESHOLD) return clinch;
 
   const lead: ScoreEvent[] = [];
