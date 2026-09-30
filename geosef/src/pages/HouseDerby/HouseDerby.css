@@ -654,3 +654,14 @@
   }
   .hd-tv-frame { width: 100%; height: 100svh; border-radius: 0; box-shadow: none; }
 }
+
+/* Until a tap grants the wake lock on iOS. Over the footer band, clear of the
+   match rows. */
+.hd-wake-hint {
+  position: fixed; z-index: 20; left: 50%; transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  padding: 8px 14px; border-radius: 999px; white-space: nowrap;
+  background: rgba(29, 31, 43, 0.82); color: #fff;
+  font: 600 0.8rem system-ui, -apple-system, sans-serif;
+  pointer-events: none; animation: hd-fade-in 0.4s 1.5s ease-out both;
+}
