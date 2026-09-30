@@ -55,3 +55,17 @@ export function momentumStats(steps: MomentumStep[]) {
   }
   return { changes, biggest };
 }
+
+/** A stage's span on the race chart's 0-36 axis: as wide as its points. */
+export interface StageBand<S> { s: S; from: number; to: number; started: boolean }
+
+export function stageBands<S extends { id: string; order: number }>(sessions: S[], matches: MomentumMatch[], steps: MomentumStep[]): Array<StageBand<S>> {
+  const bands: Array<StageBand<S>> = [];
+  let at = 0;
+  for (const s of [...sessions].sort((a, b) => a.order - b.order)) {
+    const n = matches.filter(m => m.session === s.id).flatMap(matchStates).length;
+    bands.push({ s, from: at, to: at + n, started: steps.some(st => st.session === s.id) });
+    at += n;
+  }
+  return bands;
+}

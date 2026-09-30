@@ -19,7 +19,7 @@ Live scoreboard for a two-team, Ryder Cup–style match-play event (OG House vs 
 | `/cup?tv` | Full-screen board that follows the screen: landscape broadcast board, or on an upright phone the vertical board edge to edge. The "TV view" button on `/cup` opens it. Keeps the screen awake. |
 | `/cup?tv=landscape` | Pins the landscape board (clubhouse screens, 16:9 stream captures) |
 | `/cup?tv=vertical` | Pins the 9:16 board with bands kept clear for Instagram Live's overlays |
-| `…?tv&replay[=<match id>]` | Loops the latest moment (or one match's result; the clinch once won) for screen-recording Story clips. Holds the live board. Linked as "Record a clip" in the share sheet. |
+| `…?tv&replay[=<match id>\|race]` | Loops the latest moment (or one match's result; the clinch once won), or with `=race` the race-to-18 entrance, for screen-recording Story clips. Linked as "Record a clip" in the share sheet, per card. |
 | `/cup/admin[/:id]` | Marshal entry (Google sign-in). `?demo` shows demo controls |
 
 Touching a full-screen board briefly shows an exit button; unattended screens never show it. The full-screen boards hold on the current stage: the one with live play, else the latest with results.
@@ -29,7 +29,7 @@ Touching a full-screen board briefly shows an exit button; unattended screens ne
 - `scoring.ts`: pure match-play engine. Covers hole results, match state (N&M, dormie, conceded), and cup totals and clinch.
 - `scoreEvents.ts` + `useScoreMoments.ts`: diff live snapshots into holes won, points, lead changes and clinch, which drive the animations. Nothing fires on first load. Bulk rewrites (more than 3 matches changed at once) report only a clinch.
 - `data.ts`: Firestore hooks, types and labels.
-- `shareCard.ts` + `ShareSheet.tsx`: 9:16 Story cards (standings, stage results, match) drawn on a canvas, previewed, then handed to the system share sheet (download fallback). Share buttons on `/cup` and match pages.
+- `shareCard.ts` + `ShareSheet.tsx`: 9:16 Story cards (standings, stage results, race to 18, match) drawn on a canvas, previewed, then handed to the system share sheet (download fallback). Share buttons on `/cup` and match pages.
 - `director.ts` + `Segments.tsx`: TV dead-time segments. Driven by scores only, never tee times. Once a stage has a score, the TV holds the live board until every match in it is final (covers gaps between nines and staggered starts). In dead time it cycles board → stage recap → race to 18 → up next, timed from the latest score so every screen flips together, with a team-color wipe. `?scene=board|recap|momentum|next` pins one.
 - `momentum.ts`: data for the race-to-18 segment (points bar + each team's running total), point by point in stage order, then when each match was last scored. Built only from current scores, so `--reset-scores` clears it and demo data drives it.
 - `display.ts`: which board a URL and screen shape get, page surfaces, wake lock. `CupSplash` is the crest loading screen, bundled with the site so it also covers the lazy /cup download.

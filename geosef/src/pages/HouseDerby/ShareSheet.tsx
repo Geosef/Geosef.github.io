@@ -6,6 +6,8 @@ import { cardFileName, renderCard, type CardSpec } from './shareCard';
 export interface ShareOption {
   label: string;
   spec: CardSpec;
+  /** Replay view for recording a video clip of this card's moment, if there is one. */
+  clip?: string;
 }
 
 /**
@@ -15,12 +17,7 @@ export interface ShareOption {
  * has to be ready by then. Falls back to a download where files can't be
  * shared (desktop).
  */
-export default function ShareSheet({ options, onClose, clipHref }: {
-  options: ShareOption[];
-  onClose: () => void;
-  /** Replay view for recording a video clip, when there's a moment to replay. */
-  clipHref?: string;
-}) {
+export default function ShareSheet({ options, onClose }: { options: ShareOption[]; onClose: () => void }) {
   const [picked, setPicked] = useState(0);
   const option = options[picked] ?? options[0];
   const [file, setFile] = useState<File | null>(null);
@@ -84,8 +81,8 @@ export default function ShareSheet({ options, onClose, clipHref }: {
             <Download aria-hidden /> Save image
           </a>
         )}
-        {clipHref && (
-          <Link to={clipHref} className="hd-share-clip">
+        {option.clip && (
+          <Link to={option.clip} className="hd-share-clip">
             <Clapperboard aria-hidden />
             <span>Record a clip<small>Loops the moment full screen. Screen record it for a video Story.</small></span>
           </Link>

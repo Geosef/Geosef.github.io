@@ -4,7 +4,7 @@ import {
   TEAM_NAMES, currentSessionId, dayAndSession, fmtPoints, formatLabel, matchLead, matchName, matchSort, nineName, shortStatus, sideName, thruLabel,
   useMatches, usePlayers, useSessions, type Match, type Player, type Session,
 } from './data';
-import { TEAMS, cupStanding, matchStates, type HoleOutcome, type TeamId } from './scoring';
+import { TEAMS, TOTAL_POINTS, cupStanding, matchStates, type HoleOutcome, type TeamId } from './scoring';
 import { Maximize, Minimize, Share2, Tv, X } from 'lucide-react';
 import { useCupChrome } from './brand';
 import CupSplash from './CupSplash';
@@ -12,6 +12,7 @@ import { MomentumView, NextView, RecapView, Wipe, useSegment, useWipe } from './
 import ShareSheet from './ShareSheet';
 import { decided } from './director';
 import { latestMoment, type ScoreEvent } from './scoreEvents';
+import { useFit } from './fit';
 import type { SegmentKind } from './director';
 import {
   COMPACT_LANDSCAPE, LAYOUT_SURFACE, STANDALONE, boardLayout, canFullscreen, toggleFullscreen, useFullscreen, useMedia, usePortrait, useWakeLock,
@@ -91,11 +92,16 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
 }) {
   const [picked, setPicked] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
+  // Clips need a finished nine to replay (and the race a point on the board).
+  const momentClip = latestMoment(matches).length ? '/cup?tv&replay' : undefined;
   // Dead-time segments for the TV boards; score moments hold the live board.
   const replaying = layout !== 'phone' ? replay : null;
-  useReplay(moments.play, matches, replaying);
-  // A replay holds the live board so segments don't cut into a recording.
-  const { shown: segment, wipe } = useWipe(useSegment(sessions, matches, replaying !== null ? 'board' : scene, !!(moments.banner || moments.celebration)));
+  // ?replay=race loops the race to 18's entrance instead of a score moment.
+  const raceClip = replaying === 'race';
+  useReplay(moments.play, matches, raceClip ? null : replaying);
+  const raceTake = useLoop(raceClip, RACE_CLIP_MS);
+  // A replay holds its segment so the rotation doesn't cut into a recording.
+  const { shown: segment, wipe } = useWipe(useSegment(sessions, matches, raceClip ? 'momentum' : replaying !== null ? 'board' : scene, !!(moments.banner || moments.celebration)));
   const standing = cupStanding(matches);
   const sorted = [...matches].sort(matchSort(sessions));
   const current = currentSessionId(sessions, matches);
@@ -109,10 +115,10 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
     const bannerSession = moments.banner?.kind === 'point' ? sessions.find(s => s.id === (moments.banner as Extract<Banner, { kind: 'point' }>).session) : undefined;
     const segSession = 'session' in segment ? sessions.find(s => s.id === segment.session) : undefined;
     // A replay stays on its match's stage between loops, so a clip doesn't jump stages.
-    const replayed = replaying !== null ? latestMoment(matches, replaying || undefined).find(e => e.kind === 'point') : undefined;
+    const replayed = replaying !== null && !raceClip ? latestMoment(matches, replaying || undefined).find(e => e.kind === 'point') : undefined;
     const replaySession = replayed?.kind === 'point' ? sessions.find(s => s.id === replayed.session) : undefined;
     const shown = bannerSession ?? replaySession ?? segSession ?? sessions.find(s => s.id === current) ?? sessions[0];
-    const body = segment.kind === 'momentum' ? <MomentumView sessions={sessions} matches={matches} />
+    const body = segment.kind === 'momentum' ? <MomentumView key={raceTake} sessions={sessions} matches={matches} />
       : !segSession ? null
       : segment.kind === 'recap' ? <RecapView session={segSession} matches={matches} byId={byId} />
       : <NextView session={segSession} matches={matches} byId={byId} vertical={layout !== 'tv'} />;
@@ -173,11 +179,11 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
       {sharing && (
         <ShareSheet
           onClose={() => setSharing(false)}
-          clipHref={latestMoment(matches).length ? '/cup?tv&replay' : undefined}
           options={[
-            { label: 'Standings', spec: { kind: 'standings', sessions, matches } },
+            { label: 'Standings', spec: { kind: 'standings', sessions, matches }, clip: momentClip },
             // The stage on screen, once it has a result.
-            ...(decided(matches, shown.id).length ? [{ label: `${shown.name} results`, spec: { kind: 'recap' as const, session: shown, matches, byId } }] : []),
+            ...(decided(matches, shown.id).length ? [{ label: `${shown.name} results`, spec: { kind: 'recap' as const, session: shown, matches, byId }, clip: momentClip }] : []),
+            ...(momentClip ? [{ label: `Race to ${TOTAL_POINTS / 2}`, spec: { kind: 'race' as const, sessions, matches }, clip: '/cup?tv&replay=race' }] : []),
           ]}
         />
       )}
@@ -220,6 +226,20 @@ function useReplay(play: (events: ScoreEvent[]) => void, matches: Match[], id: s
     t = setTimeout(loop, 1_800);
     return () => clearTimeout(t);
   }, [id, play]);
+}
+
+/** The race clip's loop: its entrance (bar, lines, labels) runs about 2.5s, then holds. */
+const RACE_CLIP_MS = 7_000;
+
+/** Counts up every `ms` while `on`; keying a view on it replays its entrance. */
+function useLoop(on: boolean, ms: number): number {
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    if (!on) return;
+    const t = setInterval(() => setN(x => x + 1), ms);
+    return () => clearInterval(t);
+  }, [on, ms]);
+  return n;
 }
 
 /** Entrance delay for the i-th row, read by the .hd-intro animations. */
@@ -341,8 +361,10 @@ function FlashOverlay({ flash }: { flash: Flash }) {
  * Leaderboard row in the Golf Genius style: the leading side's cell fills with
  * its team color and the status arrow points toward it.
  */
-function MatchRow({ match, byId, stacked = false, flash, style }: {
+function MatchRow({ match, byId, stacked = false, fit = false, flash, style }: {
   match: Match; byId: Map<string, Player>; stacked?: boolean; flash?: Flash; style?: React.CSSProperties;
+  /** Shrink long names to fit (full-screen boards, which run useFit) rather than wrap. */
+  fit?: boolean;
 }) {
   const states = matchStates(match);
   const { lead, started } = matchLead(states);
@@ -350,9 +372,10 @@ function MatchRow({ match, byId, stacked = false, flash, style }: {
   // The F9/B9 tag names the nine, so an idle row only needs the match number.
   const status = shortStatus(states) || `Match ${match.slot}`;
   // Stacked puts each player on their own line (narrow vertical layout).
+  const cls = fit ? 'hd-fit' : undefined;
   const names = (t: TeamId) => stacked
-    ? sideName(match, t, byId).split(' / ').map(n => <span key={n}>{n}</span>)
-    : sideName(match, t, byId);
+    ? sideName(match, t, byId).split(' / ').map(n => <span key={n} className={cls}>{n}</span>)
+    : <span className={cls}>{sideName(match, t, byId)}</span>;
   return (
     <div className={`hd-row lead-${tone}`} style={style}>
       <div className={`hd-row-side og ${lead === 'og' ? 'filled' : ''}`}>{names('og')}</div>
@@ -460,9 +483,11 @@ function VerticalBoard({ standing, session, matches, byId, moments, intro, body,
   /** Filling a phone held upright: no bands kept clear for Instagram. */
   fill?: boolean;
 }) {
+  const frame = useRef<HTMLDivElement>(null);
+  useFit(frame);
   return (
     <div className={`hd-page hd-vert-page ${intro ? 'hd-intro' : ''}`}>
-      <div className={`hd-vert ${fill ? 'hd-vert-fill' : ''}`}>
+      <div className={`hd-vert ${fill ? 'hd-vert-fill' : ''}`} ref={frame}>
         <TeamHeader standing={standing} moments={moments} variant="vert" />
 
         <div className="hd-seg-host">
@@ -472,7 +497,7 @@ function VerticalBoard({ standing, session, matches, byId, moments, intro, body,
               <div className="hd-vert-rows">
                 {/* One name per line fits up to 6 rows; Friday's 12 nines need one line per side. */}
                 {matches.map((m, i) => (
-                  <MatchRow key={m.id} match={m} byId={byId} stacked={matches.length <= 6} flash={moments.flashes[m.id]} style={stagger(i)} />
+                  <MatchRow key={m.id} match={m} byId={byId} stacked={matches.length <= 6} fit flash={moments.flashes[m.id]} style={stagger(i)} />
                 ))}
                 <ResultBanner banner={moments.banner} standing={standing} />
               </div>
@@ -509,9 +534,11 @@ function Venue({ session }: { session: Session }) {
 
 /** Full-screen broadcast layout for the clubhouse / OG House screens. */
 function TvBoard({ standing, session, matches, byId, moments, intro, body, wipe = 0, swipe = false }: BoardProps & { swipe?: boolean }) {
+  const frame = useRef<HTMLDivElement>(null);
+  useFit(frame);
   return (
     <div className={`hd-page hd-tv ${intro ? 'hd-intro' : ''} ${swipe ? 'hd-tv-swipe' : ''}`}>
-      <div className="hd-tv-frame">
+      <div className="hd-tv-frame" ref={frame}>
         <TeamHeader standing={standing} moments={moments} variant="tv" />
 
         <div className="hd-seg-host">
@@ -527,13 +554,13 @@ function TvBoard({ standing, session, matches, byId, moments, intro, body, wipe 
                 return (
                   <div key={m.id} className="hd-tv-row" style={stagger(i)}>
                     <span className={`hd-tv-status og ${lead === 'og' ? 'filled' : ''}`}>{cell('og')}</span>
-                    <span className={`hd-tv-side og ${lead === 'og' ? 'filled' : ''}`}>{sideName(m, 'og', byId)}</span>
+                    <span className={`hd-tv-side og ${lead === 'og' ? 'filled' : ''}`}><span className="hd-fit">{sideName(m, 'og', byId)}</span></span>
                     {/* Hole the match is through, like the broadcast "thru" column. */}
                     <span className="hd-tv-slot" title={matchName(m)}>
                       <span key={thruLabel(m)} className="hd-flip">{thruLabel(m)}</span>
                       {m.nine && <span className="hd-tv-nine">{m.nine === 'front' ? 'F9' : 'B9'}</span>}
                     </span>
-                    <span className={`hd-tv-side south ${lead === 'south' ? 'filled' : ''}`}>{sideName(m, 'south', byId)}</span>
+                    <span className={`hd-tv-side south ${lead === 'south' ? 'filled' : ''}`}><span className="hd-fit">{sideName(m, 'south', byId)}</span></span>
                     <span className={`hd-tv-status south ${lead === 'south' ? 'filled' : ''}`}>{cell('south')}</span>
                     <FlashOverlay flash={moments.flashes[m.id]} />
                   </div>

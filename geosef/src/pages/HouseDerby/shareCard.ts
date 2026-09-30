@@ -8,12 +8,14 @@ import {
 } from './data';
 import { decided } from './director';
 import { LOGO_FILES, type LogoName } from './brand';
-import { TEAMS, cupStanding, holeOutcome, matchStates, segments, type TeamId } from './scoring';
+import { TEAMS, TOTAL_POINTS, cupStanding, holeOutcome, matchStates, segments, type TeamId } from './scoring';
+import { momentum, momentumStats, stageBands } from './momentum';
 
 export type CardSpec =
   | { kind: 'standings'; sessions: Session[]; matches: Match[] }
   | { kind: 'recap'; session: Session; matches: Match[]; byId: Map<string, Player> }
-  | { kind: 'match'; match: Match; session?: Session; matches: Match[]; byId: Map<string, Player> };
+  | { kind: 'match'; match: Match; session?: Session; matches: Match[]; byId: Map<string, Player> }
+  | { kind: 'race'; sessions: Session[]; matches: Match[] };
 
 const W = 1080;
 const H = 1920;
@@ -22,6 +24,8 @@ const C = {
   cream: '#f8f6ea', ink: '#2b2d3a', muted: '#6b6a62', line: '#e2dfcf', white: '#ffffff',
 };
 const TEAM_COLOR: Record<TeamId, string> = { og: C.og, south: C.south };
+/** Labels for stages still to come: quieter than muted, still readable. */
+const FUTURE = '#a8a597';
 const DISPLAY = '"Bebas Neue", Oswald, Impact, sans-serif';
 
 /** Draws a card and returns it as a PNG. */
@@ -37,6 +41,7 @@ export async function renderCard(spec: CardSpec): Promise<Blob> {
   ctx.fillRect(0, 0, W, H);
   if (spec.kind === 'standings') drawStandings(ctx, logos, spec);
   else if (spec.kind === 'recap') drawRecap(ctx, logos, spec);
+  else if (spec.kind === 'race') drawRace(ctx, logos, spec);
   else drawMatch(ctx, logos, spec);
   drawFooter(ctx, logos);
   return new Promise((resolve, reject) => canvas.toBlob(b => (b ? resolve(b) : reject(new Error('Could not draw the card'))), 'image/png'));
@@ -46,6 +51,7 @@ export async function renderCard(spec: CardSpec): Promise<Blob> {
 export function cardFileName(spec: CardSpec): string {
   if (spec.kind === 'standings') return 'house-derby-standings.png';
   if (spec.kind === 'recap') return `house-derby-${spec.session.id}.png`;
+  if (spec.kind === 'race') return 'house-derby-race.png';
   return `house-derby-${spec.match.id}.png`;
 }
 
@@ -218,8 +224,9 @@ function drawRecap(ctx: Ctx, logos: Logos, { session, matches, byId }: Extract<C
     const size = Math.round(row * 0.46);
     const base = y + (row - 12) / 2 + size * 0.36;
     text(ctx, matchName(m), 100, base, { size: size * 0.75, color: C.muted, align: 'left', max: 250, spacing: 1 });
-    text(ctx, winner ? sideName(m, winner, byId) : 'Halved', 370, base, { size, color, align: 'left', max: 480 });
-    text(ctx, shortStatus(states), W - 90, base, { size, color, align: 'right', max: 160 });
+    // A halved match has no winner to name: both pairings, then the split.
+    text(ctx, winner ? sideName(m, winner, byId) : `${sideName(m, 'og', byId)} v ${sideName(m, 'south', byId)}`, 370, base, { size, color, align: 'left', max: 480 });
+    text(ctx, winner ? shortStatus(states) : '½–½', W - 90, base, { size, color, align: 'right', max: 160 });
   });
 }
 
@@ -277,4 +284,122 @@ function drawMatch(ctx: Ctx, logos: Logos, { match, session, matches, byId }: Ex
   // Where the cup stands.
   const cup = cupStanding(matches).points;
   text(ctx, `Cup · ${TEAM_NAMES.og} ${fmtPoints(cup.og)} – ${fmtPoints(cup.south)} ${TEAM_NAMES.south}`, W / 2, 1470, { size: 48, color: C.ink, spacing: 2 });
+}
+
+/** Diagonal stripes in a team color: points being led, not yet won. */
+function stripes(ctx: Ctx, color: string, flip: boolean): CanvasPattern {
+  const tile = document.createElement('canvas');
+  tile.width = tile.height = 24;
+  const t = tile.getContext('2d')!;
+  t.fillStyle = `${color}59`;
+  t.fillRect(0, 0, 24, 24);
+  t.strokeStyle = color;
+  t.lineWidth = 8;
+  t.beginPath();
+  for (const o of [-24, 0, 24]) {
+    if (flip) { t.moveTo(o, 0); t.lineTo(o + 24, 24); } else { t.moveTo(o + 24, 0); t.lineTo(o, 24); }
+  }
+  t.stroke();
+  return ctx.createPattern(tile, 'repeat')!;
+}
+
+/**
+ * The race to 18: each side's points and projection, the 36-point bar (won
+ * solid, leading striped, split at the winning line), and both teams'
+ * running totals through the event. Same data as the TV segment.
+ */
+function drawRace(ctx: Ctx, logos: Logos, { sessions, matches }: Extract<CardSpec, { kind: 'race' }>) {
+  const target = TOTAL_POINTS / 2;
+  const standing = cupStanding(matches);
+  const steps = momentum(sessions, matches);
+  const { changes } = momentumStats(steps);
+  const played = standing.points.og + standing.points.south;
+
+  logo(ctx, logos, 'crest', W / 2, 180, 230);
+  text(ctx, `Race to ${target}`, W / 2, 500, { size: 104, color: C.og, spacing: 4 });
+  text(ctx, `${fmtPoints(played)} of ${TOTAL_POINTS} played · ${changes} lead change${changes === 1 ? '' : 's'}`, W / 2, 560, { size: 42, color: C.gold, spacing: 3 });
+
+  // Each side: logo, points, projection.
+  for (const [i, t] of TEAMS.entries()) {
+    const edge = i ? W - 60 : 60;
+    const dir = i ? -1 : 1;
+    logo(ctx, logos, t, edge + dir * 60, 610, 120);
+    text(ctx, fmtPoints(standing.points[t]), edge + dir * 140, 780, { size: 190, color: TEAM_COLOR[t], align: i ? 'right' : 'left', max: 300 });
+    text(ctx, TEAM_NAMES[t], edge, 850, { size: 44, color: C.ink, align: i ? 'right' : 'left', max: 440, spacing: 2 });
+    text(ctx, `Proj ${fmtPoints(standing.projected[t])}`, edge, 900, { size: 38, color: C.muted, align: i ? 'right' : 'left', spacing: 2 });
+  }
+
+  // The bar: all 36 points.
+  const bx = 60, bw = W - 120, by = 940, bh = 72;
+  const px = (n: number) => (n / TOTAL_POINTS) * bw;
+  ctx.save();
+  ctx.beginPath();
+  ctx.roundRect(bx, by, bw, bh, 14);
+  ctx.clip();
+  ctx.fillStyle = C.line;
+  ctx.fillRect(bx, by, bw, bh);
+  const lead = (t: TeamId) => Math.max(0, standing.projected[t] - standing.points[t]);
+  ctx.fillStyle = C.og;
+  ctx.fillRect(bx, by, px(standing.points.og), bh);
+  ctx.fillStyle = stripes(ctx, C.og, false);
+  ctx.fillRect(bx + px(standing.points.og), by, px(lead('og')), bh);
+  ctx.fillStyle = C.south;
+  ctx.fillRect(bx + bw - px(standing.points.south), by, px(standing.points.south), bh);
+  ctx.fillStyle = stripes(ctx, C.south, true);
+  ctx.fillRect(bx + bw - px(standing.points.south) - px(lead('south')), by, px(lead('south')), bh);
+  ctx.restore();
+  rect(ctx, bx + bw / 2 - 5, by - 12, 10, bh + 24, C.gold, 3);
+  text(ctx, `${target} to win · OG keep the Derby on a tie`, W / 2, by + bh + 58, { size: 36, color: C.muted, spacing: 2 });
+
+  // Running totals through the event.
+  const cx = 110, cw = W - 110 - 170, cy = 1110, ch = 380;
+  const top = Math.max(target + 2, ...steps.map(s => Math.max(s.points.og, s.points.south) + 1));
+  const X = (i: number) => cx + (i / TOTAL_POINTS) * cw;
+  const Y = (v: number) => cy + ch - (v / top) * ch;
+  for (const b of stageBands(sessions, matches, steps)) {
+    if (!b.started) { ctx.fillStyle = `${C.line}88`; ctx.fillRect(X(b.from), cy, X(b.to) - X(b.from), ch); }
+    if (b.from > 0) { ctx.fillStyle = C.line; ctx.fillRect(X(b.from) - 1, cy, 2, ch); }
+    text(ctx, `${b.s.day === 'fri' ? 'Fri' : 'Sat'} ${b.s.name}`, (X(b.from) + X(b.to)) / 2, cy + ch + 42, { size: 26, color: b.started ? C.muted : FUTURE, max: X(b.to) - X(b.from) - 6 });
+  }
+  for (const v of [0, 6, 12]) {
+    ctx.fillStyle = C.line;
+    ctx.fillRect(cx, Y(v), cw, 2);
+    text(ctx, String(v), cx - 16, Y(v) + 12, { size: 32, color: C.muted, align: 'right' });
+  }
+  ctx.save();
+  ctx.setLineDash([16, 10]);
+  ctx.strokeStyle = C.gold;
+  ctx.lineWidth = 5;
+  ctx.beginPath();
+  ctx.moveTo(cx, Y(target));
+  ctx.lineTo(cx + cw, Y(target));
+  ctx.stroke();
+  ctx.restore();
+  text(ctx, String(target), cx - 16, Y(target) + 12, { size: 32, color: C.gold, align: 'right' });
+  // South first, OG on top: OG hold the tiebreak.
+  const last = steps[steps.length - 1]?.points ?? { og: 0, south: 0 };
+  for (const t of ['south', 'og'] as TeamId[]) {
+    ctx.strokeStyle = TEAM_COLOR[t];
+    ctx.lineWidth = 8;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(X(0), Y(0));
+    steps.forEach((s, k) => ctx.lineTo(X(k + 1), Y(s.points[t])));
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(X(steps.length), Y(last[t]), 14, 0, Math.PI * 2);
+    ctx.fillStyle = TEAM_COLOR[t];
+    ctx.fill();
+  }
+  // End labels, nudged apart when close.
+  let ly = { og: Y(last.og), south: Y(last.south) };
+  if (Math.abs(ly.og - ly.south) < 44) {
+    const mid = (ly.og + ly.south) / 2;
+    const ogUp = last.og >= last.south;
+    ly = { og: mid + (ogUp ? -22 : 22), south: mid + (ogUp ? 22 : -22) };
+  }
+  for (const t of TEAMS) {
+    text(ctx, `${t === 'og' ? 'OG' : 'South'} ${fmtPoints(last[t])}`, X(steps.length) + 30, ly[t] + 14, { size: 40, color: C.ink, align: 'left', max: 200 });
+  }
 }

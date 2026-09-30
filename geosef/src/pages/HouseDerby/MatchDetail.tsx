@@ -100,8 +100,11 @@ export default function MatchDetail() {
       {sharing && matches && (
         <ShareSheet
           onClose={() => setSharing(false)}
-          options={[{ label: matchName(match), spec: { kind: 'match', match, session, matches, byId } }]}
-          clipHref={states.some(s => s.phase === 'final') ? `/cup?tv&replay=${match.id}` : undefined}
+          options={[{
+            label: matchName(match),
+            spec: { kind: 'match', match, session, matches, byId },
+            clip: states.some(s => s.phase === 'final') ? `/cup?tv&replay=${match.id}` : undefined,
+          }]}
         />
       )}
     </div>
