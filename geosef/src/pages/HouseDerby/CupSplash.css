@@ -1,0 +1,43 @@
+/* Loading splash for /cup (see CupSplash.tsx). Self-contained: it renders
+   before HouseDerby.css loads. */
+.hd-splash {
+  position: fixed; inset: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: center;
+}
+.hd-splash-crest {
+  position: relative; display: block;
+  height: min(32vh, 48vw); aspect-ratio: 0.7822;
+  animation: hd-splash-breathe 2.4s 0.5s ease-in-out infinite;
+}
+.hd-splash-crest.intro { animation: hd-splash-in 0.5s ease-out both, hd-splash-breathe 2.4s 0.5s ease-in-out infinite; }
+.hd-splash-crest img { display: block; width: 100%; height: 100%; }
+/* A light band sweeping across the crest, masked to its shape. */
+.hd-splash-crest::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.9) 50%, transparent 60%) no-repeat;
+  background-size: 250% 100%; background-position: 150% 0;
+  -webkit-mask: var(--mask) center / contain no-repeat;
+  mask: var(--mask) center / contain no-repeat;
+  animation: hd-splash-gleam 1.8s 0.3s ease-in-out infinite;
+}
+/* Handoff to the board (classes set by CupSplash once the board is laid out). */
+.hd-splash.leaving { pointer-events: none; }
+.hd-splash.leaving .hd-splash-crest { animation: none; }
+.hd-splash.fly { animation: hd-splash-iris 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.hd-splash.fly .hd-splash-crest { animation: hd-splash-fly 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+.hd-splash.fly .hd-splash-crest::after { display: none; }
+/* No header crest to land on: just fade. */
+.hd-splash.fade { animation: hd-splash-out 0.3s ease-in forwards; }
+@keyframes hd-splash-iris {
+  from { clip-path: circle(var(--r) at var(--cx) var(--cy)); }
+  to { clip-path: circle(0 at var(--cx) var(--cy)); }
+}
+@keyframes hd-splash-fly { to { transform: translate(var(--tx), var(--ty)) scale(var(--s)); } }
+@keyframes hd-splash-out { to { opacity: 0; } }
+@keyframes hd-splash-in { from { opacity: 0; transform: scale(0.92); } to { opacity: 1; transform: none; } }
+@keyframes hd-splash-breathe { 50% { transform: scale(1.03); } }
+@keyframes hd-splash-gleam { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .hd-splash-crest, .hd-splash-crest.intro, .hd-splash-crest::after { animation: none; }
+  .hd-splash.leaving { display: none; }
+}

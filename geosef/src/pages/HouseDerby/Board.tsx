@@ -1,11 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   TEAM_NAMES, currentSessionId, dayAndSession, fmtPoints, formatLabel, matchLead, matchName, matchSort, nineName, shortStatus, sideName, thruLabel,
   useMatches, usePlayers, useSessions, type Match, type Player, type Session,
 } from './data';
 import { TEAMS, cupStanding, matchStates, type HoleOutcome, type TeamId } from './scoring';
-import { SURFACES, useCupChrome } from './brand';
+import { Tv, X } from 'lucide-react';
+import { useCupChrome } from './brand';
+import CupSplash from './CupSplash';
+import { LAYOUT_SURFACE, boardLayout, usePortrait, useWakeLock, type BoardLayout } from './display';
 import Logo from './Logo';
 import { useCountUp, useScoreMoments, type Banner, type Celebration } from './useScoreMoments';
 import './HouseDerby.css';
@@ -14,38 +17,56 @@ import './HouseDerby.css';
 type Standing = ReturnType<typeof cupStanding>;
 type Moments = ReturnType<typeof useScoreMoments>;
 type Flash = { result: HoleOutcome; key: number } | undefined;
+type BoardProps = {
+  standing: Standing; session: Session; matches: Match[]; byId: Map<string, Player>; moments: Moments; intro: boolean;
+};
 
 export default function Board() {
   const [params] = useSearchParams();
-  const tv = params.has('tv');
-  // ?tv=vertical: 9:16 layout for streaming to Instagram Live.
-  const vertical = params.get('tv') === 'vertical';
+  const layout = boardLayout(params.get('tv'), usePortrait());
   const { sessions, error: sErr } = useSessions();
   const { matches, error: mErr } = useMatches();
-  const { byId } = usePlayers();
-  const [picked, setPicked] = useState<string | null>(null);
+  const { players, byId, error: pErr } = usePlayers();
   const moments = useScoreMoments(matches);
-  useCupChrome('House Derby', vertical ? SURFACES.vertical : tv ? SURFACES.tv : SURFACES.page);
+  useCupChrome('House Derby', LAYOUT_SURFACE[layout]);
+  // Boards left running on a TV or a phone in a cart shouldn't sleep.
+  useWakeLock(layout !== 'phone');
+  // Players too, so names don't pop into rows that rendered without them.
+  const ready = !!(sessions && matches && players);
+  const intro = useIntro(ready);
 
-  const error = sErr ?? mErr;
+  const error = sErr ?? mErr ?? pErr;
   if (error) return <div className="hd-page"><p className="hd-error">{error}</p></div>;
-  if (!sessions || !matches) return <div className="hd-page"><p className="hd-muted">Loading…</p></div>;
+  // The splash stays mounted through the handoff and fades out over the
+  // finished board, so nothing underneath is seen half drawn.
+  return (
+    <>
+      {ready && <BoardView layout={layout} sessions={sessions} matches={matches} byId={byId} moments={moments} intro={intro} />}
+      {(!ready || intro) && <CupSplash leaving={ready} />}
+    </>
+  );
+}
 
+function BoardView({ layout, sessions, matches, byId, moments, intro }: {
+  layout: BoardLayout; sessions: Session[]; matches: Match[]; byId: Map<string, Player>; moments: Moments; intro: boolean;
+}) {
+  const [picked, setPicked] = useState<string | null>(null);
   const standing = cupStanding(matches);
   const sorted = [...matches].sort(matchSort(sessions));
   const current = currentSessionId(sessions, matches);
   const inSession = (s: Session) => sorted.filter(m => m.session === s.id);
 
-  if (tv) {
+  if (layout !== 'phone') {
     // Stages are played one at a time, so the TV holds on the current one (same
     // rule as the phone board's default tab) rather than rotating. While a
     // match result banner is up, it shows the session that result came from.
     const bannerSession = moments.banner?.kind === 'point' ? sessions.find(s => s.id === (moments.banner as Extract<Banner, { kind: 'point' }>).session) : undefined;
     const shown = bannerSession ?? sessions.find(s => s.id === current) ?? sessions[0];
-    const Layout = vertical ? VerticalBoard : TvBoard;
+    const props = { standing, session: shown, matches: inSession(shown), byId, moments, intro };
     return (
       <>
-        <Layout standing={standing} session={shown} matches={inSession(shown)} byId={byId} moments={moments} />
+        {layout === 'tv' ? <TvBoard {...props} /> : <VerticalBoard {...props} fill={layout === 'portrait'} />}
+        <ExitTv />
         {moments.celebration && <CelebrationOverlay c={moments.celebration} onDone={moments.dismissCelebration} />}
       </>
     );
@@ -54,7 +75,7 @@ export default function Board() {
   const shown = sessions.find(s => s.id === (picked ?? current)) ?? sessions[0];
 
   return (
-    <div className="hd-page hd-board">
+    <div className={`hd-page hd-board ${intro ? 'hd-intro' : ''}`}>
       <TeamHeader standing={standing} moments={moments} variant="phone" />
 
       <nav className="hd-tabs" aria-label="Sessions">
@@ -72,13 +93,16 @@ export default function Board() {
         ))}
       </nav>
 
-      <h2 className="hd-session-title">
-        {dayAndSession(shown)}
-        <span className="hd-muted"> · {formatLabel(shown)} · {shown.venue}</span>
-      </h2>
+      <div className="hd-session-bar">
+        <h2 className="hd-session-title">
+          {dayAndSession(shown)}
+          <span className="hd-muted"> · {formatLabel(shown)} · {shown.venue}</span>
+        </h2>
+        <Link to="/cup?tv" className="hd-tv-link"><Tv aria-hidden />TV view</Link>
+      </div>
       <div className="hd-rows">
-        {inSession(shown).map(m => (
-          <Link key={m.id} to={`/cup/match/${m.id}`} className="hd-row-link">
+        {inSession(shown).map((m, i) => (
+          <Link key={m.id} to={`/cup/match/${m.id}`} className="hd-row-link" style={stagger(i)}>
             <MatchRow match={m} byId={byId} flash={moments.flashes[m.id]} />
           </Link>
         ))}
@@ -90,6 +114,46 @@ export default function Board() {
       {moments.celebration && <CelebrationOverlay c={moments.celebration} onDone={moments.dismissCelebration} />}
     </div>
   );
+}
+
+const INTRO_MS = 1600;
+
+/** True for the board's first moments on screen, while its entrance plays. */
+function useIntro(ready: boolean): boolean {
+  const [done, setDone] = useState(false);
+  useEffect(() => {
+    if (!ready) return;
+    const t = setTimeout(() => setDone(true), INTRO_MS);
+    return () => clearTimeout(t);
+  }, [ready]);
+  return ready && !done;
+}
+
+/** Entrance delay for the i-th row, read by the .hd-intro animations. */
+const stagger = (i: number) => ({ ['--i' as string]: i });
+
+/**
+ * Way back to the phone board from a full-screen one. Hidden until the screen
+ * is touched or the mouse moves, so it never shows on an unattended TV or a
+ * stream capture.
+ */
+function ExitTv() {
+  const [shown, setShown] = useState(0);
+  useEffect(() => {
+    const show = () => setShown(n => n + 1);
+    window.addEventListener('pointerdown', show);
+    window.addEventListener('pointermove', show);
+    return () => {
+      window.removeEventListener('pointerdown', show);
+      window.removeEventListener('pointermove', show);
+    };
+  }, []);
+  useEffect(() => {
+    if (!shown) return;
+    const t = setTimeout(() => setShown(0), 3000);
+    return () => clearTimeout(t);
+  }, [shown]);
+  return shown ? <Link to="/cup" className="hd-tv-exit" aria-label="Exit TV view"><X aria-hidden /></Link> : null;
 }
 
 /** Big score that counts up and bumps when it changes. */
@@ -152,8 +216,8 @@ function FlashOverlay({ flash }: { flash: Flash }) {
  * Leaderboard row in the Golf Genius style: the leading side's cell fills with
  * its team color and the status arrow points toward it.
  */
-function MatchRow({ match, byId, stacked = false, flash }: {
-  match: Match; byId: Map<string, Player>; stacked?: boolean; flash?: Flash;
+function MatchRow({ match, byId, stacked = false, flash, style }: {
+  match: Match; byId: Map<string, Player>; stacked?: boolean; flash?: Flash; style?: React.CSSProperties;
 }) {
   const states = matchStates(match);
   const { lead, started } = matchLead(states);
@@ -165,7 +229,7 @@ function MatchRow({ match, byId, stacked = false, flash }: {
     ? sideName(match, t, byId).split(' / ').map(n => <span key={n}>{n}</span>)
     : sideName(match, t, byId);
   return (
-    <div className={`hd-row lead-${tone}`}>
+    <div className={`hd-row lead-${tone}`} style={style}>
       <div className={`hd-row-side og ${lead === 'og' ? 'filled' : ''}`}>{names('og')}</div>
       {/* Keyed on the text so the flip replays whenever the status changes. */}
       <div className={`hd-row-status ${tone}`}>
@@ -245,20 +309,21 @@ function CelebrationOverlay({ c, onDone }: { c: Celebration; onDone: () => void 
  * across the top and comments across the bottom, so those bands only carry
  * the title and footer; scores and matches sit in the middle.
  */
-function VerticalBoard({ standing, session, matches, byId, moments }: {
-  standing: Standing; session: Session; matches: Match[]; byId: Map<string, Player>; moments: Moments;
+function VerticalBoard({ standing, session, matches, byId, moments, intro, fill = false }: BoardProps & {
+  /** Filling a phone held upright: no bands kept clear for Instagram. */
+  fill?: boolean;
 }) {
   return (
-    <div className="hd-page hd-vert-page">
-      <div className="hd-vert">
+    <div className={`hd-page hd-vert-page ${intro ? 'hd-intro' : ''}`}>
+      <div className={`hd-vert ${fill ? 'hd-vert-fill' : ''}`}>
         <TeamHeader standing={standing} moments={moments} variant="vert" />
 
         <div className="hd-vert-session">{dayAndSession(session)}</div>
 
         <div className="hd-vert-rows">
           {/* One name per line fits up to 6 rows; Friday's 12 nines need one line per side. */}
-          {matches.map(m => (
-            <MatchRow key={m.id} match={m} byId={byId} stacked={matches.length <= 6} flash={moments.flashes[m.id]} />
+          {matches.map((m, i) => (
+            <MatchRow key={m.id} match={m} byId={byId} stacked={matches.length <= 6} flash={moments.flashes[m.id]} style={stagger(i)} />
           ))}
           <ResultBanner banner={moments.banner} />
         </div>
@@ -290,16 +355,14 @@ function Venue({ session }: { session: Session }) {
 }
 
 /** Full-screen broadcast layout for the clubhouse / OG House screens. */
-function TvBoard({ standing, session, matches, byId, moments }: {
-  standing: Standing; session: Session; matches: Match[]; byId: Map<string, Player>; moments: Moments;
-}) {
+function TvBoard({ standing, session, matches, byId, moments, intro }: BoardProps) {
   return (
-    <div className="hd-page hd-tv">
+    <div className={`hd-page hd-tv ${intro ? 'hd-intro' : ''}`}>
       <div className="hd-tv-frame">
         <TeamHeader standing={standing} moments={moments} variant="tv" />
 
         <div className="hd-tv-rows">
-          {matches.map(m => {
+          {matches.map((m, i) => {
             const states = matchStates(m);
             const { lead, started } = matchLead(states);
             const status = shortStatus(states);
@@ -307,7 +370,7 @@ function TvBoard({ standing, session, matches, byId, moments }: {
               ? <span key={status} className="hd-flip">{status}</span>
               : '');
             return (
-              <div key={m.id} className="hd-tv-row">
+              <div key={m.id} className="hd-tv-row" style={stagger(i)}>
                 <span className={`hd-tv-status og ${lead === 'og' ? 'filled' : ''}`}>{cell('og')}</span>
                 <span className={`hd-tv-side og ${lead === 'og' ? 'filled' : ''}`}>{sideName(m, 'og', byId)}</span>
                 {/* Hole the match is through, like the broadcast "thru" column. */}

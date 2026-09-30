@@ -16,17 +16,19 @@ Live scoreboard for a two-team, Ryder Cup–style match-play event (OG House vs 
 |---|---|
 | `/cup` | Public board: team header, stage tabs, match rows |
 | `/cup/match/:id` | Hole-by-hole grid |
-| `/cup?tv` | Landscape broadcast board (clubhouse screens) |
-| `/cup?tv=vertical` | 9:16 board for Instagram Live; fills the screen on phones |
+| `/cup?tv` | Full-screen board that follows the screen: landscape broadcast board, or on an upright phone the vertical board edge to edge. The "TV view" button on `/cup` opens it. Keeps the screen awake. |
+| `/cup?tv=landscape` | Pins the landscape board (clubhouse screens, 16:9 stream captures) |
+| `/cup?tv=vertical` | Pins the 9:16 board with bands kept clear for Instagram Live's overlays |
 | `/cup/admin[/:id]` | Marshal entry (Google sign-in). `?demo` shows demo controls |
 
-The TV and vertical boards hold on the current stage: the one with live play, else the latest with results.
+Touching a full-screen board briefly shows an exit button; unattended screens never show it. The full-screen boards hold on the current stage: the one with live play, else the latest with results.
 
 ## Code (`geosef/src/pages/HouseDerby/`)
 
 - `scoring.ts`: pure match-play engine. Covers hole results, match state (N&M, dormie, conceded), and cup totals and clinch.
 - `scoreEvents.ts` + `useScoreMoments.ts`: diff live snapshots into holes won, points, lead changes and clinch, which drive the animations. Nothing fires on first load. Bulk rewrites (more than 3 matches changed at once) report only a clinch.
 - `data.ts`: Firestore hooks, types and labels.
+- `display.ts`: which board a URL and screen shape get, page surfaces, wake lock. `CupSplash` is the crest loading screen, bundled with the site so it also covers the lazy /cup download.
 - `Board.tsx`: all three public layouts, sharing one `TeamHeader` and `MatchRow`.
 - `Admin.tsx` / `MatchEntry.tsx`: marshal list and entry. Every write is batched with an `edits/` log entry (`writes.ts`).
 - `demo.ts` / `DemoPanel.tsx`: demo states plus simulate/auto-play. **Remove before the event.**
