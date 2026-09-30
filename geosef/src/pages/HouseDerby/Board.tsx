@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   FORMAT_NAMES, TEAM_NAMES, currentSessionId, fmtPoints, matchLead, matchSort, shortStatus, sideName, thruLabel,
@@ -10,7 +10,6 @@ import Logo from './Logo';
 import { useCountUp, useScoreMoments, type Banner, type Celebration } from './useScoreMoments';
 import './HouseDerby.css';
 
-const TV_ROTATE_MS = 20_000;
 const CHALLENGER: TeamId = DEFENDING_TEAM === 'og' ? 'south' : 'og';
 
 type Standing = ReturnType<typeof cupStanding>;
@@ -26,15 +25,8 @@ export default function Board() {
   const { matches, error: mErr } = useMatches();
   const { byId } = usePlayers();
   const [picked, setPicked] = useState<string | null>(null);
-  const [tvIndex, setTvIndex] = useState(0);
   const moments = useScoreMoments(matches);
   useCupChrome();
-
-  useEffect(() => {
-    if (!tv) return;
-    const t = setInterval(() => setTvIndex(i => i + 1), TV_ROTATE_MS);
-    return () => clearInterval(t);
-  }, [tv]);
 
   const error = sErr ?? mErr;
   if (error) return <div className="hd-page"><p className="hd-error">{error}</p></div>;
@@ -46,14 +38,11 @@ export default function Board() {
   const inSession = (s: Session) => sorted.filter(m => m.session === s.id);
 
   if (tv) {
-    // Cycle through sessions that have started, unless exactly one is live.
-    const phases = (s: Session) => inSession(s).flatMap(m => matchStates(m).map(st => st.phase));
-    const started = sessions.filter(s => phases(s).some(p => p !== 'not-started'));
-    const live = started.filter(s => phases(s).includes('live'));
-    const pool = live.length === 1 ? live : started.length ? started : sessions;
-    // While a match result is on screen, show the session it came from.
+    // Stages are played one at a time, so the TV holds on the current one (same
+    // rule as the phone board's default tab) rather than rotating. While a
+    // match result banner is up, it shows the session that result came from.
     const bannerSession = moments.banner?.kind === 'point' ? sessions.find(s => s.id === (moments.banner as Extract<Banner, { kind: 'point' }>).session) : undefined;
-    const shown = bannerSession ?? pool[tvIndex % pool.length];
+    const shown = bannerSession ?? sessions.find(s => s.id === current) ?? sessions[0];
     const Layout = vertical ? VerticalBoard : TvBoard;
     return (
       <>

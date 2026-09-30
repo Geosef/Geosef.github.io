@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { activeSessionId, thruLabel } from './data';
+import { activeSessionId, currentSessionId, thruLabel } from './data';
 import type { HoleOutcome, MatchScoring } from './scoring';
 
 const m = (results: HoleOutcome[], extra: Partial<MatchScoring> = {}): MatchScoring => ({
@@ -40,5 +40,33 @@ describe('activeSessionId', () => {
   });
   it('stays on the last stage once everything is final', () => {
     expect(activeSessionId(sessions, sessions.map(s => match(s.id, done)))).toBe('sat-pm');
+  });
+});
+
+describe('currentSessionId', () => {
+  const sessions = ['fri', 'sat-am', 'sat-pm'].map((id, order) => ({
+    id, order, day: 'sat' as const, name: id, venue: '', format: 'singles', holes: 9 as const,
+  }));
+  const match = (session: string, slot: number, results: HoleOutcome[]) => ({
+    ...m(results), id: `${session}-${slot}`, session, slot, players: { og: [], south: [] }, pending: false,
+  });
+  const done = Array<HoleOutcome>(5).fill('og');
+
+  it('stays on a stage whose played matches are all finished while others wait', () => {
+    // Friday done; scramble has three finished and three not started. Nothing is
+    // live, but the scramble is still the stage to show, not Friday.
+    const ms = [
+      match('fri', 1, done),
+      ...[1, 2, 3].map(i => match('sat-am', i, done)),
+      ...[4, 5, 6].map(i => match('sat-am', i, [])),
+      match('sat-pm', 1, []),
+    ];
+    expect(currentSessionId(sessions, ms)).toBe('sat-am');
+  });
+  it('prefers the stage with live play', () => {
+    expect(currentSessionId(sessions, [match('fri', 1, done), match('sat-am', 1, ['og']), match('sat-pm', 1, [])])).toBe('sat-am');
+  });
+  it('shows the finished stage between stages', () => {
+    expect(currentSessionId(sessions, [match('fri', 1, done), match('sat-am', 1, []), match('sat-pm', 1, [])])).toBe('fri');
   });
 });
