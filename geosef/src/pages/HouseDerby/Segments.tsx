@@ -166,7 +166,13 @@ export function NextView({ session, matches, byId, vertical }: {
             <div key={slot} className="hd-next-row">
               {TEAMS.map((t, i) => (
                 <React.Fragment key={t}>
-                  {i === 1 && <span className="hd-next-row-vs">vs</span>}
+                  {/* Centered between the sides: "vs", with when they're off underneath. */}
+                  {i === 1 && (
+                    <span className="hd-next-row-mid">
+                      <span className="hd-next-row-vs">vs</span>
+                      {ms.map(m => m.teeTime && <span key={m.id} className="hd-next-row-tee">{m.nine && <small>{nineName(m)} </small>}{teeClock(m.teeTime).replace(/ [AP]M$/, '')}</span>)}
+                    </span>
+                  )}
                   <div className={`hd-next-row-side ${t}`}>
                     {ms[0].players[t].length
                       ? ms[0].players[t].map(id => <span key={id} className="hd-fit">{byId.get(id)?.last ?? id}</span>)
@@ -174,9 +180,6 @@ export function NextView({ session, matches, byId, vertical }: {
                   </div>
                 </React.Fragment>
               ))}
-              <div className="hd-next-row-tee">
-                {ms.map(m => m.teeTime && <span key={m.id}>{m.nine && <small>{nineName(m)} </small>}{teeClock(m.teeTime).replace(/ [AP]M$/, '')}</span>)}
-              </div>
             </div>
           ))}
         </div>
