@@ -3,7 +3,7 @@
 // fonts and inline SVG on iOS). 1080x1920, with content kept clear of the
 // top and bottom bands Stories covers with its own UI.
 import {
-  TEAM_NAMES, dayAndSession, fmtPoints, formatLabel, nineName, shortStatus, sideName, teeClock, teeDay,
+  TEAM_NAMES, dayAndSession, fmtPoints, formatLabel, matchHeadline, nineName, shortStatus, sideName, teeDay,
   type Match, type Player, type Session,
 } from './data';
 import { decided } from './director';
@@ -240,13 +240,9 @@ function drawMatch(ctx: Ctx, logos: Logos, { match, session, matches, byId }: Ex
 
   // Result band in the leading side's color.
   const state = matchStates(match)[0];
-  const lead = state.phase === 'final' ? state.winner : state.leader;
-  const status =
-    state.phase === 'not-started' ? (match.teeTime ? `Tees off ${teeClock(match.teeTime)}` : 'Not started')
-    : state.phase === 'final' ? (state.winner ? `${TEAM_NAMES[state.winner]} win ${shortStatus([state])}` : 'Halved')
-    : lead ? `${TEAM_NAMES[lead]} ${state.up} up thru ${state.thru}` : `All square thru ${state.thru}`;
-  rect(ctx, 0, 650, W, 150, lead ? TEAM_COLOR[lead] : state.phase === 'final' ? C.gold : C.ink);
-  text(ctx, status, W / 2, 755, { size: 96, color: C.white, spacing: 3 });
+  const headline = matchHeadline(match);
+  rect(ctx, 0, 650, W, 150, headline.team ? TEAM_COLOR[headline.team] : headline.final ? C.gold : C.ink);
+  text(ctx, headline.text, W / 2, 755, { size: 96, color: C.white, spacing: 3 });
 
   // The two sides.
   for (const [i, t] of TEAMS.entries()) {

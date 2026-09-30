@@ -774,7 +774,7 @@
   color: #fff; font-size: calc(var(--size) * 0.42); letter-spacing: 0.02em;
   box-shadow: 0 0 0 calc(var(--size) * 0.05) var(--hd-gold);
 }
-.hd-portrait { overflow: hidden; }
+.hd-portrait { overflow: hidden; font-family: var(--hd-display); }
 .hd-portrait img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .hd-portrait.og { background: var(--hd-og); }
 .hd-portrait.south { background: var(--hd-south); }
@@ -988,3 +988,30 @@
 .hd-next-row-side.og { align-items: flex-end; text-align: right; color: var(--hd-og); }
 .hd-next-row-side.south { align-items: flex-start; color: var(--hd-south); }
 .hd-next-row-vs { color: var(--hd-gold); font-size: 3.6cqw; text-transform: uppercase; }
+
+/* ---------- Match page hero ---------- */
+.hd-mhero { display: flex; flex-direction: column; gap: 10px; margin: 4px 0 18px; }
+.hd-mhero-stage { font-family: var(--hd-display); font-size: 1rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--hd-muted); text-align: center; }
+.hd-mhero-status {
+  font-family: var(--hd-display); font-size: 1.9rem; line-height: 1; letter-spacing: 0.04em; text-transform: uppercase; text-align: center;
+  color: #fff; background: var(--hd-ink); border-radius: 12px; padding: 12px 10px 10px;
+}
+.hd-mhero-status.og { background: var(--hd-og); }
+.hd-mhero-status.south { background: var(--hd-south); }
+.hd-mhero-status.halved { background: var(--hd-gold); }
+.hd-mhero-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.hd-mhero-side { display: flex; flex-direction: column; gap: 12px; padding: 12px; border-radius: 14px; color: #fff; min-width: 0; }
+.hd-mhero-side.og { background: var(--hd-og); }
+.hd-mhero-side.south { background: var(--hd-south); }
+.hd-mhero-team { display: flex; align-items: center; gap: 6px; font-family: var(--hd-display); font-size: 1.05rem; letter-spacing: 0.06em; text-transform: uppercase; color: #f3d9b8; }
+.hd-mhero-logo { width: 24px; height: 24px; }
+.hd-mhero-player { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.hd-portrait.hd-mhero-portrait { --size: 54px; }
+.hd-mhero-name { display: flex; flex-direction: column; min-width: 0; line-height: 1.05; }
+.hd-mhero-name span:first-child { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.8; }
+.hd-mhero-name span:last-child { font-family: var(--hd-display); font-size: 1.4rem; letter-spacing: 0.03em; text-transform: uppercase; overflow-wrap: anywhere; }
+@media (min-width: 700px) {
+  .hd-portrait.hd-mhero-portrait { --size: 72px; }
+  .hd-mhero-name span:last-child { font-size: 1.8rem; }
+  .hd-mhero-status { font-size: 2.4rem; }
+}

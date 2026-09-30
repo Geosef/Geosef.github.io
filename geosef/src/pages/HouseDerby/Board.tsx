@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   TEAM_NAMES, currentSessionId, dayAndSession, fmtPoints, formatLabel, matchLead, matchSort, nineName, shortStatus, sideName, teeClock, thruLabel,
@@ -90,7 +90,20 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
   /** ?replay loops the latest moment (?replay=<match id> for one match) for recording clips. */
   replay: string | null;
 }) {
-  const [picked, setPicked] = useState<string | null>(null);
+  // Tapping into a match saves the stage tab and scroll position; coming back
+  // restores them once. (Only for that round trip: a later visit opens on
+  // the live stage as usual.)
+  const [back] = useState(() => {
+    const saved = recall(RETURN_KEY);
+    remember(RETURN_KEY, null);
+    try { return saved ? (JSON.parse(saved) as { stage: string; y: number }) : null; } catch { return null; }
+  });
+  const [picked, setPicked] = useState<string | null>(back?.stage ?? null);
+  useLayoutEffect(() => {
+    if (layout === 'phone' && back?.y) window.scrollTo(0, back.y);
+    // Only on arrival.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [sharing, setSharing] = useState(false);
   // Clips need a finished nine to replay (and the race a point on the board).
   const momentClip = latestMoment(matches).length ? '/cup?tv&replay' : undefined;
@@ -166,7 +179,7 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
       </div>
       <div className="hd-rows">
         {inSession(shown).map((m, i) => (
-          <Link key={m.id} to={`/cup/match/${m.id}`} className="hd-row-link" style={stagger(i)}>
+          <Link key={m.id} to={`/cup/match/${m.id}`} className="hd-row-link" style={stagger(i)} onClick={() => remember(RETURN_KEY, JSON.stringify({ stage: shown.id, y: window.scrollY }))}>
             <MatchRow match={m} byId={byId} flash={moments.flashes[m.id]} />
           </Link>
         ))}
@@ -226,6 +239,18 @@ function useReplay(play: (events: ScoreEvent[]) => void, matches: Match[], id: s
     t = setTimeout(loop, 1_800);
     return () => clearTimeout(t);
   }, [id, play]);
+}
+
+/** Where the phone board was when a match was opened (see BoardView). */
+const RETURN_KEY = 'hd-return';
+
+// Per-tab memory for the phone board. Storage can be blocked (private mode);
+// then it just doesn't remember.
+function recall(key: string): string | null {
+  try { return sessionStorage.getItem(key); } catch { return null; }
+}
+function remember(key: string, value: string | null) {
+  try { if (value === null) sessionStorage.removeItem(key); else sessionStorage.setItem(key, value); } catch { /* not remembered */ }
 }
 
 /** The race clip's loop: its entrance (bar, lines, labels) runs about 2.5s, then holds. */
