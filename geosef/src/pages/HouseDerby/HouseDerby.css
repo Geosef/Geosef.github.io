@@ -399,3 +399,17 @@
 .hd-tv-head, .hd-tv-sub, .hd-tv-foot { flex: 0 0 auto; }
 .hd-tv-rows { flex: 1 1 auto; min-height: 0; }
 .hd-tv-row { flex: 1 1 0; min-height: 0; max-height: 4.2vw; }
+
+/* Prototype demo controls on the marshal page. */
+.hd-demo {
+  margin: 12px 0; padding: 10px 12px; border: 1px dashed var(--hd-gold); border-radius: 10px; background: #fffaf0;
+}
+.hd-demo summary { font-weight: 700; cursor: pointer; }
+.hd-demo-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+.hd-demo-buttons button {
+  border: 1px solid var(--hd-og); background: var(--hd-card); color: var(--hd-og);
+  border-radius: 8px; padding: 8px 10px; font-weight: 600; font-size: 0.85rem;
+}
+.hd-demo-buttons button:disabled { opacity: 0.5; }
+.hd-demo-links { display: flex; gap: 12px; font-size: 0.85rem; margin-top: 6px; }
+.hd-demo-links a { color: var(--hd-og); font-weight: 600; }

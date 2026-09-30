@@ -4,6 +4,7 @@ import { useMarshal } from './useMarshal';
 import { FORMAT_NAMES, matchSort, sideName, statusLabel, useMatches, usePlayers, useSessions } from './data';
 import { matchStates } from './scoring';
 import MatchEntry from './MatchEntry';
+import DemoPanel, { useDemoMode } from './DemoPanel';
 import { LOGOS, useCupChrome } from './brand';
 import './HouseDerby.css';
 
@@ -36,16 +37,17 @@ export default function Admin() {
         <button className="hd-link" onClick={signOut}>Sign out</button>
       </header>
       {/* Keyed so per-match state (selected hole, correcting) resets between matches. */}
-      {matchId ? <MatchEntry key={matchId} user={user} /> : <MatchList />}
+      {matchId ? <MatchEntry key={matchId} user={user} /> : <MatchList email={user.email ?? ''} />}
     </div>
   );
 }
 
-function MatchList() {
+function MatchList({ email }: { email: string }) {
   const { sessions, error: sErr } = useSessions();
   const { matches, error: mErr } = useMatches();
   const { byId } = usePlayers();
   const error = sErr ?? mErr;
+  const demo = useDemoMode();
 
   if (error) return <p className="hd-error">{error}</p>;
   if (!sessions || !matches) return <p className="hd-muted">Loading…</p>;
@@ -54,6 +56,7 @@ function MatchList() {
 
   return (
     <div className="hd-list">
+      {demo && <DemoPanel matches={matches} email={email} />}
       {sessions.map(session => (
         <section key={session.id}>
           <h2 className="hd-session-title">
