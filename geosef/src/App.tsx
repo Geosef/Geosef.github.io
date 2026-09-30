@@ -13,9 +13,11 @@ import Playoffs from './pages/GolfLeaderboard/Playoffs';
 import RecentScores from './pages/GolfLeaderboard/RecentScores';
 import EventDetail from './pages/GolfLeaderboard/EventDetail';
 import NotFound from './pages/GolfLeaderboard/NotFound';
+import CupSplash from './pages/HouseDerby/CupSplash';
 import './App.css';
 
-// Lazy so the Firebase SDK only loads on /cup, not on every page.
+// Lazy so the Firebase SDK only loads on /cup, not on every page. The crest
+// splash covers the download.
 const HouseDerbyAdmin = lazy(() => import('./pages/HouseDerby/Admin'));
 const HouseDerbyBoard = lazy(() => import('./pages/HouseDerby/Board'));
 const HouseDerbyMatch = lazy(() => import('./pages/HouseDerby/MatchDetail'));
@@ -26,9 +28,9 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          <Route path="/cup" element={<Suspense fallback={null}><HouseDerbyBoard /></Suspense>} />
-          <Route path="/cup/match/:matchId" element={<Suspense fallback={null}><HouseDerbyMatch /></Suspense>} />
-          <Route path="/cup/admin/:matchId?" element={<Suspense fallback={null}><HouseDerbyAdmin /></Suspense>} />
+          <Route path="/cup" element={<Suspense fallback={<CupSplash />}><HouseDerbyBoard /></Suspense>} />
+          <Route path="/cup/match/:matchId" element={<Suspense fallback={<CupSplash />}><HouseDerbyMatch /></Suspense>} />
+          <Route path="/cup/admin/:matchId?" element={<Suspense fallback={<CupSplash />}><HouseDerbyAdmin /></Suspense>} />
           <Route path="/travel-coordinator" element={<TravelCoordinator />} />
           <Route path="/golf-leaderboard" element={<GolfLayout />}>
             <Route index element={<GolfLeaderboard />} />

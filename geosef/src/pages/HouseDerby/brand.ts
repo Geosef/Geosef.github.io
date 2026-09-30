@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import type { TeamId } from './scoring';
+import { SURFACES, type CupSurface } from './display';
 
 // Two-tone crest (white art, gold lettering and crown, navy fill); the
 // single-color crest.svg is kept for the gleam mask.
@@ -47,21 +48,6 @@ function swapLink(rel: string, href: string, type?: string): () => void {
   };
 }
 
-/** Page color behind a view, and whether it's a fixed full-screen board. */
-export interface CupSurface {
-  background: string;
-  /** Full-screen boards: no page scroll or rubber-band overscroll. */
-  lock?: boolean;
-}
-
-// Hex values mirror the CSS tokens (--hd-cream etc.); Safari reads them off
-// html/body directly, so they're set inline rather than through CSS vars.
-export const SURFACES = {
-  page: { background: '#f8f6ea' },
-  tv: { background: '#3f4463', lock: true },
-  vertical: { background: '#1d1f2b', lock: true },
-} satisfies Record<string, CupSurface>;
-
 /**
  * Tab title, favicon, home-screen icon and page surface for /cup pages,
  * restoring the site's on leave. iOS Safari (26+) ignores theme-color and
@@ -82,6 +68,8 @@ export function useCupChrome(title = 'House Derby', surface: CupSurface = SURFAC
   }, [title]);
 
   useEffect(() => {
+    // index.html paints a placeholder background before the app loads.
+    document.getElementById('cup-early-bg')?.remove();
     const roots = [document.documentElement, document.body];
     const prev = roots.map(el => ({ bg: el.style.backgroundColor, overflow: el.style.overflow, overscroll: el.style.overscrollBehavior }));
     for (const el of roots) {

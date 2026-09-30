@@ -607,3 +607,50 @@
 }
 .hd-page.hd-tv { min-height: 100vh; min-height: 100svh; }
 .hd-tv-frame { height: calc(100vh - 4vw); height: calc(100svh - 4vw); }
+
+/* ---------- TV view entry and exit ---------- */
+.hd-session-bar { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin: 20px 0 8px; }
+.hd-session-bar .hd-session-title { margin: 0; }
+.hd-tv-link {
+  flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px; border: 1px solid var(--hd-og); border-radius: 999px;
+  color: var(--hd-og); text-decoration: none; font-size: 0.8rem; font-weight: 600;
+}
+.hd-tv-link svg { width: 15px; height: 15px; }
+/* Shown briefly on touch/mouse over a full-screen board. */
+.hd-tv-exit {
+  position: fixed; z-index: 20;
+  top: calc(12px + env(safe-area-inset-top)); left: calc(12px + env(safe-area-inset-left));
+  display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+  border-radius: 50%; background: rgba(29, 31, 43, 0.72); color: #fff;
+  animation: hd-fade-in 0.2s ease-out;
+}
+.hd-tv-exit svg { width: 22px; height: 22px; }
+
+/* Portrait phone board: the vertical layout without the bands kept clear for
+   Instagram Live's overlays; safe areas instead. */
+.hd-vert-fill .hd-th-vert .hd-th-team { padding-top: calc(1.5cqh + env(safe-area-inset-top)); }
+.hd-vert-fill .hd-th-vert .hd-th-crest { top: calc(0.5cqh + env(safe-area-inset-top)); }
+.hd-vert-fill .hd-vert-foot { flex-basis: auto; align-items: center; padding-bottom: calc(1.5cqh + env(safe-area-inset-bottom)); }
+
+/* ---------- Entrance as the splash fades ----------
+   The header and chrome are there from the first frame; rows slide in. */
+.hd-intro .hd-row-link,
+.hd-intro .hd-vert .hd-row,
+.hd-intro .hd-tv-row {
+  animation: hd-intro-row 0.45s ease-out both;
+  animation-delay: calc(0.1s + var(--i, 0) * 45ms);
+}
+@keyframes hd-intro-row { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .hd-intro .hd-row-link, .hd-intro .hd-vert .hd-row, .hd-intro .hd-tv-row, .hd-tv-exit { animation: none; }
+}
+
+/* Phone turned sideways: fill the short screen edge to edge (clear of the
+   notch) rather than the TV's framed card. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .hd-page.hd-tv {
+    padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .hd-tv-frame { width: 100%; height: 100svh; border-radius: 0; box-shadow: none; }
+}
