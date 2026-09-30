@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { diffEvents, type EventMatch } from './scoreEvents';
+import { diffEvents, latestMoment, type EventMatch } from './scoreEvents';
 import type { HoleOutcome } from './scoring';
 
 function match(id: string, results: HoleOutcome[], extra: Partial<EventMatch> = {}): EventMatch {
@@ -72,5 +72,46 @@ describe('diffEvents', () => {
     const before = Array.from({ length: 6 }, (_, i) => match(`m-${i + 1}`, []));
     const after = before.map(m => match(m.id, ['og', 'south']));
     expect(diffEvents(before, after)).toEqual([]);
+  });
+});
+
+describe('latestMoment', () => {
+  const OG_5_AND_4: HoleOutcome[] = ['og', 'og', 'og', 'og', 'og'];
+
+  it('is empty before any nine finishes', () => {
+    expect(latestMoment([match('m-1', ['og', 'south'])])).toEqual([]);
+  });
+
+  it('replays the most recently scored finish: closing hole, the point, then the lead it swung', () => {
+    const early = match('m-1', ['south', 'south', 'south', 'south', 'south'], { updatedAt: 1 });
+    const late = match('m-2', OG_5_AND_4, { updatedAt: 2 });
+    expect(latestMoment([early, late])).toEqual([
+      { kind: 'hole', matchId: 'm-2', result: 'og' },
+      { kind: 'point', matchId: 'm-2', slot: 2, session: 'sat-pm', nine: null, winner: 'og', label: '5&4' },
+      { kind: 'lead', leader: null },
+    ]);
+  });
+
+  it('leaves out the lead when the point did not change it', () => {
+    const a = match('m-1', OG_5_AND_4, { updatedAt: 1 });
+    const b = match('m-2', OG_5_AND_4, { updatedAt: 2 });
+    expect(latestMoment([a, b]).map(e => e.kind)).toEqual(['hole', 'point']);
+  });
+
+  it('a named older match replays without a lead change (its "before" is stale)', () => {
+    const a = match('m-1', OG_5_AND_4, { updatedAt: 1 });
+    const b = match('m-2', ['south', 'south', 'south', 'south', 'south'], { updatedAt: 2 });
+    expect(latestMoment([a, b], 'm-1').map(e => e.kind)).toEqual(['hole', 'point']);
+  });
+
+  it('closes on the deciding hole, not holes entered after it', () => {
+    const m = match('m-1', [...OG_5_AND_4, 'south'], { updatedAt: 1 });
+    expect(latestMoment([m])[0]).toEqual({ kind: 'hole', matchId: 'm-1', result: 'og' });
+  });
+
+  it('replays a named match', () => {
+    const a = match('m-1', OG_5_AND_4, { updatedAt: 1 });
+    const b = match('m-2', OG_5_AND_4, { updatedAt: 2 });
+    expect(latestMoment([a, b], 'm-1').pop()).toMatchObject({ kind: 'point', matchId: 'm-1' });
   });
 });

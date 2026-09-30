@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { diffEvents, type EventMatch, type ScoreEvent } from './scoreEvents';
 import type { HoleOutcome, TeamId } from './scoring';
 
@@ -6,8 +6,9 @@ export type Banner = Extract<ScoreEvent, { kind: 'point' | 'lead' }> & { key: nu
 export type Celebration = Extract<ScoreEvent, { kind: 'clinch' }> & { key: number };
 
 const FLASH_MS = 1400;
-const BANNER_MS = 3400;
-const CELEBRATE_MS = 9000;
+/** How long each banner holds; the lead takeover is the bigger moment, so longer. */
+export const BANNER_MS: Record<Banner['kind'], number> = { point: 3400, lead: 4400 };
+export const CELEBRATE_MS = 9000;
 
 /**
  * Watches live match data and exposes the moments to animate. The first
@@ -23,13 +24,9 @@ export function useScoreMoments(matches: EventMatch[] | null) {
   const [pulse, setPulse] = useState<Record<TeamId, number>>({ og: 0, south: 0 });
   const [leadGlow, setLeadGlow] = useState<{ team: TeamId | null; key: number } | null>(null);
 
-  useEffect(() => {
-    if (!matches) return;
-    const before = prev.current;
-    prev.current = matches;
-    if (!before) return;
-
-    for (const e of diffEvents(before, matches)) {
+  /** Animates events: live diffs, or a replayed moment. */
+  const play = useCallback((events: ScoreEvent[]) => {
+    for (const e of events) {
       const key = ++seq.current;
       if (e.kind === 'hole') {
         setFlashes(f => ({ ...f, [e.matchId]: { result: e.result, key } }));
@@ -44,23 +41,31 @@ export function useScoreMoments(matches: EventMatch[] | null) {
           const team = e.winner;
           setPulse(p => ({ ...p, [team]: p[team] + 1 }));
         }
-        if (e.kind === 'lead') setLeadGlow({ team: e.leader, key });
       } else {
         setCelebration({ ...e, key });
         setTimeout(() => setCelebration(c => (c?.key === key ? null : c)), CELEBRATE_MS);
       }
     }
-  }, [matches]);
+  }, []);
 
-  // Show banners one at a time.
+  useEffect(() => {
+    if (!matches) return;
+    const before = prev.current;
+    prev.current = matches;
+    if (before) play(diffEvents(before, matches));
+  }, [matches, play]);
+
+  // Show banners one at a time: the point, then the lead change it caused.
+  // The header glow fires with the lead takeover, not ahead of it.
   const banner = queue[0] ?? null;
   useEffect(() => {
     if (!banner) return;
-    const t = setTimeout(() => setQueue(q => q.slice(1)), BANNER_MS);
+    if (banner.kind === 'lead') setLeadGlow({ team: banner.leader, key: banner.key });
+    const t = setTimeout(() => setQueue(q => q.slice(1)), BANNER_MS[banner.kind]);
     return () => clearTimeout(t);
   }, [banner]);
 
-  return { flashes, banner, celebration, pulse, leadGlow, dismissCelebration: () => setCelebration(null) };
+  return { flashes, banner, celebration, pulse, leadGlow, play, dismissCelebration: () => setCelebration(null) };
 }
 
 /** Counts from the previous value to the new one in half-point steps. */

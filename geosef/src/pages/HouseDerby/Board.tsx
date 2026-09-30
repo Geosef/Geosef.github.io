@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   TEAM_NAMES, currentSessionId, dayAndSession, fmtPoints, formatLabel, matchLead, matchName, matchSort, nineName, shortStatus, sideName, thruLabel,
@@ -11,13 +11,14 @@ import CupSplash from './CupSplash';
 import { NextView, RecapView, Wipe, useSegment, useWipe } from './Segments';
 import ShareSheet from './ShareSheet';
 import { decided } from './director';
+import { latestMoment, type ScoreEvent } from './scoreEvents';
 import type { SegmentKind } from './director';
 import {
   COMPACT_LANDSCAPE, LAYOUT_SURFACE, STANDALONE, boardLayout, canFullscreen, toggleFullscreen, useFullscreen, useMedia, usePortrait, useWakeLock,
   type BoardLayout,
 } from './display';
 import Logo from './Logo';
-import { useCountUp, useScoreMoments, type Banner, type Celebration } from './useScoreMoments';
+import { BANNER_MS, CELEBRATE_MS, useCountUp, useScoreMoments, type Banner, type Celebration } from './useScoreMoments';
 import './HouseDerby.css';
 
 
@@ -67,6 +68,7 @@ export default function Board() {
         <BoardView
           layout={layout} sessions={sessions} matches={matches} byId={byId} moments={moments} intro={intro} awake={awake} swipe={swipe}
           scene={pinnedScene(params.get('scene'))}
+          replay={params.get('replay')}
         />
       )}
       {(!ready || intro) && <CupSplash leaving={ready} />}
@@ -79,16 +81,21 @@ function pinnedScene(v: string | null): SegmentKind | null {
   return v === 'board' || v === 'recap' || v === 'next' ? v : null;
 }
 
-function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swipe, scene }: {
+function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swipe, scene, replay }: {
   layout: BoardLayout; sessions: Session[]; matches: Match[]; byId: Map<string, Player>; moments: Moments; intro: boolean; awake: boolean;
   /** Landscape phone in the browser: scroll room so a swipe hides the bars. */
   swipe: boolean;
   scene: SegmentKind | null;
+  /** ?replay loops the latest moment (?replay=<match id> for one match) for recording clips. */
+  replay: string | null;
 }) {
   const [picked, setPicked] = useState<string | null>(null);
   const [sharing, setSharing] = useState(false);
   // Dead-time segments for the TV boards; score moments hold the live board.
-  const { shown: segment, wipe } = useWipe(useSegment(sessions, matches, scene, !!(moments.banner || moments.celebration)));
+  const replaying = layout !== 'phone' ? replay : null;
+  useReplay(moments.play, matches, replaying);
+  // A replay holds the live board so segments don't cut into a recording.
+  const { shown: segment, wipe } = useWipe(useSegment(sessions, matches, replaying !== null ? 'board' : scene, !!(moments.banner || moments.celebration)));
   const standing = cupStanding(matches);
   const sorted = [...matches].sort(matchSort(sessions));
   const current = currentSessionId(sessions, matches);
@@ -101,7 +108,10 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
     // recap or preview, that segment's session.
     const bannerSession = moments.banner?.kind === 'point' ? sessions.find(s => s.id === (moments.banner as Extract<Banner, { kind: 'point' }>).session) : undefined;
     const segSession = segment.kind === 'board' ? undefined : sessions.find(s => s.id === segment.session);
-    const shown = bannerSession ?? segSession ?? sessions.find(s => s.id === current) ?? sessions[0];
+    // A replay stays on its match's stage between loops, so a clip doesn't jump stages.
+    const replayed = replaying !== null ? latestMoment(matches, replaying || undefined).find(e => e.kind === 'point') : undefined;
+    const replaySession = replayed?.kind === 'point' ? sessions.find(s => s.id === replayed.session) : undefined;
+    const shown = bannerSession ?? replaySession ?? segSession ?? sessions.find(s => s.id === current) ?? sessions[0];
     const body = !segSession ? null
       : segment.kind === 'recap' ? <RecapView session={segSession} matches={matches} byId={byId} />
       : <NextView session={segSession} matches={matches} byId={byId} vertical={layout !== 'tv'} />;
@@ -162,6 +172,7 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
       {sharing && (
         <ShareSheet
           onClose={() => setSharing(false)}
+          clipHref={latestMoment(matches).length ? '/cup?tv&replay' : undefined}
           options={[
             { label: 'Standings', spec: { kind: 'standings', sessions, matches } },
             // The stage on screen, once it has a result.
@@ -184,6 +195,30 @@ function useIntro(ready: boolean): boolean {
     return () => clearTimeout(t);
   }, [ready]);
   return ready && !done;
+}
+
+/**
+ * Loops a moment rebuilt from the data (`latestMoment`) so anyone can screen
+ * record a clip for Stories: the closing hole's flash, the point banner and
+ * horseshoe swing, or the clinch celebration. `id` narrows it to one match.
+ */
+function useReplay(play: (events: ScoreEvent[]) => void, matches: Match[], id: string | null) {
+  const latest = useRef(matches);
+  latest.current = matches;
+  useEffect(() => {
+    if (id === null) return;
+    let t: ReturnType<typeof setTimeout>;
+    const loop = () => {
+      const events = latestMoment(latest.current, id || undefined);
+      play(events);
+      // Wait out the banners (point, then any lead takeover) or the celebration, then pause.
+      const busy = events.reduce((ms, e) => ms + (e.kind === 'clinch' ? CELEBRATE_MS : e.kind === 'point' || e.kind === 'lead' ? BANNER_MS[e.kind] : 0), 0);
+      t = setTimeout(loop, busy + 2_000);
+    };
+    // Start once the entrance has settled.
+    t = setTimeout(loop, 1_800);
+    return () => clearTimeout(t);
+  }, [id, play]);
 }
 
 /** Entrance delay for the i-th row, read by the .hd-intro animations. */
@@ -257,10 +292,10 @@ function TeamLogo({ team, moments, className = '' }: { team: TeamId; moments: Mo
   return <Logo name={team} className={`hd-team-logo ${n ? 'hd-swing' : ''} ${className}`} animKey={n} />;
 }
 
-/** One-shot glow over the team's score block when they take the lead. */
+/** One-shot glow over the new leader's score block (both, when the cup goes level). */
 function LeadGlow({ moments, team }: { moments: Moments; team: TeamId }) {
   const g = moments.leadGlow;
-  return g && g.team === team ? <span key={g.key} className="hd-lead-glow" aria-hidden /> : null;
+  return g && (g.team === team || g.team === null) ? <span key={g.key} className="hd-lead-glow" aria-hidden /> : null;
 }
 
 /**
@@ -338,21 +373,21 @@ function needLine(standing: Standing, t: TeamId): string {
   return `${fmtPoints(needed[t])} to win`;
 }
 
-function bannerText(b: Banner): { title: string; detail: string; team: TeamId | null } {
-  if (b.kind === 'lead') {
-    return b.leader
-      ? { title: `${TEAM_NAMES[b.leader]} take the lead`, detail: '', team: b.leader }
-      : { title: 'All square', detail: 'The Derby is level', team: null };
-  }
+function bannerText(b: Extract<Banner, { kind: 'point' }>): { title: string; detail: string; team: TeamId | null } {
   const nine = b.nine ? ` · ${nineName({ nine: b.nine })}` : '';
   return b.winner
     ? { title: `${TEAM_NAMES[b.winner]} win Match ${b.slot}`, detail: `${b.label}${nine}`, team: b.winner }
     : { title: `Match ${b.slot} halved`, detail: `½ point each${nine}`, team: null };
 }
 
-/** Result banner that slides over the board on TV and vertical layouts. */
-function ResultBanner({ banner }: { banner: Banner | null }) {
+/**
+ * Score moments over the board body on TV and vertical layouts: a pill that
+ * slides up for a match result, then, if it swung the cup, the bigger lead
+ * takeover.
+ */
+function ResultBanner({ banner, standing }: { banner: Banner | null; standing: Standing }) {
   if (!banner) return null;
+  if (banner.kind === 'lead') return <LeadTakeover leader={banner.leader} key={banner.key} standing={standing} />;
   const { title, detail, team } = bannerText(banner);
   return (
     <div key={banner.key} className={`hd-banner ${team ?? 'even'}`} role="status">
@@ -360,6 +395,28 @@ function ResultBanner({ banner }: { banner: Banner | null }) {
       <div>
         <div className="hd-banner-title">{title}</div>
         {detail && <div className="hd-banner-detail">{detail}</div>}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The cup lead changing: the new leader's color sweeps across from their
+ * side of the board (gold from the middle when it goes level), with the cup
+ * score under the headline.
+ */
+function LeadTakeover({ leader, standing }: { leader: TeamId | null; standing: Standing }) {
+  return (
+    <div className={`hd-takeover ${leader ?? 'even'}`} role="status">
+      <div className="hd-takeover-body">
+        <Logo name={leader ?? 'crest'} className={`hd-takeover-logo ${leader ? 'hd-swing' : ''}`} />
+        <div className="hd-takeover-kicker">{leader ? TEAM_NAMES[leader] : 'The Derby is'}</div>
+        <div className="hd-takeover-title">{leader ? 'Take the lead' : 'All square'}</div>
+        <div className="hd-takeover-score">
+          <span className="og">{fmtPoints(standing.points.og)}</span>
+          <span className="dash">–</span>
+          <span className="south">{fmtPoints(standing.points.south)}</span>
+        </div>
       </div>
     </div>
   );
@@ -416,7 +473,7 @@ function VerticalBoard({ standing, session, matches, byId, moments, intro, body,
                 {matches.map((m, i) => (
                   <MatchRow key={m.id} match={m} byId={byId} stacked={matches.length <= 6} flash={moments.flashes[m.id]} style={stagger(i)} />
                 ))}
-                <ResultBanner banner={moments.banner} />
+                <ResultBanner banner={moments.banner} standing={standing} />
               </div>
             </>
           )}
@@ -481,7 +538,7 @@ function TvBoard({ standing, session, matches, byId, moments, intro, body, wipe 
                   </div>
                 );
               })}
-              <ResultBanner banner={moments.banner} />
+              <ResultBanner banner={moments.banner} standing={standing} />
             </div>
           )}
           <Wipe n={wipe} />

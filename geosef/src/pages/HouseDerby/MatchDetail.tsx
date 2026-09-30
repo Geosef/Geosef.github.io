@@ -98,7 +98,11 @@ export default function MatchDetail() {
       })}
       <p className="hd-muted">• marks a stroke hole. Faded holes were played after the nine was decided.</p>
       {sharing && matches && (
-        <ShareSheet onClose={() => setSharing(false)} options={[{ label: matchName(match), spec: { kind: 'match', match, session, matches, byId } }]} />
+        <ShareSheet
+          onClose={() => setSharing(false)}
+          options={[{ label: matchName(match), spec: { kind: 'match', match, session, matches, byId } }]}
+          clipHref={states.some(s => s.phase === 'final') ? `/cup?tv&replay=${match.id}` : undefined}
+        />
       )}
     </div>
   );

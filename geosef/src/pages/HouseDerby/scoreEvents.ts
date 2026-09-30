@@ -2,7 +2,7 @@
 // boards animate: a hole won, a nine decided, the cup lead changing, and the
 // Derby being clinched.
 import {
-  TEAMS, cupStanding, holeOutcome, matchStates, segments,
+  TEAMS, cupStanding, holeOutcome, matchPoints, matchStates, segments,
   type HoleOutcome, type MatchScoring, type TeamId,
 } from './scoring';
 
@@ -11,6 +11,8 @@ export interface EventMatch extends MatchScoring {
   slot: number;
   session: string;
   nine?: 'front' | 'back';
+  /** When a score was last entered (ms). */
+  updatedAt?: number;
 }
 
 export type ScoreEvent =
@@ -82,4 +84,36 @@ export function diffEvents(prev: EventMatch[], next: EventMatch[]): ScoreEvent[]
   if (l0 !== l1 && TEAMS.some(t => c1.points[t] > 0)) lead.push({ kind: 'lead', leader: l1 });
 
   return [...holeEvents, ...pointEvents, ...lead, ...clinch];
+}
+
+/**
+ * The moment to loop for replay clips, rebuilt from the data rather than a
+ * live diff: the clinch once the Derby is won, else the most recently scored
+ * nine to finish (or `matchId`'s, if it has finished). As live: the closing
+ * hole's flash, the point, then the lead change if that point swung the cup
+ * (so a stage ending level replays as "All square").
+ */
+export function latestMoment(matches: EventMatch[], matchId?: string): ScoreEvent[] {
+  const { clinched, points: after } = cupStanding(matches);
+  if (clinched && !matchId) return [{ kind: 'clinch', team: clinched }];
+  const finished = matches
+    .filter(m => matchStates(m).some(s => s.phase === 'final'))
+    .sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0));
+  const m = matchId ? finished.find(x => x.id === matchId) : finished[0];
+  if (!m) return [];
+  const states = matchStates(m);
+  const i = states.map(s => s.phase).lastIndexOf('final');
+  const st = states[i];
+  const closing = segments(m)[i].filter(h => !st.afterClose.includes(h) && holeOutcome(m, h)).pop();
+  const result = closing ? holeOutcome(m, closing) : null;
+  // Did this point swing the cup? Only knowable for the latest finish: an
+  // older match's "before" has other results mixed in since.
+  const won = matchPoints(st);
+  const before = { og: after.og - won.og, south: after.south - won.south };
+  const swung = m === finished[0] && leaderOf(before) !== leaderOf(after) && TEAMS.some(t => after[t] > 0);
+  return [
+    ...(result ? [{ kind: 'hole', matchId: m.id, result } as const] : []),
+    { kind: 'point', matchId: m.id, slot: m.slot, session: m.session, nine: m.nine ?? null, winner: st.winner, label: st.label },
+    ...(swung ? [{ kind: 'lead', leader: leaderOf(after) } as const] : []),
+  ];
 }
