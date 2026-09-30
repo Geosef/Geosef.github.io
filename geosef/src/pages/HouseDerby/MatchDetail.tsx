@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Share2 } from 'lucide-react';
 import { Link, useParams } from 'react-router-dom';
-import { FORMAT_NAMES, TEAM_NAMES, matchName, nineName, sideFullName, useMatch, useMatches, usePlayers, useSessions } from './data';
+import { FORMAT_NAMES, TEAM_NAMES, nineName, sideFullName, sideName, useMatch, useMatches, usePlayers, useSessions } from './data';
 import ShareSheet from './ShareSheet';
 import { TEAMS, holeOutcome, matchStates, segments, strokesOn } from './scoring';
 import { useCupChrome } from './brand';
@@ -37,7 +37,7 @@ export default function MatchDetail() {
       </div>
       <div className="hd-muted">
         {session ? `${session.day === 'fri' ? 'Friday' : 'Saturday'} · ${session.name} · ${FORMAT_NAMES[session.format] ?? session.format}` : match.session}
-        {` · ${matchName(match)}`}
+        {match.nine && ` · ${nineName(match)}`}
       </div>
       <div className="hd-detail-sides">
         {TEAMS.map(t => (
@@ -101,7 +101,7 @@ export default function MatchDetail() {
         <ShareSheet
           onClose={() => setSharing(false)}
           options={[{
-            label: matchName(match),
+            label: `${sideName(match, 'og', byId)} v ${sideName(match, 'south', byId)}`,
             spec: { kind: 'match', match, session, matches, byId },
             clip: states.some(s => s.phase === 'final') ? `/cup?tv&replay=${match.id}` : undefined,
           }]}

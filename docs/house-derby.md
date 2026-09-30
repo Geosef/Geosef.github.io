@@ -5,12 +5,14 @@ Live scoreboard for a two-team, Ryder Cup–style match-play event (OG House vs 
 ## Format
 
 - 36 points. Every point is a 9-hole match. Ties: OG wins at 18–18; South needs 18½.
-- **Fri, indoor, Trackman sims.** Two waves of 3 alt-shot pairings. Each pairing plays 18 holes as two separate points: the front nine (holes 1–9) and the back nine (10–18).
+- **Fri, indoor, Trackman sims.** Two alt-shot stages (Alt-Shot 1 and 2) of 3 pairings each. Each pairing plays 18 holes as two separate points: the front nine (holes 1–9) and the back nine (10–18).
 - **Sat, Ballwin Golf Course, a 9-hole course.** Scramble (6 matches), then modified alt (6), then singles (12).
 - Stages are played one at a time, in order.
 - Marshals record who won each hole. There's no handicap math: stroke holes are set per match by the committee and shown to marshals.
 
 ## Views
+
+Viewer screens never show match numbers: each player plays once per stage, so the players identify the match. Indoor nines are labeled Front/Back. Marshal screens keep the numbers.
 
 | Route | What |
 |---|---|
@@ -75,10 +77,10 @@ Safari 26+ ignores `theme-color`. It tints its toolbars and overscroll from the 
 ## Before the event
 
 - [ ] Real pairings and stroke holes in `pairings.local.json`, then seed with `--reset-scores`.
-- [ ] Confirm tee times in `sessions.json`, then seed. They're placeholders (Fri waves 5:00/6:30 PM with back nines 45 min later; Sat stages 8 AM, 11 AM and 2 PM, matches 10 min apart). The seed writes `teeTime` on each match from `startsAt`, `backNineAt` and `teeInterval`. They're display only (up-next cards and countdown); the TV never changes what it shows based on them.
+- [ ] Confirm tee times in `sessions.json`, then seed. They're placeholders (Fri Alt-Shot 1/2 at 5:00/6:30 PM with back nines 45 min later; Sat stages 8 AM, 11 AM and 2 PM, matches 10 min apart). The seed writes `teeTime` on each match from `startsAt`, `backNineAt` and `teeInterval`. They're display only (up-next cards and countdown); the TV never changes what it shows based on them.
 - [ ] Final marshal list in `marshals.local.json`, then seed. Every marshal must sign in with a Google account.
 - [ ] Remove the demo panel.
-- [ ] Font: Bebas Neue is a stand-in for the club's Liberator. The personal license forbids web use. If the club's commercial license covers this site, swap `--hd-display` and inject a subset woff2 from a CI secret. Never commit the font file.
+- [ ] Font: Bebas Neue is a stand-in for the club's Liberator. The personal license forbids web use. If the club's commercial license covers this site, swap `--hd-display` and inject a subset woff2 from a CI secret. Never commit the font file. Declare the file's real weight in its `@font-face` (a bold cut registered as 400 gets faux-bolded, which Safari draws doubled).
 - [ ] New domain: add it to the Firebase authorized domains and the API key referrers.
 - [ ] Freeze merges to `main` on Oct 16–17 (main = prod).
 - [ ] Check toolbar tinting on an iOS 27 device.
