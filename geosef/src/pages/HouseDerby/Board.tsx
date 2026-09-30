@@ -55,9 +55,6 @@ export default function Board() {
 
   return (
     <div className="hd-page hd-board">
-      {/* Safari tints its top toolbar from a fixed element at the top edge;
-          this strip makes it navy to sit with the header (it can't split). */}
-      <div className="hd-top-tint" aria-hidden />
       <TeamHeader standing={standing} moments={moments} variant="phone" />
 
       <nav className="hd-tabs" aria-label="Sessions">

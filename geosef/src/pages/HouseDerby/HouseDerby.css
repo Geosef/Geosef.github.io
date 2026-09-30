@@ -578,15 +578,19 @@
 /* ---------- iOS Safari (26+) chrome ----------
    The site uses viewport-fit=cover, so pages keep content clear of the home
    indicator and, in landscape, the notch. Toolbar tint comes from html/body
-   (set per view by useCupChrome) and fixed elements at the edges. */
+   (set per view by useCupChrome). No fixed tint strip on /cup: it read as a
+   sticky bar while scrolling. */
 .hd-page {
   padding-left: max(16px, env(safe-area-inset-left));
   padding-right: max(16px, env(safe-area-inset-right));
   padding-bottom: calc(48px + env(safe-area-inset-bottom));
 }
-.hd-top-tint {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 50; pointer-events: none;
-  height: max(4px, env(safe-area-inset-top)); background: var(--hd-og);
+/* Each team half's color continues above the page, so pulling down past the
+   top (rubber-band overscroll) shows navy | green rather than the cream page
+   color. Not fixed, so Safari doesn't sample it for the toolbar tint. */
+.hd-th-phone .hd-th-team::before {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 100%; height: 100vh;
+  background: inherit; pointer-events: none;
 }
 .hd-th-phone .hd-th-team { padding-top: calc(16px + env(safe-area-inset-top)); }
 .hd-th-phone .hd-th-crest { top: calc(12px + env(safe-area-inset-top)); }
