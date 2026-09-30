@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { SCENARIOS, buildScenario, pickNextHole } from './demo';
-import { cupStanding, matchStates } from './scoring';
+import { FLOW_START, OUTCOMES, PHASES, buildScenario, flowStep, pickNextHole, scenario, type FlowState } from './demo';
+import { cupStanding, matchStates, type HoleOutcome } from './scoring';
 import type { Match } from './data';
 
 // Same layout as sessions.json: two indoor waves of 3 pairings (front and
@@ -16,24 +16,27 @@ const blank: Match[] = [
   }))),
 ];
 
-function run(id: string) {
-  const holes = buildScenario(SCENARIOS.find(s => s.id === id)!, blank);
+function run(phaseId: string, outcomeId = 'og') {
+  const phase = PHASES.find(p => p.id === phaseId)!;
+  const outcome = OUTCOMES.find(o => o.id === outcomeId)!;
+  const holes = buildScenario(scenario(phase, outcome), blank);
   return blank.map(m => ({ ...m, holes: holes[m.id] ?? {} }));
 }
-const phases = (ms: Match[], session: string) => ms.filter(m => m.session === session).flatMap(m => matchStates(m).map(s => s.phase));
+const phases = (ms: Match[], session: string) => ms.filter(m => m.session === session).sort((a, b) => a.slot - b.slot || (a.nine === 'back' ? 1 : 0) - (b.nine === 'back' ? 1 : 0)).flatMap(m => matchStates(m).map(s => s.phase));
 
 // Scenarios are random, so run each several times.
 const REPEAT = 25;
 
 describe('demo scenarios', () => {
-  it('fresh clears everything', () => {
-    expect(cupStanding(run('fresh')).points).toEqual({ og: 0, south: 0 });
-    expect(phases(run('fresh'), 'fri-w1').every(p => p === 'not-started')).toBe(true);
+  it('before: nothing played', () => {
+    const ms = run('fresh');
+    expect(cupStanding(ms).points).toEqual({ og: 0, south: 0 });
+    expect(phases(ms, 'fri-w1').every(p => p === 'not-started')).toBe(true);
   });
 
-  it('friday live has wave 1 on the back nine and wave 2 unstarted', () => {
+  it('a live indoor wave has fronts decided and backs in play, later stages untouched', () => {
     for (let i = 0; i < REPEAT; i++) {
-      const ms = run('fri-live');
+      const ms = run('w1-live');
       expect(phases(ms, 'fri-w1')).toEqual(['final', 'live', 'final', 'live', 'final', 'live']);
       expect(phases(ms, 'fri-w2').every(p => p === 'not-started')).toBe(true);
     }
@@ -46,43 +49,38 @@ describe('demo scenarios', () => {
     expect(phases(ms, 'sat-am').every(p => p === 'not-started')).toBe(true);
   });
 
-  it('saturday AM live has every scramble match in progress', () => {
+  it('a live outdoor stage looks staggered: early slots done, middle live, last not out', () => {
     for (let i = 0; i < REPEAT; i++) {
-      expect(phases(run('am-live'), 'sat-am').every(p => p === 'live')).toBe(true);
+      const pm = phases(run('pm-live'), 'sat-pm');
+      expect(pm).toEqual([...Array(4).fill('final'), ...Array(5).fill('live'), ...Array(3).fill('not-started')]);
     }
   });
 
-  it('singles tight race is 12-12 before singles', () => {
-    for (let i = 0; i < REPEAT; i++) {
-      const ms = run('singles-tight');
-      const before = cupStanding(ms.filter(m => m.session !== 'sat-pm'));
-      expect(before.points).toEqual({ og: 12, south: 12 });
-      const pm = phases(ms, 'sat-pm');
-      expect(pm.filter(p => p === 'final')).toHaveLength(3);
-      expect(pm.filter(p => p === 'live')).toHaveLength(9);
+  it('each outcome plays out its route to the final score', () => {
+    const expected = { og: { og: 20, south: 16 }, south: { og: 16.5, south: 19.5 }, tie: { og: 18, south: 18 } };
+    const winner = { og: 'og', south: 'south', tie: 'og' };
+    for (const o of OUTCOMES) {
+      for (let i = 0; i < REPEAT; i++) {
+        const s = cupStanding(run('final', o.id));
+        expect(s.points).toEqual(expected[o.id]);
+        expect(s.clinched).toBe(winner[o.id]);
+      }
     }
   });
 
-  it('OG wins at 18-18', () => {
-    for (let i = 0; i < REPEAT; i++) {
-      const s = cupStanding(run('og-ties'));
-      expect(s.points).toEqual({ og: 18, south: 18 });
-      expect(s.clinched).toBe('og');
-    }
-  });
-
-  it('South wins 19.5-16.5', () => {
-    for (let i = 0; i < REPEAT; i++) {
-      const s = cupStanding(run('south-wins'));
-      expect(s.points).toEqual({ og: 16.5, south: 19.5 });
-      expect(s.clinched).toBe('south');
-    }
+  it('done stages follow the outcome route, so the lead changes along the way', () => {
+    // OG outright: South lead after wave 1, level after Friday, OG from there.
+    expect(cupStanding(run('w1-done')).points).toEqual({ og: 2.5, south: 3.5 });
+    expect(cupStanding(run('fri-done')).points).toEqual({ og: 6, south: 6 });
+    expect(cupStanding(run('am-done')).points).toEqual({ og: 10, south: 8 });
   });
 
   it('never leaves holes entered after a nine was decided', () => {
-    for (const sc of SCENARIOS) {
-      for (const m of run(sc.id)) {
-        for (const st of matchStates(m)) expect(st.afterClose).toEqual([]);
+    for (const p of PHASES) {
+      for (const o of OUTCOMES) {
+        for (const m of run(p.id, o.id)) {
+          for (const st of matchStates(m)) expect(st.afterClose).toEqual([]);
+        }
       }
     }
   });
@@ -120,6 +118,65 @@ describe('pickNextHole', () => {
     // Every point decided, nothing entered after a nine was decided.
     const s = cupStanding(ms);
     expect(s.points.og + s.points.south).toBe(36);
+    for (const m of ms) for (const st of matchStates(m)) expect(st.afterClose).toEqual([]);
+  });
+});
+
+describe('flowStep (tournament flow)', () => {
+  const order = ['fri-w1', 'fri-w2', 'sat-am', 'sat-mid', 'sat-pm'];
+  const opts = { now: 1_000, stagger: 3, deadMs: 30_000, lean: 0 };
+  const apply = (ms: Match[], p: { matchId: string; hole: number; result: HoleOutcome }) =>
+    ms.map(m => (m.id === p.matchId ? { ...m, holes: { ...m.holes, [p.hole]: { result: p.result } } } : m));
+
+  it('opens with a hole in the first stage when nothing has been played', () => {
+    const step = flowStep(blank, order, FLOW_START, opts);
+    expect(step.kind).toBe('hole');
+    if (step.kind === 'hole') expect(step.play.matchId).toMatch(/^fri-w1-.*-front$/);
+  });
+
+  it('pauses for dead time when a stage finishes, then tees off the next', () => {
+    const ms = run('fri-done');
+    const dead = flowStep(ms, order, { stage: 'fri-w2', ticks: 50, deadUntil: 0 }, opts);
+    expect(dead).toMatchObject({ kind: 'dead', next: 'sat-am', msLeft: 30_000 });
+    const still = flowStep(ms, order, dead.state, { ...opts, now: 20_000 });
+    expect(still.kind).toBe('dead');
+    const teeOff = flowStep(ms, order, dead.state, { ...opts, now: 31_001 });
+    expect(teeOff.kind).toBe('hole');
+    // First tick of an outdoor stage: only slot 1 is out.
+    if (teeOff.kind === 'hole') expect(teeOff.play.matchId).toBe('sat-am-1');
+  });
+
+  it('tees outdoor slots off in order, stagger ticks apart', () => {
+    let ms: Match[] = run('fri-done');
+    let state: FlowState = { stage: 'sat-am', ticks: 0, deadUntil: 0 };
+    const firstTick = new Map<number, number>();
+    for (let tick = 0; tick < 40; tick++) {
+      const step = flowStep(ms, order, state, opts);
+      state = step.state;
+      if (step.kind !== 'hole') continue;
+      const slot = ms.find(m => m.id === step.play.matchId)!.slot;
+      if (!firstTick.has(slot)) firstTick.set(slot, tick);
+      expect(tick).toBeGreaterThanOrEqual((slot - 1) * opts.stagger);
+      ms = apply(ms, step.play);
+    }
+    expect([...firstTick.keys()].sort((a, b) => a - b).slice(0, 3)).toEqual([1, 2, 3]);
+  });
+
+  it('plays the whole tournament through, with a dead-time stop between every stage', () => {
+    let ms = blank;
+    let state = FLOW_START;
+    let now = 0;
+    const deadBefore = new Set<string>();
+    for (let i = 0; i < 5000; i++) {
+      const step = flowStep(ms, order, state, { ...opts, now });
+      state = step.state;
+      if (step.kind === 'done') break;
+      if (step.kind === 'dead') { deadBefore.add(step.next); now += 5_000; continue; }
+      if (step.kind === 'hole') ms = apply(ms, step.play);
+      now += 100;
+    }
+    expect(cupStanding(ms).points.og + cupStanding(ms).points.south).toBe(36);
+    expect([...deadBefore]).toEqual(['fri-w2', 'sat-am', 'sat-mid', 'sat-pm']);
     for (const m of ms) for (const st of matchStates(m)) expect(st.afterClose).toEqual([]);
   });
 });

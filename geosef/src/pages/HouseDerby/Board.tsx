@@ -8,7 +8,7 @@ import { TEAMS, cupStanding, matchStates, type HoleOutcome, type TeamId } from '
 import { Maximize, Minimize, Share2, Tv, X } from 'lucide-react';
 import { useCupChrome } from './brand';
 import CupSplash from './CupSplash';
-import { NextView, RecapView, Wipe, useSegment, useWipe } from './Segments';
+import { MomentumView, NextView, RecapView, Wipe, useSegment, useWipe } from './Segments';
 import ShareSheet from './ShareSheet';
 import { decided } from './director';
 import { latestMoment, type ScoreEvent } from './scoreEvents';
@@ -76,9 +76,9 @@ export default function Board() {
   );
 }
 
-/** ?scene=recap|next|board holds the TV on one segment (previews, or a manual override). */
+/** ?scene=board|recap|momentum|next holds the TV on one segment (previews, or a manual override). */
 function pinnedScene(v: string | null): SegmentKind | null {
-  return v === 'board' || v === 'recap' || v === 'next' ? v : null;
+  return v === 'board' || v === 'recap' || v === 'momentum' || v === 'next' ? v : null;
 }
 
 function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swipe, scene, replay }: {
@@ -107,12 +107,13 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
     // banner is up, it shows the session that result came from; during a
     // recap or preview, that segment's session.
     const bannerSession = moments.banner?.kind === 'point' ? sessions.find(s => s.id === (moments.banner as Extract<Banner, { kind: 'point' }>).session) : undefined;
-    const segSession = segment.kind === 'board' ? undefined : sessions.find(s => s.id === segment.session);
+    const segSession = 'session' in segment ? sessions.find(s => s.id === segment.session) : undefined;
     // A replay stays on its match's stage between loops, so a clip doesn't jump stages.
     const replayed = replaying !== null ? latestMoment(matches, replaying || undefined).find(e => e.kind === 'point') : undefined;
     const replaySession = replayed?.kind === 'point' ? sessions.find(s => s.id === replayed.session) : undefined;
     const shown = bannerSession ?? replaySession ?? segSession ?? sessions.find(s => s.id === current) ?? sessions[0];
-    const body = !segSession ? null
+    const body = segment.kind === 'momentum' ? <MomentumView sessions={sessions} matches={matches} />
+      : !segSession ? null
       : segment.kind === 'recap' ? <RecapView session={segSession} matches={matches} byId={byId} />
       : <NextView session={segSession} matches={matches} byId={byId} vertical={layout !== 'tv'} />;
     const props = { standing, session: shown, matches: inSession(shown), byId, moments, intro, body, wipe };
