@@ -25,7 +25,10 @@ describe('accolades', () => {
       { event: 'Spring Fling', label: '4th', place: 4 },
       { event: 'Barrel Run', label: 'T12', place: 12 },
     ]);
-    expect(a.qualifiers).toEqual(['Summer League Playoff Qualifier', 'Qualified · The Crown']);
+    expect(a.qualifiers).toEqual([
+      { event: 'Summer League Playoffs', label: 'Qualifier' },
+      { event: 'The Crown', label: 'Qualified' },
+    ]);
     expect(a.participation).toEqual(expect.arrayContaining([
       { event: 'Summer League', times: 2 },
       { event: 'Fall Ball', times: 1 },
