@@ -3,7 +3,7 @@
 // fonts and inline SVG on iOS). 1080x1920, with content kept clear of the
 // top and bottom bands Stories covers with its own UI.
 import {
-  TEAM_NAMES, dayAndSession, fmtPoints, formatLabel, matchName, shortStatus, sideName, teeClock, teeDay,
+  TEAM_NAMES, dayAndSession, fmtPoints, formatLabel, nineName, shortStatus, sideName, teeClock, teeDay,
   type Match, type Player, type Session,
 } from './data';
 import { decided } from './director';
@@ -223,9 +223,11 @@ function drawRecap(ctx: Ctx, logos: Logos, { session, matches, byId }: Extract<C
     rect(ctx, 60, y, 14, row - 12, color, 0);
     const size = Math.round(row * 0.46);
     const base = y + (row - 12) / 2 + size * 0.36;
-    text(ctx, matchName(m), 100, base, { size: size * 0.75, color: C.muted, align: 'left', max: 250, spacing: 1 });
+    // Indoor pairings play a front and a back; otherwise the players say which match.
+    const nameX = session.nines ? 250 : 100;
+    if (m.nine) text(ctx, nineName(m), 100, base, { size: size * 0.75, color: C.muted, align: 'left', max: 140, spacing: 1 });
     // A halved match has no winner to name: both pairings, then the split.
-    text(ctx, winner ? sideName(m, winner, byId) : `${sideName(m, 'og', byId)} v ${sideName(m, 'south', byId)}`, 370, base, { size, color, align: 'left', max: 480 });
+    text(ctx, winner ? sideName(m, winner, byId) : `${sideName(m, 'og', byId)} v ${sideName(m, 'south', byId)}`, nameX, base, { size, color, align: 'left', max: W - 270 - nameX });
     text(ctx, winner ? shortStatus(states) : '½–½', W - 90, base, { size, color, align: 'right', max: 160 });
   });
 }
@@ -234,7 +236,7 @@ function drawRecap(ctx: Ctx, logos: Logos, { session, matches, byId }: Extract<C
 function drawMatch(ctx: Ctx, logos: Logos, { match, session, matches, byId }: Extract<CardSpec, { kind: 'match' }>) {
   logo(ctx, logos, 'crest', W / 2, 190, 250);
   text(ctx, session ? dayAndSession(session) : match.session, W / 2, 540, { size: 70, color: C.og, spacing: 3 });
-  text(ctx, `${matchName(match)}${session ? ` · ${formatLabel(session)}` : ''}`, W / 2, 600, { size: 44, color: C.gold, spacing: 3 });
+  text(ctx, [nineName(match), session && formatLabel(session)].filter(Boolean).join(' · '), W / 2, 600, { size: 44, color: C.gold, spacing: 3 });
 
   // Result band in the leading side's color.
   const state = matchStates(match)[0];

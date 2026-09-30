@@ -134,12 +134,15 @@ export function matchSort(sessions: Session[]) {
     || NINE_ORDER[a.nine ?? 'front'] - NINE_ORDER[b.nine ?? 'front'];
 }
 
-/** "Front 9" / "Back 9" for indoor nines, else empty. */
+/** "Front" / "Back" for indoor nines, else empty. */
 export function nineName(match: { nine?: 'front' | 'back' }): string {
-  return match.nine ? (match.nine === 'front' ? 'Front 9' : 'Back 9') : '';
+  return match.nine ? (match.nine === 'front' ? 'Front' : 'Back') : '';
 }
 
-/** "Match 3", or "Match 3 · Back 9" for an indoor nine. */
+/**
+ * "Match 3", or "Match 3 · Back" for an indoor nine. Marshal screens only:
+ * viewers know a match by who's in it (each player plays once per stage).
+ */
 export function matchName(match: { slot: number; nine?: 'front' | 'back' }): string {
   return match.nine ? `Match ${match.slot} · ${nineName(match)}` : `Match ${match.slot}`;
 }
@@ -253,7 +256,7 @@ export function formatLabel(session: Session): string {
   return session.formatLabel ?? FORMAT_NAMES[session.format] ?? session.format;
 }
 
-/** "Friday · Wave 1", or just "Saturday" when the name repeats the format. */
+/** "Friday · Alt-Shot 1", or just "Saturday" when the name repeats the format. */
 export function dayAndSession(session: Session): string {
   const day = session.day === 'fri' ? 'Friday' : 'Saturday';
   return session.name === formatLabel(session) ? day : `${day} · ${session.name}`;

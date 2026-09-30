@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  TEAM_NAMES, currentSessionId, dayAndSession, fmtPoints, formatLabel, matchLead, matchName, matchSort, nineName, shortStatus, sideName, thruLabel,
+  TEAM_NAMES, currentSessionId, dayAndSession, fmtPoints, formatLabel, matchLead, matchSort, nineName, shortStatus, sideName, teeClock, thruLabel,
   useMatches, usePlayers, useSessions, type Match, type Player, type Session,
 } from './data';
 import { TEAMS, TOTAL_POINTS, cupStanding, matchStates, type HoleOutcome, type TeamId } from './scoring';
@@ -369,8 +369,8 @@ function MatchRow({ match, byId, stacked = false, fit = false, flash, style }: {
   const states = matchStates(match);
   const { lead, started } = matchLead(states);
   const tone = lead ?? (started ? 'tied' : 'idle');
-  // The F9/B9 tag names the nine, so an idle row only needs the match number.
-  const status = shortStatus(states) || `Match ${match.slot}`;
+  // Viewers know a match by its players, so an idle row shows its tee time.
+  const status = shortStatus(states) || (match.teeTime ? teeClock(match.teeTime) : '–');
   // Stacked puts each player on their own line (narrow vertical layout).
   const cls = fit ? 'hd-fit' : undefined;
   const names = (t: TeamId) => stacked
@@ -381,7 +381,7 @@ function MatchRow({ match, byId, stacked = false, fit = false, flash, style }: {
       <div className={`hd-row-side og ${lead === 'og' ? 'filled' : ''}`}>{names('og')}</div>
       {/* Keyed on the text so the flip replays whenever the status changes. */}
       <div className={`hd-row-status ${tone}`}>
-        {match.nine && <span className="hd-row-nine">{match.nine === 'front' ? 'F9' : 'B9'}</span>}
+        {match.nine && <span className="hd-row-nine">{nineName(match)}</span>}
         <span key={status} className="hd-flip">{status}</span>
       </div>
       <div className={`hd-row-side south ${lead === 'south' ? 'filled' : ''}`}>{names('south')}</div>
@@ -397,11 +397,11 @@ function needLine(standing: Standing, t: TeamId): string {
   return `${fmtPoints(needed[t])} to win`;
 }
 
-function bannerText(b: Extract<Banner, { kind: 'point' }>): { title: string; detail: string; team: TeamId | null } {
+/** Point banner copy. The detail names the players: that's how viewers know a match. */
+function bannerText(b: Extract<Banner, { kind: 'point' }>, pair?: Record<TeamId, string>): { title: string; detail: string; team: TeamId | null } {
   const nine = b.nine ? ` · ${nineName({ nine: b.nine })}` : '';
-  return b.winner
-    ? { title: `${TEAM_NAMES[b.winner]} win Match ${b.slot}`, detail: `${b.label}${nine}`, team: b.winner }
-    : { title: `Match ${b.slot} halved`, detail: `½ point each${nine}`, team: null };
+  if (b.winner) return { title: `${TEAM_NAMES[b.winner]} win ${b.label}`, detail: `${pair?.[b.winner] ?? ''}${nine}`, team: b.winner };
+  return { title: 'Halved · ½ each', detail: `${pair ? `${pair.og} v ${pair.south}` : ''}${nine}`, team: null };
 }
 
 /**
@@ -409,10 +409,14 @@ function bannerText(b: Extract<Banner, { kind: 'point' }>): { title: string; det
  * slides up for a match result, then, if it swung the cup, the bigger lead
  * takeover.
  */
-function ResultBanner({ banner, standing }: { banner: Banner | null; standing: Standing }) {
+function ResultBanner({ banner, standing, matches, byId }: {
+  banner: Banner | null; standing: Standing; matches: Match[]; byId: Map<string, Player>;
+}) {
   if (!banner) return null;
   if (banner.kind === 'lead') return <LeadTakeover leader={banner.leader} key={banner.key} standing={standing} />;
-  const { title, detail, team } = bannerText(banner);
+  const m = matches.find(x => x.id === banner.matchId);
+  const pair = m && { og: sideName(m, 'og', byId), south: sideName(m, 'south', byId) };
+  const { title, detail, team } = bannerText(banner, pair);
   return (
     <div key={banner.key} className={`hd-banner ${team ?? 'even'}`} role="status">
       {team ? <Logo name={team} className="hd-banner-logo hd-swing" /> : <Logo name="mark" className="hd-banner-logo" />}
@@ -499,7 +503,7 @@ function VerticalBoard({ standing, session, matches, byId, moments, intro, body,
                 {matches.map((m, i) => (
                   <MatchRow key={m.id} match={m} byId={byId} stacked={matches.length <= 6} fit flash={moments.flashes[m.id]} style={stagger(i)} />
                 ))}
-                <ResultBanner banner={moments.banner} standing={standing} />
+                <ResultBanner banner={moments.banner} standing={standing} matches={matches} byId={byId} />
               </div>
             </>
           )}
@@ -556,9 +560,9 @@ function TvBoard({ standing, session, matches, byId, moments, intro, body, wipe 
                     <span className={`hd-tv-status og ${lead === 'og' ? 'filled' : ''}`}>{cell('og')}</span>
                     <span className={`hd-tv-side og ${lead === 'og' ? 'filled' : ''}`}><span className="hd-fit">{sideName(m, 'og', byId)}</span></span>
                     {/* Hole the match is through, like the broadcast "thru" column. */}
-                    <span className="hd-tv-slot" title={matchName(m)}>
+                    <span className="hd-tv-slot">
                       <span key={thruLabel(m)} className="hd-flip">{thruLabel(m)}</span>
-                      {m.nine && <span className="hd-tv-nine">{m.nine === 'front' ? 'F9' : 'B9'}</span>}
+                      {m.nine && <span className="hd-tv-nine">{nineName(m)}</span>}
                     </span>
                     <span className={`hd-tv-side south ${lead === 'south' ? 'filled' : ''}`}><span className="hd-fit">{sideName(m, 'south', byId)}</span></span>
                     <span className={`hd-tv-status south ${lead === 'south' ? 'filled' : ''}`}>{cell('south')}</span>
@@ -566,7 +570,7 @@ function TvBoard({ standing, session, matches, byId, moments, intro, body, wipe 
                   </div>
                 );
               })}
-              <ResultBanner banner={moments.banner} standing={standing} />
+              <ResultBanner banner={moments.banner} standing={standing} matches={matches} byId={byId} />
             </div>
           )}
           <Wipe n={wipe} />

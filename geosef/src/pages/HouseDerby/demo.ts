@@ -84,9 +84,9 @@ const through = (done: number, live?: Session): Phase['stages'] => ({
 
 export const PHASES: Phase[] = [
   { id: 'fresh', label: 'Before', stages: {} },
-  { id: 'w1-live', label: 'W1 live', stages: through(0, 'fri-w1') },
-  { id: 'w1-done', label: 'W1 done', stages: through(1) },
-  { id: 'w2-live', label: 'W2 live', stages: through(1, 'fri-w2') },
+  { id: 'w1-live', label: 'Alt 1 live', stages: through(0, 'fri-w1') },
+  { id: 'w1-done', label: 'Alt 1 done', stages: through(1) },
+  { id: 'w2-live', label: 'Alt 2 live', stages: through(1, 'fri-w2') },
   { id: 'fri-done', label: 'Friday done', stages: through(2) },
   { id: 'am-live', label: 'Scramble live', stages: through(2, 'sat-am') },
   { id: 'am-done', label: 'Scramble done', stages: through(3) },
