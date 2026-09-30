@@ -28,6 +28,7 @@ Touching a full-screen board briefly shows an exit button; unattended screens ne
 - `scoring.ts`: pure match-play engine. Covers hole results, match state (N&M, dormie, conceded), and cup totals and clinch.
 - `scoreEvents.ts` + `useScoreMoments.ts`: diff live snapshots into holes won, points, lead changes and clinch, which drive the animations. Nothing fires on first load. Bulk rewrites (more than 3 matches changed at once) report only a clinch.
 - `data.ts`: Firestore hooks, types and labels.
+- `director.ts` + `Segments.tsx`: TV dead-time segments. Driven by scores only, never tee times. Once a stage has a score, the TV holds the live board until every match in it is final (covers gaps between nines and staggered starts). In dead time it cycles board → stage recap → up next on the wall clock, with a team-color wipe. `?scene=board|recap|next` pins one.
 - `display.ts`: which board a URL and screen shape get, page surfaces, wake lock. `CupSplash` is the crest loading screen, bundled with the site so it also covers the lazy /cup download.
 - `Board.tsx`: all three public layouts, sharing one `TeamHeader` and `MatchRow`.
 - `Admin.tsx` / `MatchEntry.tsx`: marshal list and entry. Every write is batched with an `edits/` log entry (`writes.ts`).
@@ -71,6 +72,7 @@ Safari 26+ ignores `theme-color`. It tints its toolbars and overscroll from the 
 ## Before the event
 
 - [ ] Real pairings and stroke holes in `pairings.local.json`, then seed with `--reset-scores`.
+- [ ] Confirm tee times in `sessions.json`, then seed. They're placeholders (Fri waves 5:00/6:30 PM with back nines 45 min later; Sat stages 8 AM, 11 AM and 2 PM, matches 10 min apart). The seed writes `teeTime` on each match from `startsAt`, `backNineAt` and `teeInterval`. They're display only (up-next cards and countdown); the TV never changes what it shows based on them.
 - [ ] Final marshal list in `marshals.local.json`, then seed. Every marshal must sign in with a Google account.
 - [ ] Remove the demo panel.
 - [ ] Font: Bebas Neue is a stand-in for the club's Liberator. The personal license forbids web use. If the club's commercial license covers this site, swap `--hd-display` and inject a subset woff2 from a CI secret. Never commit the font file.

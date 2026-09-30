@@ -15,7 +15,9 @@
         "front",
         "back"
       ],
-      "formatLabel": "Indoor Alt-Shot"
+      "formatLabel": "Indoor Alt-Shot",
+      "startsAt": "2026-10-16T17:00:00-05:00",
+      "backNineAt": "2026-10-16T17:45:00-05:00"
     },
     {
       "id": "fri-w2",
@@ -32,7 +34,9 @@
         "front",
         "back"
       ],
-      "formatLabel": "Indoor Alt-Shot"
+      "formatLabel": "Indoor Alt-Shot",
+      "startsAt": "2026-10-16T18:30:00-05:00",
+      "backNineAt": "2026-10-16T19:15:00-05:00"
     },
     {
       "id": "sat-am",
@@ -43,7 +47,9 @@
       "format": "scramble",
       "pairings": 6,
       "holes": 9,
-      "location": "Ballwin, Missouri"
+      "location": "Ballwin, Missouri",
+      "startsAt": "2026-10-17T08:00:00-05:00",
+      "teeInterval": 10
     },
     {
       "id": "sat-mid",
@@ -54,7 +60,9 @@
       "format": "modified-alt",
       "pairings": 6,
       "holes": 9,
-      "location": "Ballwin, Missouri"
+      "location": "Ballwin, Missouri",
+      "startsAt": "2026-10-17T11:00:00-05:00",
+      "teeInterval": 10
     },
     {
       "id": "sat-pm",
@@ -65,7 +73,9 @@
       "format": "singles",
       "pairings": 12,
       "holes": 9,
-      "location": "Ballwin, Missouri"
+      "location": "Ballwin, Missouri",
+      "startsAt": "2026-10-17T14:00:00-05:00",
+      "teeInterval": 10
     }
   ],
   "allowances": {

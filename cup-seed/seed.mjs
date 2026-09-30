@@ -60,6 +60,20 @@ const writes = [
   set('config/marshals', marshals),
 ];
 
+// Tee time for one match, from the session's first tee (ISO with offset).
+// Indoor back nines all start at backNineAt; outdoor matches go off
+// teeInterval minutes apart in slot order.
+function teeTime(session, slot, nine) {
+  if (!session.startsAt) return null;
+  if (nine === 'back' && session.backNineAt) return session.backNineAt;
+  const at = new Date(Date.parse(session.startsAt) + (slot - 1) * (session.teeInterval ?? 0) * 60_000);
+  // Keep the session's UTC offset so the stored string reads as local time.
+  const offset = session.startsAt.slice(-6);
+  const local = new Date(at.getTime() + offsetMinutes(offset) * 60_000).toISOString().slice(0, 19);
+  return `${local}${offset}`;
+}
+const offsetMinutes = (o) => (o[0] === '-' ? -1 : 1) * (Number(o.slice(1, 3)) * 60 + Number(o.slice(4, 6)));
+
 const playerIds = new Set(roster.players.map(playerId));
 const matchIds = [];
 for (const session of sessions) {
@@ -77,7 +91,7 @@ for (const session of sessions) {
       const inNine = (h) => h >= firstHole && h < firstHole + 9;
       matchIds.push(id);
       const fields = {
-        session: session.id, slot, nine, firstHole, startHole: pairing.startHole ?? 1,
+        session: session.id, slot, nine, firstHole, startHole: pairing.startHole ?? 1, teeTime: teeTime(session, slot, nine),
         players: { og: pairing.og ?? [], south: pairing.south ?? [] },
         strokes: { og: (pairing.strokes?.og ?? []).filter(inNine), south: (pairing.strokes?.south ?? []).filter(inNine) },
       };

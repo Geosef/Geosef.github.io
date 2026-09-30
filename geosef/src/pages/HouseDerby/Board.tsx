@@ -8,6 +8,8 @@ import { TEAMS, cupStanding, matchStates, type HoleOutcome, type TeamId } from '
 import { Maximize, Minimize, Tv, X } from 'lucide-react';
 import { useCupChrome } from './brand';
 import CupSplash from './CupSplash';
+import { NextView, RecapView, Wipe, useSegment, useWipe } from './Segments';
+import type { SegmentKind } from './director';
 import {
   COMPACT_LANDSCAPE, LAYOUT_SURFACE, STANDALONE, boardLayout, canFullscreen, toggleFullscreen, useFullscreen, useMedia, usePortrait, useWakeLock,
   type BoardLayout,
@@ -22,6 +24,10 @@ type Moments = ReturnType<typeof useScoreMoments>;
 type Flash = { result: HoleOutcome; key: number } | undefined;
 type BoardProps = {
   standing: Standing; session: Session; matches: Match[]; byId: Map<string, Player>; moments: Moments; intro: boolean;
+  /** A dead-time segment in place of the match rows, if one is up. */
+  body?: React.ReactNode;
+  /** Bumps to play the segment wipe. */
+  wipe?: number;
 };
 
 export default function Board() {
@@ -55,30 +61,48 @@ export default function Board() {
   // finished board, so nothing underneath is seen half drawn.
   return (
     <>
-      {ready && <BoardView layout={layout} sessions={sessions} matches={matches} byId={byId} moments={moments} intro={intro} awake={awake} swipe={swipe} />}
+      {ready && (
+        <BoardView
+          layout={layout} sessions={sessions} matches={matches} byId={byId} moments={moments} intro={intro} awake={awake} swipe={swipe}
+          scene={pinnedScene(params.get('scene'))}
+        />
+      )}
       {(!ready || intro) && <CupSplash leaving={ready} />}
     </>
   );
 }
 
-function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swipe }: {
+/** ?scene=recap|next|board holds the TV on one segment (previews, or a manual override). */
+function pinnedScene(v: string | null): SegmentKind | null {
+  return v === 'board' || v === 'recap' || v === 'next' ? v : null;
+}
+
+function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swipe, scene }: {
   layout: BoardLayout; sessions: Session[]; matches: Match[]; byId: Map<string, Player>; moments: Moments; intro: boolean; awake: boolean;
   /** Landscape phone in the browser: scroll room so a swipe hides the bars. */
   swipe: boolean;
+  scene: SegmentKind | null;
 }) {
   const [picked, setPicked] = useState<string | null>(null);
+  // Dead-time segments for the TV boards; score moments hold the live board.
+  const { shown: segment, wipe } = useWipe(useSegment(sessions, matches, scene, !!(moments.banner || moments.celebration)));
   const standing = cupStanding(matches);
   const sorted = [...matches].sort(matchSort(sessions));
   const current = currentSessionId(sessions, matches);
   const inSession = (s: Session) => sorted.filter(m => m.session === s.id);
 
   if (layout !== 'phone') {
-    // Stages are played one at a time, so the TV holds on the current one (same
-    // rule as the phone board's default tab) rather than rotating. While a
-    // match result banner is up, it shows the session that result came from.
+    // Stages are played one at a time, so the live board holds on the current
+    // one (same rule as the phone board's default tab). While a match result
+    // banner is up, it shows the session that result came from; during a
+    // recap or preview, that segment's session.
     const bannerSession = moments.banner?.kind === 'point' ? sessions.find(s => s.id === (moments.banner as Extract<Banner, { kind: 'point' }>).session) : undefined;
-    const shown = bannerSession ?? sessions.find(s => s.id === current) ?? sessions[0];
-    const props = { standing, session: shown, matches: inSession(shown), byId, moments, intro };
+    const segSession = segment.kind === 'board' ? undefined : sessions.find(s => s.id === segment.session);
+    const shown = bannerSession ?? segSession ?? sessions.find(s => s.id === current) ?? sessions[0];
+    const body = !segSession ? null
+      : segment.kind === 'recap' ? <RecapView session={segSession} matches={matches} byId={byId} />
+      : <NextView session={segSession} matches={matches} byId={byId} vertical={layout !== 'tv'} />;
+    const props = { standing, session: shown, matches: inSession(shown), byId, moments, intro, body, wipe };
     return (
       <>
         {layout === 'tv' ? <TvBoard {...props} swipe={swipe} /> : <VerticalBoard {...props} fill={layout === 'portrait'} />}
@@ -358,7 +382,7 @@ function CelebrationOverlay({ c, onDone }: { c: Celebration; onDone: () => void 
  * across the top and comments across the bottom, so those bands only carry
  * the title and footer; scores and matches sit in the middle.
  */
-function VerticalBoard({ standing, session, matches, byId, moments, intro, fill = false }: BoardProps & {
+function VerticalBoard({ standing, session, matches, byId, moments, intro, body, wipe = 0, fill = false }: BoardProps & {
   /** Filling a phone held upright: no bands kept clear for Instagram. */
   fill?: boolean;
 }) {
@@ -367,14 +391,20 @@ function VerticalBoard({ standing, session, matches, byId, moments, intro, fill 
       <div className={`hd-vert ${fill ? 'hd-vert-fill' : ''}`}>
         <TeamHeader standing={standing} moments={moments} variant="vert" />
 
-        <div className="hd-vert-session">{dayAndSession(session)}</div>
-
-        <div className="hd-vert-rows">
-          {/* One name per line fits up to 6 rows; Friday's 12 nines need one line per side. */}
-          {matches.map((m, i) => (
-            <MatchRow key={m.id} match={m} byId={byId} stacked={matches.length <= 6} flash={moments.flashes[m.id]} style={stagger(i)} />
-          ))}
-          <ResultBanner banner={moments.banner} />
+        <div className="hd-seg-host">
+          {body ?? (
+            <>
+              <div className="hd-vert-session">{dayAndSession(session)}</div>
+              <div className="hd-vert-rows">
+                {/* One name per line fits up to 6 rows; Friday's 12 nines need one line per side. */}
+                {matches.map((m, i) => (
+                  <MatchRow key={m.id} match={m} byId={byId} stacked={matches.length <= 6} flash={moments.flashes[m.id]} style={stagger(i)} />
+                ))}
+                <ResultBanner banner={moments.banner} />
+              </div>
+            </>
+          )}
+          <Wipe n={wipe} />
         </div>
 
         <div className="hd-vert-foot">
@@ -404,36 +434,41 @@ function Venue({ session }: { session: Session }) {
 }
 
 /** Full-screen broadcast layout for the clubhouse / OG House screens. */
-function TvBoard({ standing, session, matches, byId, moments, intro, swipe = false }: BoardProps & { swipe?: boolean }) {
+function TvBoard({ standing, session, matches, byId, moments, intro, body, wipe = 0, swipe = false }: BoardProps & { swipe?: boolean }) {
   return (
     <div className={`hd-page hd-tv ${intro ? 'hd-intro' : ''} ${swipe ? 'hd-tv-swipe' : ''}`}>
       <div className="hd-tv-frame">
         <TeamHeader standing={standing} moments={moments} variant="tv" />
 
-        <div className="hd-tv-rows">
-          {matches.map((m, i) => {
-            const states = matchStates(m);
-            const { lead, started } = matchLead(states);
-            const status = shortStatus(states);
-            const cell = (t: TeamId) => (lead === t || (started && !lead)
-              ? <span key={status} className="hd-flip">{status}</span>
-              : '');
-            return (
-              <div key={m.id} className="hd-tv-row" style={stagger(i)}>
-                <span className={`hd-tv-status og ${lead === 'og' ? 'filled' : ''}`}>{cell('og')}</span>
-                <span className={`hd-tv-side og ${lead === 'og' ? 'filled' : ''}`}>{sideName(m, 'og', byId)}</span>
-                {/* Hole the match is through, like the broadcast "thru" column. */}
-                <span className="hd-tv-slot" title={matchName(m)}>
-                  <span key={thruLabel(m)} className="hd-flip">{thruLabel(m)}</span>
-                  {m.nine && <span className="hd-tv-nine">{m.nine === 'front' ? 'F9' : 'B9'}</span>}
-                </span>
-                <span className={`hd-tv-side south ${lead === 'south' ? 'filled' : ''}`}>{sideName(m, 'south', byId)}</span>
-                <span className={`hd-tv-status south ${lead === 'south' ? 'filled' : ''}`}>{cell('south')}</span>
-                <FlashOverlay flash={moments.flashes[m.id]} />
-              </div>
-            );
-          })}
-          <ResultBanner banner={moments.banner} />
+        <div className="hd-seg-host">
+          {body ?? (
+            <div className="hd-tv-rows">
+              {matches.map((m, i) => {
+                const states = matchStates(m);
+                const { lead, started } = matchLead(states);
+                const status = shortStatus(states);
+                const cell = (t: TeamId) => (lead === t || (started && !lead)
+                  ? <span key={status} className="hd-flip">{status}</span>
+                  : '');
+                return (
+                  <div key={m.id} className="hd-tv-row" style={stagger(i)}>
+                    <span className={`hd-tv-status og ${lead === 'og' ? 'filled' : ''}`}>{cell('og')}</span>
+                    <span className={`hd-tv-side og ${lead === 'og' ? 'filled' : ''}`}>{sideName(m, 'og', byId)}</span>
+                    {/* Hole the match is through, like the broadcast "thru" column. */}
+                    <span className="hd-tv-slot" title={matchName(m)}>
+                      <span key={thruLabel(m)} className="hd-flip">{thruLabel(m)}</span>
+                      {m.nine && <span className="hd-tv-nine">{m.nine === 'front' ? 'F9' : 'B9'}</span>}
+                    </span>
+                    <span className={`hd-tv-side south ${lead === 'south' ? 'filled' : ''}`}>{sideName(m, 'south', byId)}</span>
+                    <span className={`hd-tv-status south ${lead === 'south' ? 'filled' : ''}`}>{cell('south')}</span>
+                    <FlashOverlay flash={moments.flashes[m.id]} />
+                  </div>
+                );
+              })}
+              <ResultBanner banner={moments.banner} />
+            </div>
+          )}
+          <Wipe n={wipe} />
         </div>
 
         <footer className="hd-tv-foot">
