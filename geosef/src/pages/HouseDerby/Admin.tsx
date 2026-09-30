@@ -5,7 +5,8 @@ import { FORMAT_NAMES, matchSort, sideName, statusLabel, useMatches, usePlayers,
 import { matchStates } from './scoring';
 import MatchEntry from './MatchEntry';
 import DemoPanel, { useDemoMode } from './DemoPanel';
-import { LOGOS, useCupChrome } from './brand';
+import { useCupChrome } from './brand';
+import Logo from './Logo';
 import './HouseDerby.css';
 
 export default function Admin() {
@@ -19,7 +20,7 @@ export default function Admin() {
   if (!user) {
     return (
       <div className="hd-page hd-signin">
-        <img className="hd-signin-crest" src={LOGOS.crest} alt="" />
+        <Logo name="crest" className="hd-signin-crest" />
         <h1>House Derby</h1>
         <p className="hd-muted">Marshal score entry</p>
         <button className="hd-primary" onClick={() => signIn().catch(e => setSignInError(e.message))}>
@@ -56,7 +57,7 @@ function MatchList({ email }: { email: string }) {
 
   return (
     <div className="hd-list">
-      {demo && <DemoPanel matches={matches} email={email} />}
+      {demo && <DemoPanel matches={matches} email={email} sessionOrder={sessions.map(s => s.id)} />}
       {sessions.map(session => (
         <section key={session.id}>
           <h2 className="hd-session-title">

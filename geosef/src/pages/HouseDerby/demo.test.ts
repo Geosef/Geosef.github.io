@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { SCENARIOS, buildScenario } from './demo';
+import { SCENARIOS, buildScenario, pickNextHole } from './demo';
 import { cupStanding, matchStates } from './scoring';
 import type { Match } from './data';
 
@@ -80,5 +80,27 @@ describe('demo scenarios', () => {
         for (const st of matchStates(m)) expect(st.afterClose).toEqual([]);
       }
     }
+  });
+});
+
+describe('pickNextHole', () => {
+  const order = ['fri', 'sat-am', 'sat-mid', 'sat-pm'];
+
+  it('starts with the first session', () => {
+    expect(pickNextHole(blank, order)).toMatchObject({ hole: 1, matchId: expect.stringMatching(/^fri-/) });
+  });
+
+  it('plays a match through to the end and then moves on', () => {
+    let ms = blank;
+    for (let i = 0; i < 2000; i++) {
+      const next = pickNextHole(ms, order);
+      if (!next) break;
+      ms = ms.map(m => (m.id === next.matchId ? { ...m, holes: { ...m.holes, [next.hole]: { result: next.result } } } : m));
+    }
+    expect(pickNextHole(ms, order)).toBeNull();
+    // Every point decided, nothing entered after a nine was decided.
+    const s = cupStanding(ms);
+    expect(s.points.og + s.points.south).toBe(36);
+    for (const m of ms) for (const st of matchStates(m)) expect(st.afterClose).toEqual([]);
   });
 });

@@ -1,12 +1,16 @@
 import { useEffect } from 'react';
 import type { TeamId } from './scoring';
 
-// Logos live in public/cup (trimmed and resized from the club's artwork).
-export const LOGOS = {
-  crest: '/cup/crest.webp',
-  mark: '/cup/mark.webp',
-  ggc: '/cup/ggc.webp',
-  team: { og: '/cup/og.webp', south: '/cup/south.webp' } as Record<TeamId, string>,
+// Single-color SVG logos in public/cup, drawn as CSS masks (see <Logo>) so
+// they take any color and can be animated.
+export type LogoName = 'crest' | 'mark' | 'ggc' | TeamId;
+
+export const LOGO_FILES: Record<LogoName, { src: string; aspect: number }> = {
+  crest: { src: '/cup/crest.svg', aspect: 0.7822 },
+  mark: { src: '/cup/mark.svg', aspect: 1 },
+  ggc: { src: '/cup/ggc.svg', aspect: 1.1703 },
+  og: { src: '/cup/og.svg', aspect: 1 },
+  south: { src: '/cup/south.svg', aspect: 1 },
 };
 
 /** Sets the tab title and favicon for /cup pages, restoring the site's on leave. */

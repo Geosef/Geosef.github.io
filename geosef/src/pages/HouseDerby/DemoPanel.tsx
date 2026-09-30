@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { Match } from './data';
 import { doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { db } from './firebase';
-import { SCENARIOS, buildScenario, type Scenario } from './demo';
+import { SCENARIOS, buildScenario, pickNextHole, type Scenario } from './demo';
+import { saveHole } from './writes';
 
 const FLAG = 'hd-demo';
 
@@ -40,9 +41,38 @@ export function useDemoMode(): boolean {
   return on;
 }
 
-export default function DemoPanel({ matches, email }: { matches: Match[]; email: string }) {
+const AUTO_PLAY_MS = 2500;
+
+export default function DemoPanel({ matches, email, sessionOrder }: {
+  matches: Match[]; email: string; sessionOrder: string[];
+}) {
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState('');
+  const [autoPlay, setAutoPlay] = useState(false);
+  // Latest matches for the auto-play timer, which outlives renders.
+  const latest = useRef(matches);
+  latest.current = matches;
+
+  // Plays one hole through the normal marshal save path (edit log included),
+  // so the boards animate exactly as they would on the day.
+  function playHole() {
+    const next = pickNextHole(latest.current, sessionOrder);
+    if (!next) {
+      setAutoPlay(false);
+      setMessage('Every match is finished.');
+      return;
+    }
+    const m = latest.current.find(x => x.id === next.matchId)!;
+    saveHole(m.id, email, next.hole, m.holes[next.hole], { result: next.result })
+      .catch(e => setMessage(`Failed: ${(e as Error).message}`));
+  }
+
+  useEffect(() => {
+    if (!autoPlay) return;
+    const t = setInterval(playHole, AUTO_PLAY_MS);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoPlay]);
 
   async function run(id: string) {
     const scenario = SCENARIOS.find(s => s.id === id)!;
@@ -67,6 +97,12 @@ export default function DemoPanel({ matches, email }: { matches: Match[]; email:
             {busy === s.id ? '…' : s.label}
           </button>
         ))}
+      </div>
+      <div className="hd-demo-buttons">
+        <button onClick={playHole} disabled={busy !== null}>Simulate a hole</button>
+        <button className={autoPlay ? 'on' : ''} onClick={() => setAutoPlay(a => !a)} disabled={busy !== null}>
+          {autoPlay ? 'Stop auto-play' : 'Auto-play'}
+        </button>
       </div>
       {message && <p className="hd-muted">{message}</p>}
       <div className="hd-demo-links">

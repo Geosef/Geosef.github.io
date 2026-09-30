@@ -115,3 +115,26 @@ export function buildScenario(scenario: Scenario, matches: Match[]): Record<stri
   }
   return out;
 }
+
+/**
+ * The next hole to play in a simulated round: a random unfinished match in the
+ * earliest session that still has play left, at its next unplayed hole.
+ */
+export function pickNextHole(matches: Match[], sessionOrder: string[]): { matchId: string; hole: number; result: HoleOutcome } | null {
+  for (const session of sessionOrder) {
+    const open = matches
+      .filter(m => m.session === session)
+      .map(m => {
+        // First nine that isn't decided, and its next empty hole.
+        const nine = segments(m).find(order => segmentState(m, order).phase !== 'final');
+        const hole = nine?.find(h => !m.holes[h]?.result);
+        return hole ? { m, hole } : null;
+      })
+      .filter((x): x is { m: Match; hole: number } => x !== null);
+    if (open.length) {
+      const pick = open[Math.floor(Math.random() * open.length)];
+      return { matchId: pick.m.id, hole: pick.hole, result: rollHole() };
+    }
+  }
+  return null;
+}

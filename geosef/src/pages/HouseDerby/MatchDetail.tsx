@@ -2,7 +2,8 @@ import React from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { FORMAT_NAMES, TEAM_NAMES, sideFullName, useMatch, usePlayers, useSessions } from './data';
 import { TEAMS, holeOutcome, matchStates, segments, strokesOn } from './scoring';
-import { LOGOS, useCupChrome } from './brand';
+import { useCupChrome } from './brand';
+import Logo from './Logo';
 import './HouseDerby.css';
 
 export default function MatchDetail() {
@@ -32,7 +33,7 @@ export default function MatchDetail() {
         {TEAMS.map(t => (
           <div key={t} className={`hd-detail-side ${t}`}>
             <span className="hd-detail-team">
-              <img className="hd-team-logo" src={LOGOS.team[t]} alt="" />
+              <Logo name={t} className="hd-team-logo" />
               {TEAM_NAMES[t]}
             </span>
             <span>{sideFullName(match, t, byId)}</span>
