@@ -1,15 +1,31 @@
 {
   "sessions": [
     {
-      "id": "fri",
+      "id": "fri-w1",
       "day": "fri",
       "order": 1,
-      "name": "Indoor",
+      "name": "Wave 1",
       "venue": "Gimme Golf Club",
       "format": "alt-shot",
-      "pairings": 6,
+      "pairings": 3,
       "holes": 9,
-      "note": "3 sim bays: matches 1-3 play first, 4-6 second. Each pairing's front and back nine are separate points.",
+      "note": "3 sim bays. Each pairing's front and back nine are separate points.",
+      "location": "St. Charles, Missouri",
+      "nines": [
+        "front",
+        "back"
+      ]
+    },
+    {
+      "id": "fri-w2",
+      "day": "fri",
+      "order": 2,
+      "name": "Wave 2",
+      "venue": "Gimme Golf Club",
+      "format": "alt-shot",
+      "pairings": 3,
+      "holes": 9,
+      "note": "3 sim bays. Each pairing's front and back nine are separate points.",
       "location": "St. Charles, Missouri",
       "nines": [
         "front",
@@ -19,7 +35,7 @@
     {
       "id": "sat-am",
       "day": "sat",
-      "order": 2,
+      "order": 3,
       "name": "Scramble",
       "venue": "Ballwin Golf Course",
       "format": "scramble",
@@ -30,7 +46,7 @@
     {
       "id": "sat-mid",
       "day": "sat",
-      "order": 3,
+      "order": 4,
       "name": "Modified Alt",
       "venue": "Ballwin Golf Course",
       "format": "modified-alt",
@@ -41,7 +57,7 @@
     {
       "id": "sat-pm",
       "day": "sat",
-      "order": 4,
+      "order": 5,
       "name": "Singles",
       "venue": "Ballwin Golf Course",
       "format": "singles",

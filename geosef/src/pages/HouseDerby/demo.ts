@@ -51,7 +51,8 @@ function split(count: number, ogPoints: number): Array<TeamId | null> {
   return shuffle([...Array(og).fill('og'), ...Array(south).fill('south'), ...Array(halves).fill(null)]);
 }
 
-type Session = 'fri' | 'sat-am' | 'sat-mid' | 'sat-pm';
+type Session = 'fri-w1' | 'fri-w2' | 'sat-am' | 'sat-mid' | 'sat-pm';
+const FRIDAY: Session[] = ['fri-w1', 'fri-w2'];
 
 export interface Scenario {
   id: string;
@@ -71,19 +72,19 @@ export const SCENARIOS: Scenario[] = [
   { id: 'fresh', label: 'Fresh', plan: (_, n) => all(n, 'empty') },
   {
     id: 'fri-live', label: 'Friday live',
-    // Wave 1 (matches 1-3, front+back each) on the back nine; wave 2 not out yet.
-    plan: (s, n) => (s === 'fri' ? [...random(3).flatMap(f => [f, 'live' as NinePlan]).slice(0, 6), ...all(n - 6, 'empty')] : all(n, 'empty')),
+    // Wave 1 on the back nine (fronts decided); wave 2 not out yet.
+    plan: (s, n) => (s === 'fri-w1' ? random(n / 2).flatMap(f => [f, 'live' as NinePlan]) : all(n, 'empty')),
   },
-  { id: 'fri-done', label: 'Friday done', plan: (s, n) => (s === 'fri' ? random(n) : all(n, 'empty')) },
+  { id: 'fri-done', label: 'Friday done', plan: (s, n) => (FRIDAY.includes(s) ? random(n) : all(n, 'empty')) },
   {
     id: 'am-live', label: 'Saturday AM live',
-    plan: (s, n) => (s === 'fri' ? random(n) : s === 'sat-am' ? all(n, 'live') : all(n, 'empty')),
+    plan: (s, n) => (FRIDAY.includes(s) ? random(n) : s === 'sat-am' ? all(n, 'live') : all(n, 'empty')),
   },
   {
     id: 'singles-tight', label: 'Singles, tight race',
     // 12-12 after four sessions, then singles mostly live with a few finished.
     plan: (s, n) => {
-      if (s === 'fri') return decided(split(n, 6));
+      if (FRIDAY.includes(s)) return decided(split(n, 3));
       if (s === 'sat-am') return decided(split(n, 3));
       if (s === 'sat-mid') return decided(split(n, 3));
       return shuffle([...random(3), ...all(n - 3, 'live')]);
@@ -91,11 +92,11 @@ export const SCENARIOS: Scenario[] = [
   },
   {
     id: 'og-ties', label: 'OG wins 18–18',
-    plan: (s, n) => decided(split(n, { fri: 6, 'sat-am': 3, 'sat-mid': 3, 'sat-pm': 6 }[s])),
+    plan: (s, n) => decided(split(n, { 'fri-w1': 3, 'fri-w2': 3, 'sat-am': 3, 'sat-mid': 3, 'sat-pm': 6 }[s])),
   },
   {
     id: 'south-wins', label: 'South wins 19½–16½',
-    plan: (s, n) => decided(split(n, { fri: 5.5, 'sat-am': 3, 'sat-mid': 2.5, 'sat-pm': 5.5 }[s])),
+    plan: (s, n) => decided(split(n, { 'fri-w1': 3, 'fri-w2': 2.5, 'sat-am': 3, 'sat-mid': 2.5, 'sat-pm': 5.5 }[s])),
   },
 ];
 

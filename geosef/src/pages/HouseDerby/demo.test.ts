@@ -3,14 +3,14 @@ import { SCENARIOS, buildScenario, pickNextHole } from './demo';
 import { cupStanding, matchStates } from './scoring';
 import type { Match } from './data';
 
-// Same layout as sessions.json: 6 indoor pairings as front and back nines,
-// then three outdoor sessions.
+// Same layout as sessions.json: two indoor waves of 3 pairings (front and
+// back nines each), then three outdoor sessions.
 const outdoor: Array<[string, number]> = [['sat-am', 6], ['sat-mid', 6], ['sat-pm', 12]];
 const base = { players: { og: [], south: [] }, strokes: { og: [], south: [] }, holes: {}, pending: false };
 const blank: Match[] = [
-  ...Array.from({ length: 6 }, (_, i) => (['front', 'back'] as const).map(nine => ({
-    ...base, id: `fri-${i + 1}-${nine}`, session: 'fri', slot: i + 1, nine, firstHole: nine === 'back' ? 10 : 1,
-  }))).flat(),
+  ...['fri-w1', 'fri-w2'].flatMap(session => Array.from({ length: 3 }, (_, i) => (['front', 'back'] as const).map(nine => ({
+    ...base, id: `${session}-${i + 1}-${nine}`, session, slot: i + 1, nine, firstHole: nine === 'back' ? 10 : 1,
+  }))).flat()),
   ...outdoor.flatMap(([session, count]) => Array.from({ length: count }, (_, i) => ({
     ...base, id: `${session}-${i + 1}`, session, slot: i + 1,
   }))),
@@ -28,14 +28,14 @@ const REPEAT = 25;
 describe('demo scenarios', () => {
   it('fresh clears everything', () => {
     expect(cupStanding(run('fresh')).points).toEqual({ og: 0, south: 0 });
-    expect(phases(run('fresh'), 'fri').every(p => p === 'not-started')).toBe(true);
+    expect(phases(run('fresh'), 'fri-w1').every(p => p === 'not-started')).toBe(true);
   });
 
   it('friday live has wave 1 on the back nine and wave 2 unstarted', () => {
     for (let i = 0; i < REPEAT; i++) {
-      const fri = phases(run('fri-live'), 'fri');
-      expect(fri.slice(0, 6)).toEqual(['final', 'live', 'final', 'live', 'final', 'live']);
-      expect(fri.slice(6).every(p => p === 'not-started')).toBe(true);
+      const ms = run('fri-live');
+      expect(phases(ms, 'fri-w1')).toEqual(['final', 'live', 'final', 'live', 'final', 'live']);
+      expect(phases(ms, 'fri-w2').every(p => p === 'not-started')).toBe(true);
     }
   });
 
@@ -89,10 +89,10 @@ describe('demo scenarios', () => {
 });
 
 describe('pickNextHole', () => {
-  const order = ['fri', 'sat-am', 'sat-mid', 'sat-pm'];
+  const order = ['fri-w1', 'fri-w2', 'sat-am', 'sat-mid', 'sat-pm'];
 
   it('starts with the first session', () => {
-    expect(pickNextHole(blank, order)).toMatchObject({ hole: 1, matchId: expect.stringMatching(/^fri-/) });
+    expect(pickNextHole(blank, order)).toMatchObject({ hole: 1, matchId: expect.stringMatching(/^fri-w1-.*-front$/) });
   });
 
   it('never starts a back nine before its front nine is decided', () => {
