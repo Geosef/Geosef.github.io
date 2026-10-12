@@ -349,22 +349,51 @@
 .hd-tv-rows { flex: 1 1 auto; min-height: 0; }
 .hd-tv-row { flex: 1 1 0; min-height: 0; max-height: 4.2vw; }
 
-/* Prototype demo controls on the marshal page. */
-.hd-demo {
-  margin: 12px 0; padding: 10px 12px; border: 1px dashed var(--hd-gold); border-radius: 10px; background: #fffaf0;
+/* Staff home and lineups. */
+.hd-secondary {
+  background: var(--hd-card); color: var(--hd-og); border: 2px solid var(--hd-og);
+  padding: 12px 18px; border-radius: 10px; font-weight: 600;
 }
-.hd-demo summary { font-weight: 700; cursor: pointer; }
-.hd-demo-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
-.hd-demo-buttons button {
-  border: 1px solid var(--hd-og); background: var(--hd-card); color: var(--hd-og);
-  border-radius: 8px; padding: 8px 10px; font-weight: 600; font-size: 0.85rem;
+.hd-primary:disabled, .hd-secondary:disabled { opacity: 0.45; cursor: default; }
+.hd-panel {
+  background: var(--hd-card); border: 1px solid var(--hd-line); border-radius: 12px;
+  padding: 12px 14px; margin: 14px 0; display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
 }
-.hd-demo-buttons button:disabled { opacity: 0.5; }
-.hd-demo-buttons button.on { background: var(--hd-og); color: #fff; }
-.hd-demo-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 10px; }
-.hd-demo-buttons .hd-muted { align-self: center; }
-.hd-demo-links { display: flex; gap: 12px; font-size: 0.85rem; margin-top: 6px; }
-.hd-demo-links a { color: var(--hd-og); font-weight: 600; }
+.hd-panel p { margin: 0; }
+.hd-panel-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; }
+.hd-panel-title { font-weight: 800; color: var(--hd-og); }
+.hd-panel-note { margin: 16px 0; }
+.hd-group-row { flex-direction: column; align-items: stretch; gap: 6px; }
+.hd-group-name { font-weight: 700; color: var(--hd-og); }
+.hd-group-status { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.hd-group-next { margin-left: auto; font-size: 0.85rem; font-weight: 700; color: var(--hd-gold); white-space: nowrap; }
+.hd-chip {
+  font-size: 0.72rem; font-weight: 700; padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+  border: 1px solid var(--hd-line); color: var(--hd-muted); background: var(--hd-cream);
+}
+.hd-chip.og.done { background: var(--hd-og); border-color: var(--hd-og); color: #fff; }
+.hd-chip.south.done { background: var(--hd-south); border-color: var(--hd-south); color: #fff; }
+.hd-chip.done:not(.og):not(.south) { background: var(--hd-gold); border-color: var(--hd-gold); color: #fff; }
+.hd-lineup-title { color: var(--hd-og); margin: 4px 0; font-size: 1.4rem; }
+.hd-lineup-status { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.hd-slot {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--hd-card); border: 1px solid var(--hd-line); border-radius: 10px;
+  padding: 8px 10px; margin-bottom: 6px;
+}
+.hd-editor.og .hd-slot { border-left: 6px solid var(--hd-og); }
+.hd-editor.south .hd-slot { border-left: 6px solid var(--hd-south); }
+.hd-slot-seats { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+/* 16px so iOS doesn't zoom in on focus. */
+.hd-slot select {
+  width: 100%; font: inherit; font-size: 16px; padding: 8px; border-radius: 8px;
+  border: 1px solid var(--hd-line); background: var(--hd-cream); color: var(--hd-ink);
+}
+.hd-slot select:disabled { opacity: 1; color: var(--hd-ink); background: transparent; border-color: transparent; appearance: none; }
+.hd-unused { margin: 10px 0; }
+.hd-problems { margin: 0; padding-left: 18px; color: var(--hd-danger); font-size: 0.85rem; }
+.hd-reopen { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+.hd-entry-warn { background: #fdf0e6; border-radius: 8px; padding: 8px 10px; }
 
 /* ---------- Logos: inline SVG in currentColor ---------- */
 .hd-logo { display: inline-block; vertical-align: middle; color: var(--hd-gold); line-height: 0; }
@@ -1154,3 +1183,105 @@ a.hd-mhero-team, a.hd-player-hero-team { text-decoration: none; }
 .hd-scorecard tbody td:last-child { color: var(--hd-muted); border-radius: 0 8px 8px 0; }
 .hd-scorecard tfoot th, .hd-scorecard tfoot td { font-weight: 700; color: var(--hd-og); }
 .hd-scorecard-total { display: grid; grid-template-columns: repeat(4, 1fr); text-align: center; padding: 8px 4px; border-radius: 10px; background: var(--hd-og); color: #fff; font-weight: 700; }
+
+/* ---------- Countdown (before the board goes live) ---------- */
+.hd-countdown-page {
+  min-height: 100svh; box-sizing: border-box; max-width: none; width: 100%;
+  background: var(--hd-og); color: var(--hd-cream);
+  display: flex; flex-direction: column; align-items: center; text-align: center;
+  padding-top: max(32px, env(safe-area-inset-top)); padding-bottom: max(24px, env(safe-area-inset-bottom));
+}
+.hd-cd-crest { height: min(30vh, 220px); margin-bottom: 12px; }
+/* Bebas has one weight; keep it at 400 so nothing gets faux-bolded. */
+.hd-cd-teams, .hd-cd-num, .hd-cd-day h2 { font-family: var(--hd-display); font-weight: 400; }
+.hd-cd-teams { display: flex; gap: 0.5em; align-items: baseline; font-size: clamp(1.4rem, 6vw, 2.6rem); letter-spacing: 0.06em; }
+.hd-cd-teams .og { color: #fff; }
+.hd-cd-teams .south { color: #a9c7b0; }
+.hd-cd-teams .v { color: var(--hd-gold); font-size: 0.6em; }
+.hd-cd-clock { display: flex; gap: clamp(8px, 3vw, 28px); margin-top: 20px; }
+.hd-cd-unit {
+  display: flex; flex-direction: column; align-items: center; min-width: clamp(64px, 18vw, 150px);
+  padding: 10px 0 8px; border-radius: 12px; background: rgba(0, 0, 0, 0.18); border: 1px solid rgba(196, 147, 95, 0.4);
+}
+.hd-cd-num { font-size: clamp(2.6rem, 13vw, 7rem); line-height: 1; color: var(--hd-gold); font-variant-numeric: tabular-nums; }
+.hd-cd-label { font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.8; margin-top: 4px; }
+.hd-cd-until { margin: 10px 0 0; letter-spacing: 0.12em; text-transform: uppercase; font-size: 0.8rem; opacity: 0.8; }
+.hd-cd-schedule {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px 28px;
+  width: 100%; max-width: 900px; margin-top: 36px; text-align: left;
+}
+.hd-cd-day h2 { color: var(--hd-gold); font-size: 1.3rem; letter-spacing: 0.08em; margin: 0 0 6px; border-bottom: 1px solid rgba(196, 147, 95, 0.4); padding-bottom: 4px; }
+.hd-cd-day ul { list-style: none; margin: 0; padding: 0; }
+.hd-cd-day li { display: flex; gap: 12px; padding: 4px 0; font-size: 0.95rem; }
+.hd-cd-day li.announce { opacity: 0.75; font-style: italic; }
+.hd-cd-day li.tee span:last-child { font-weight: 600; }
+.hd-cd-time { min-width: 4.8em; font-variant-numeric: tabular-nums; color: #fff; opacity: 0.85; }
+.hd-cd-foot {
+  margin-top: auto; padding-top: 32px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  font-family: var(--hd-display); color: var(--hd-gold); letter-spacing: 0.12em;
+}
+.hd-cd-foot .hd-foot-logo { height: 40px; }
+
+/* Staff previewing the board before it's public. Bottom, not top: a fixed
+   strip at the top of /cup reads as a sticky bar in Safari. */
+/* Outside .hd-page, so literal colors rather than its tokens. */
+.hd-preview-badge {
+  position: fixed; left: 50%; transform: translateX(-50%); z-index: 50;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  background: #c4935f; color: #fff; font-size: 0.8rem; font-weight: 700; font-family: system-ui, -apple-system, sans-serif;
+  padding: 6px 14px; border-radius: 999px; box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25); pointer-events: none;
+  white-space: nowrap;
+}
+
+/* A stage whose lineups aren't announced yet. */
+.hd-awaiting {
+  margin: 12px 0; padding: 28px 16px; text-align: center; border-radius: 12px;
+  background: var(--hd-card); border: 1px dashed var(--hd-gold); color: var(--hd-og); font-weight: 600;
+}
+.hd-next-awaiting {
+  flex: 1 1 auto; display: flex; align-items: center; justify-content: center; text-align: center;
+  font-family: var(--hd-display); font-weight: 400; color: var(--hd-og); font-size: 8cqh; letter-spacing: 0.04em;
+}
+.hd-panel a { color: var(--hd-og); font-weight: 600; }
+
+/* Staff & permissions (super admins). */
+.hd-staff-link { margin-top: 14px; }
+.hd-role-key { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 0.85rem; margin: 12px 0; }
+.hd-role-key dt { font-weight: 700; color: var(--hd-og); }
+.hd-role-key dd { margin: 0; color: var(--hd-muted); }
+.hd-staff-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  background: var(--hd-card); border: 1px solid var(--hd-line); border-radius: 10px;
+  padding: 10px 12px; margin-bottom: 6px;
+}
+.hd-staff-who { display: flex; flex-direction: column; min-width: 0; }
+.hd-staff-email { font-weight: 600; overflow-wrap: anywhere; }
+.hd-role-form { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+/* 16px so iOS doesn't zoom in on focus. */
+.hd-input, .hd-team-pick select {
+  font: inherit; font-size: 16px; padding: 8px 10px; border-radius: 8px;
+  border: 1px solid var(--hd-line); background: var(--hd-cream); color: var(--hd-ink);
+}
+.hd-checks { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.hd-check { display: flex; align-items: center; gap: 6px; font-size: 0.95rem; }
+.hd-check input { width: 20px; height: 20px; }
+.hd-team-pick { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; }
+.hd-form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.hd-danger-link { color: var(--hd-danger); margin-left: auto; }
+/* Prototype demo controls on the marshal page. */
+.hd-demo {
+  margin: 12px 0; padding: 10px 12px; border: 1px dashed var(--hd-gold); border-radius: 10px; background: #fffaf0;
+}
+.hd-demo summary { font-weight: 700; cursor: pointer; }
+.hd-demo-buttons { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+.hd-demo-buttons button {
+  border: 1px solid var(--hd-og); background: var(--hd-card); color: var(--hd-og);
+  border-radius: 8px; padding: 8px 10px; font-weight: 600; font-size: 0.85rem;
+}
+.hd-demo-buttons button:disabled { opacity: 0.5; }
+.hd-demo-buttons button.on { background: var(--hd-og); color: #fff; }
+.hd-demo-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-top: 10px; }
+.hd-demo-buttons .hd-muted { align-self: center; }
+.hd-demo-links { display: flex; gap: 12px; font-size: 0.85rem; margin-top: 6px; }
+.hd-demo-links a { color: var(--hd-og); font-weight: 600; }
+.hd-demo .hd-input { flex: 1; min-width: 0; }

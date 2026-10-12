@@ -18,7 +18,9 @@
       "formatLabel": "Indoor Alt-Shot",
       "startsAt": "2026-10-16T17:00:00-05:00",
       "backNineAt": "2026-10-16T17:45:00-05:00",
-      "course": "adare-manor"
+      "course": "adare-manor",
+      "group": "fri",
+      "announceAt": "2026-10-15T20:40:00-05:00"
     },
     {
       "id": "fri-w2",
@@ -36,9 +38,11 @@
         "back"
       ],
       "formatLabel": "Indoor Alt-Shot",
-      "startsAt": "2026-10-16T18:30:00-05:00",
-      "backNineAt": "2026-10-16T19:15:00-05:00",
-      "course": "adare-manor"
+      "startsAt": "2026-10-16T19:00:00-05:00",
+      "backNineAt": "2026-10-16T19:45:00-05:00",
+      "course": "adare-manor",
+      "group": "fri",
+      "announceAt": "2026-10-15T20:40:00-05:00"
     },
     {
       "id": "sat-am",
@@ -52,7 +56,9 @@
       "location": "Ballwin, Missouri",
       "startsAt": "2026-10-17T08:00:00-05:00",
       "teeInterval": 10,
-      "course": "ballwin"
+      "course": "ballwin",
+      "group": "sat-am",
+      "announceAt": "2026-10-16T20:30:00-05:00"
     },
     {
       "id": "sat-mid",
@@ -64,9 +70,11 @@
       "pairings": 6,
       "holes": 9,
       "location": "Ballwin, Missouri",
-      "startsAt": "2026-10-17T11:00:00-05:00",
+      "startsAt": "2026-10-17T11:30:00-05:00",
       "teeInterval": 10,
-      "course": "ballwin"
+      "course": "ballwin",
+      "group": "sat-mid",
+      "announceAt": "2026-10-17T11:00:00-05:00"
     },
     {
       "id": "sat-pm",
@@ -78,9 +86,11 @@
       "pairings": 12,
       "holes": 9,
       "location": "Ballwin, Missouri",
-      "startsAt": "2026-10-17T14:00:00-05:00",
+      "startsAt": "2026-10-17T14:50:00-05:00",
       "teeInterval": 10,
-      "course": "ballwin"
+      "course": "ballwin",
+      "group": "sat-pm",
+      "announceAt": "2026-10-17T14:30:00-05:00"
     }
   ],
   "allowances": {

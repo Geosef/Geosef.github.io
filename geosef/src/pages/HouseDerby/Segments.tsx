@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
-  TEAM_NAMES, fmtPoints, formatLabel, nineName, shortStatus, sideName, teeClock, teeDay, usePhotos, type Match, type Player, type Session,
+  TEAM_NAMES, awaitingMatchups, fmtPoints, matchupsLine, formatLabel, nineName, shortStatus, sideName, teeClock, teeDay, usePhotos, type Match, type Player, type Session,
 } from './data';
 import { BOARD, decided, playlist, segmentAt, segmentKey, toPlay, type Segment, type SegmentKind } from './director';
 import { TEAMS, TOTAL_POINTS, cupStanding, matchStates, type TeamId } from './scoring';
@@ -158,9 +158,12 @@ export function NextView({ session, matches, byId, vertical }: {
           {nextTee && <Countdown at={nextTee} lead={formatLabel(session) !== session.name} />}
         </span>
       </div>
-      {/* On the narrow 9:16 board, rows the width of the screen (like the live
-          board's) keep names readable where a grid of cards can't. */}
-      {vertical ? (
+      {/* Before the announcement there's nobody to show. */}
+      {awaitingMatchups(left) ? (
+        <div className="hd-next-awaiting">{matchupsLine(session)}</div>
+      ) : /* On the narrow 9:16 board, rows the width of the screen (like the live
+          board's) keep names readable where a grid of cards can't. */
+      vertical ? (
         <div className="hd-next-list">
           {cards.map(([slot, ms]) => (
             <div key={slot} className="hd-next-row">

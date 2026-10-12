@@ -4,36 +4,40 @@
 //   SEED_ACCOUNT=you@example.com node cup-seed/seed.mjs [--reset-scores]
 //
 // Re-running is safe mid-event: match docs are written with an update mask
-// covering only pairing fields, so entered scores are kept. --reset-scores
-// wipes every hole score, concession and edit-log entry (clear test data
-// before the event).
+// covering only layout fields, so entered scores and announced lineups are
+// kept. --reset-scores wipes every hole score, concession, edit-log entry,
+// lineup (draft and announced) and the live flag, to clear test data before
+// the event.
 //
-// Real names, marshal emails and pairings live in *.local.json (gitignored);
-// only the session layout is committed.
-import { existsSync, readFileSync } from 'node:fs';
+// Lineups are set in the app by team managers and announced by an admin.
+// Real names and staff emails live in *.local.json (gitignored); only the
+// session layout is committed.
+import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { loadMerit } from './merit.mjs';
 
-const PROJECT = 'house-derby-2026';
+// With FIRESTORE_EMULATOR_HOST set, seeds the local emulator instead
+// (project demo-house-derby, no account needed).
+const EMULATOR = process.env.FIRESTORE_EMULATOR_HOST;
+const PROJECT = EMULATOR ? 'demo-house-derby' : 'house-derby-2026';
 const ACCOUNT = process.env.SEED_ACCOUNT;
-if (!ACCOUNT) throw new Error('Set SEED_ACCOUNT to the gcloud account that owns the project');
+if (!ACCOUNT && !EMULATOR) throw new Error('Set SEED_ACCOUNT to the gcloud account that owns the project');
 const here = (f) => new URL(f, import.meta.url);
 const load = (f) => JSON.parse(readFileSync(here(f), 'utf8'));
 
 const roster = load('./roster.local.json');
-const marshals = load('./marshals.local.json');
+// Staff: { "superAdmins": [...], "admins": [...], "marshals": [...], "og": [...], "south": [...] }
+// (emails; og/south are each team's managers). Staff are managed in the app
+// by super admins, so this file only bootstraps: an email gets a role doc
+// only if it has none yet, and super admins always keep superAdmin. Nothing
+// is ever removed here.
+const staff = load('./staff.local.json');
 const { sessions, allowances } = load('./sessions.json');
-// Optional until captains set them. Shape per session id, one entry per slot:
-//   { "sat-am": [{ "og": ["smith", "jones"], "south": ["brown", "davis"],
-//                  "strokes": { "og": [], "south": [3, 7] } }] }
-// Stroke holes are course hole numbers; indoor pairings give 1-18 and they're
-// split across the front (1-9) and back (10-18) nine matches.
-const pairings = existsSync(here('./pairings.local.json')) ? load('./pairings.local.json') : {};
 const resetScores = process.argv.includes('--reset-scores');
 // Season Order of Merit per player, from order_of_merit/<id>.txt (gitignored).
 const merit = loadMerit(here('./order_of_merit/'));
 
-const token = execFileSync('gcloud', ['auth', 'print-access-token', `--account=${ACCOUNT}`], { encoding: 'utf8' }).trim();
+const token = EMULATOR ? 'owner' : execFileSync('gcloud', ['auth', 'print-access-token', `--account=${ACCOUNT}`], { encoding: 'utf8' }).trim();
 const base = `projects/${PROJECT}/databases/(default)/documents`;
 
 // Plain JS value -> Firestore REST Value.
@@ -61,8 +65,23 @@ const writes = [
   })),
   ...sessions.map(({ id, ...s }) => set(`sessions/${id}`, s)),
   set('config/allowances', allowances),
-  set('config/marshals', marshals),
 ];
+
+// One role doc per staff email, keyed lowercase (the rules lower the token's).
+const roles = new Map();
+const addRole = (email, fields) => {
+  const key = email.trim().toLowerCase();
+  roles.set(key, { ...roles.get(key), ...fields });
+};
+for (const e of staff.superAdmins ?? []) addRole(e, { superAdmin: true });
+for (const e of staff.admins ?? []) addRole(e, { admin: true });
+for (const e of staff.marshals ?? []) addRole(e, { marshal: true });
+for (const team of ['og', 'south']) {
+  for (const e of staff[team] ?? []) {
+    if (roles.get(e.trim().toLowerCase())?.team) throw new Error(`${e} manages both teams`);
+    addRole(e, { team });
+  }
+}
 
 // Tee time for one match, from the session's first tee (ISO with offset).
 // Indoor back nines all start at backNineAt; outdoor matches go off
@@ -81,27 +100,18 @@ const offsetMinutes = (o) => (o[0] === '-' ? -1 : 1) * (Number(o.slice(1, 3)) * 
 const playerIds = new Set(roster.players.map(playerId));
 const matchIds = [];
 for (const session of sessions) {
+  if (!session.group) throw new Error(`${session.id}: missing announcement group`);
   for (let slot = 1; slot <= session.pairings; slot++) {
-    const pairing = pairings[session.id]?.[slot - 1] ?? {};
-    for (const t of ['og', 'south']) {
-      for (const id of pairing[t] ?? []) {
-        if (!playerIds.has(id)) throw new Error(`${session.id} slot ${slot}: unknown player "${id}"`);
-      }
-    }
     // Indoor pairings become two matches (front and back nine); others one.
     for (const nine of session.nines ?? [null]) {
       const id = nine ? `${session.id}-${slot}-${nine}` : `${session.id}-${slot}`;
-      const firstHole = nine === 'back' ? 10 : 1;
-      const inNine = (h) => h >= firstHole && h < firstHole + 9;
       matchIds.push(id);
-      const fields = {
-        session: session.id, slot, nine, firstHole, startHole: pairing.startHole ?? 1, teeTime: teeTime(session, slot, nine),
-        players: { og: pairing.og ?? [], south: pairing.south ?? [] },
-        strokes: { og: (pairing.strokes?.og ?? []).filter(inNine), south: (pairing.strokes?.south ?? []).filter(inNine) },
-      };
-      if (resetScores) Object.assign(fields, { holes: {}, concededBy: null });
-      // holeCount is left over from when indoor pairings were one 18-hole doc.
-      writes.push(merge(`matches/${id}`, fields, ['holeCount']));
+      // Players are left out, so announced lineups survive a re-seed.
+      const fields = { session: session.id, slot, nine, firstHole: nine === 'back' ? 10 : 1, startHole: 1, teeTime: teeTime(session, slot, nine) };
+      if (resetScores) Object.assign(fields, { holes: {}, concededBy: null, players: { og: [], south: [] } });
+      // No stroke holes this year. holeCount is left over from when indoor
+      // pairings were one 18-hole doc.
+      writes.push(merge(`matches/${id}`, fields, ['holeCount', 'strokes']));
     }
   }
 }
@@ -109,7 +119,7 @@ for (const session of sessions) {
 if (playerIds.size !== roster.players.length) throw new Error('Duplicate player ids from last names');
 for (const id of merit.keys()) if (!playerIds.has(id)) console.log(`Order of Merit file for unknown player: ${id}`);
 
-const api = (path, init = {}) => fetch(`https://firestore.googleapis.com/v1/${path}`, {
+const api = (path, init = {}) => fetch(`${EMULATOR ? `http://${EMULATOR}` : 'https://firestore.googleapis.com'}/v1/${path}`, {
   ...init,
   headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
 });
@@ -137,6 +147,23 @@ async function deleteEdits(id) {
   } while (pageToken);
 }
 
+// New staff get their role; existing role docs are the app's to manage.
+{
+  const existing = new Set();
+  let pageToken = '';
+  do {
+    const r = await (await api(`${base}/roles?pageSize=300&mask.fieldPaths=team${pageToken && `&pageToken=${pageToken}`}`)).json();
+    for (const d of r.documents ?? []) existing.add(d.name.split('/').pop());
+    pageToken = r.nextPageToken ?? '';
+  } while (pageToken);
+  for (const [email, role] of roles) {
+    if (!existing.has(email)) writes.push(set(`roles/${email}`, role));
+    else if (role.superAdmin) writes.push(merge(`roles/${email}`, { superAdmin: true }));
+  }
+}
+// The marshal allowlist before roles/.
+writes.push({ delete: `${base}/config/marshals` });
+
 // Sessions dropped from sessions.json.
 {
   const r = await (await api(`${base}/sessions?pageSize=300&mask.fieldPaths=order`)).json();
@@ -155,6 +182,12 @@ if (stale.length) console.log(`Removing ${stale.length} matches no longer in ses
 if (resetScores) {
   // Edit logs are subcollections, so they aren't cleared by rewriting the match.
   for (const id of matchIds) await deleteEdits(id);
+  // Lineup drafts, locks and announcements, and back to the countdown.
+  for (const coll of ['lineups', 'groups']) {
+    const r = await (await api(`${base}/${coll}?pageSize=300&mask.fieldPaths=team`)).json();
+    for (const d of r.documents ?? []) writes.push({ delete: d.name });
+  }
+  writes.push(set('event/status', { live: false }));
 }
 
 // Firestore caps a commit at 500 writes.

@@ -24,7 +24,7 @@ describe('thruLabel', () => {
 
 describe('activeSessionId', () => {
   const sessions = ['fri', 'sat-am', 'sat-pm'].map((id, order) => ({
-    id, order, day: 'sat' as const, name: id, venue: '', format: 'singles', holes: 9 as const,
+    id, order, day: 'sat' as const, name: id, venue: '', format: 'singles', holes: 9 as const, pairings: 1, group: id,
   }));
   const match = (session: string, results: HoleOutcome[]) => ({
     ...m(results), id: `${session}-1`, session, slot: 1, players: { og: [], south: [] }, pending: false,
@@ -44,7 +44,7 @@ describe('activeSessionId', () => {
 
 describe('currentSessionId', () => {
   const sessions = ['fri', 'sat-am', 'sat-pm'].map((id, order) => ({
-    id, order, day: 'sat' as const, name: id, venue: '', format: 'singles', holes: 9 as const,
+    id, order, day: 'sat' as const, name: id, venue: '', format: 'singles', holes: 9 as const, pairings: 1, group: id,
   }));
   const match = (session: string, slot: number, results: HoleOutcome[]) => ({
     ...m(results), id: `${session}-${slot}`, session, slot, players: { og: [], south: [] }, pending: false,
