@@ -4,8 +4,12 @@
     <meta charset="utf-8">
     <title>Joe Carroll</title>
     <script>
-      // SPA redirect: encode the path into the query string so index.html can restore it
       var l = window.location;
+      // The House Derby moved to ggcderby.com: same page there.
+      if (/^\/cup(\/|$)/.test(l.pathname)) {
+        l.replace('https://ggcderby.com' + (l.pathname.replace(/^\/cup/, '') || '/') + l.search + l.hash);
+      } else
+      // SPA redirect: encode the path into the query string so index.html can restore it
       l.replace(
         l.protocol + '//' + l.host + '/?/' +
         l.pathname.slice(1).replace(/&/g, '~and~') +
