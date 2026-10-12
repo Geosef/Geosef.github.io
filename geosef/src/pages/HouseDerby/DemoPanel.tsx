@@ -1,13 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import type { Match } from './data';
+import { useMatches, usePlayers, useSessions, type Match } from './data';
 import type { HoleOutcome } from './scoring';
 import { doc, serverTimestamp, writeBatch } from 'firebase/firestore';
 import { db } from './firebase';
 import { FLOW_START, OUTCOMES, PHASES, buildScenario, flowStep, pickNextHole, scenario, type FlowState, type Outcome, type Scenario } from './demo';
 import { saveHole } from './writes';
-
-const FLAG = 'hd-demo';
+import { randomMatchups, resetEverything } from './testing';
 
 /** Overwrites every match's scores with the scenario. Marshal-only by rules. */
 async function applyScenario(scenario: Scenario, matches: Match[], email: string) {
@@ -25,23 +23,6 @@ async function applyScenario(scenario: Scenario, matches: Match[], email: string
 }
 
 
-/**
- * Prototype-only controls that rewrite every match to a demo state. Shown in
- * local dev, or on the live site with ?demo (remembered for the tab). Writes
- * still need a marshal, so the flag only reveals the buttons.
- */
-export function useDemoMode(): boolean {
-  const [params] = useSearchParams();
-  let on = import.meta.env.DEV || params.has('demo');
-  try {
-    if (params.has('demo')) sessionStorage.setItem(FLAG, '1');
-    on = on || sessionStorage.getItem(FLAG) === '1';
-  } catch {
-    // Storage blocked (private mode): fall back to the URL flag alone.
-  }
-  return on;
-}
-
 const SPEEDS = [{ label: 'Fast', ms: 1000 }, { label: 'Normal', ms: 2500 }];
 const DEAD_TIMES = [{ label: '30s', ms: 30_000 }, { label: '70s (one TV cycle)', ms: 70_000 }];
 /** Ticks between outdoor tee times in tournament flow (a hole goes in per tick). */
@@ -49,7 +30,57 @@ const STAGGER = 3;
 
 type AutoPlay = null | 'random' | 'flow';
 
-export default function DemoPanel({ matches, email, sessionOrder }: {
+/**
+ * Super admins' testing tools on the staff home: demo scores, random
+ * matchups, and Reset everything to clear it all before the first real
+ * lineups. Everything here writes to the live database.
+ */
+export default function TestingTools({ email }: { email: string }) {
+  const { sessions } = useSessions();
+  const { matches } = useMatches();
+  const { players } = usePlayers();
+  const [busy, setBusy] = useState('');
+  const [message, setMessage] = useState('');
+  const [confirm, setConfirm] = useState('');
+  if (!sessions || !matches || !players) return null;
+
+  const run = (label: string, p: () => Promise<unknown>, done: string) => {
+    setBusy(label);
+    setMessage('');
+    p().then(() => { setMessage(done); setConfirm(''); }, e => setMessage(`Failed: ${(e as Error).message}`)).finally(() => setBusy(''));
+  };
+
+  return (
+    <details className="hd-demo">
+      <summary>Testing tools <span className="hd-muted">(super admins · writes to the live board)</span></summary>
+      <div className="hd-demo-label">Matchups</div>
+      <div className="hd-demo-buttons">
+        <button disabled={!!busy} onClick={() => run('random', () => randomMatchups(sessions, matches, players), 'Random players on every match. Lineup drafts are untouched.')}>
+          {busy === 'random' ? '…' : 'Random matchups'}
+        </button>
+      </div>
+      <p className="hd-muted">Demo scores only show on the board once a stage has players.</p>
+      <DemoPanel matches={matches} email={email} sessionOrder={sessions.map(s => s.id)} />
+      <div className="hd-demo-label">Clean slate</div>
+      <p className="hd-muted">
+        Clears every score, concession, edit log, announced matchup, lineup draft and lock, and puts the public
+        board back on the countdown. Staff and roles are kept.
+      </p>
+      <div className="hd-demo-buttons">
+        <input className="hd-input" placeholder='Type "RESET"' value={confirm} onChange={e => setConfirm(e.target.value)} autoCapitalize="characters" />
+        <button
+          className="danger" disabled={confirm !== 'RESET' || !!busy}
+          onClick={() => run('reset', () => resetEverything(sessions, matches, email), 'Reset. Everything is back to a clean slate.')}
+        >
+          {busy === 'reset' ? 'Resetting…' : 'Reset everything'}
+        </button>
+      </div>
+      {message && <p className="hd-muted">{message}</p>}
+    </details>
+  );
+}
+
+function DemoPanel({ matches, email, sessionOrder }: {
   matches: Match[]; email: string; sessionOrder: string[];
 }) {
   const [busy, setBusy] = useState<string | null>(null);
@@ -120,8 +151,8 @@ export default function DemoPanel({ matches, email, sessionOrder }: {
   const toggle = (mode: Exclude<AutoPlay, null>) => setAutoPlay(a => (a === mode ? null : mode));
 
   return (
-    <details className="hd-demo" open>
-      <summary>Demo states <span className="hd-muted">(overwrites all scores)</span></summary>
+    <>
+      <div className="hd-demo-label">Demo scores <span className="hd-muted">(overwrites all scores)</span></div>
       <div className="hd-demo-label">Heading for</div>
       <div className="hd-demo-buttons">
         {OUTCOMES.map(o => (
@@ -161,10 +192,10 @@ export default function DemoPanel({ matches, email, sessionOrder }: {
       {message && <p className="hd-muted">{message}</p>}
       <div className="hd-demo-links">
         Open:
-        <a href="/cup" target="_blank" rel="noreferrer">Board</a>
-        <a href="/cup?tv" target="_blank" rel="noreferrer">TV</a>
-        <a href="/cup?tv=vertical" target="_blank" rel="noreferrer">Vertical</a>
+        <a href="/cup?preview" target="_blank" rel="noreferrer">Board</a>
+        <a href="/cup?tv&preview" target="_blank" rel="noreferrer">TV</a>
+        <a href="/cup?tv=vertical&preview" target="_blank" rel="noreferrer">Vertical</a>
       </div>
-    </details>
+    </>
   );
 }

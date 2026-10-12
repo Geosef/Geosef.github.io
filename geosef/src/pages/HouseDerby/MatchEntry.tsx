@@ -42,7 +42,7 @@ export default function MatchEntry({ user }: { user: User }) {
   const locked = complete && !correcting;
 
   const report = (p: Promise<unknown>) => p.catch(e => setWriteError(
-    e?.code === 'permission-denied' ? `${email} isn't on the marshal list.` : `Save failed: ${e?.message ?? e}`,
+    e?.code === 'permission-denied' ? `${email} isn't allowed to enter scores.` : `Save failed: ${e?.message ?? e}`,
   ));
 
   // Tapping the current result again clears the hole. Recording a result on
@@ -76,6 +76,12 @@ export default function MatchEntry({ user }: { user: User }) {
           </div>
         ))}
       </div>
+
+      {/* A warning, not a block: a phone that was offline at the announcement
+          can still show an empty match, and the marshal must be able to score. */}
+      {!(match.players.og.length && match.players.south.length) && (
+        <p className="hd-warn hd-entry-warn">Matchups for this stage haven’t reached this phone yet. Scores still save; check you’re on the right match.</p>
+      )}
 
       {writeError && (
         <div className="hd-toast" role="alert">

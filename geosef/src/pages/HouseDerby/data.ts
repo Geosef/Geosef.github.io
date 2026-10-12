@@ -21,6 +21,15 @@ export interface Session {
   name: string;
   venue: string;
   format: string;
+  /** Pairings (match slots) in the stage. */
+  pairings: number;
+  /**
+   * Stages whose lineups are set and announced together (both Friday
+   * alt-shot stages share one), so managers order one list across them.
+   */
+  group: string;
+  /** When this stage's matchups are announced, ISO with offset. */
+  announceAt?: string;
   /** Holes per match (every match is a nine). */
   holes: 9;
   /** Indoor pairings play a front and a back nine as separate matches. */
@@ -337,4 +346,15 @@ export function formatLabel(session: Session): string {
 export function dayAndSession(session: Session): string {
   const day = session.day === 'fri' ? 'Friday' : 'Saturday';
   return session.name === formatLabel(session) ? day : `${day} · ${session.name}`;
+}
+
+/** True while none of a stage's matches have players yet (lineups not announced). */
+export function awaitingMatchups(matches: Match[]): boolean {
+  return matches.every(m => !m.players.og.length && !m.players.south.length);
+}
+
+/** "Matchups announced Sat, Oct 17 · 11:00 AM", or "Matchups coming soon" once that time's passed. */
+export function matchupsLine(session: Session, now = Date.now()): string {
+  const at = session.announceAt;
+  return at && Date.parse(at) > now ? `Matchups announced ${teeDay(at)}` : 'Matchups coming soon';
 }

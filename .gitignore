@@ -13,3 +13,6 @@ geosef/.env
 cup-seed/*.local.json
 # Season Order of Merit results (real names, results): seeded, never committed
 cup-seed/order_of_merit/
+
+# Firebase emulator logs
+*-debug.log

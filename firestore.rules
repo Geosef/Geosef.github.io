@@ -1,19 +1,65 @@
 rules_version = '2';
 
-// House Derby scoreboard. The board is public; only allowlisted marshals can
-// enter scores. Roster, sessions, pairings and the marshal list are seeded
-// server-side (admin script), so clients never write them.
+// House Derby scoreboard. The board is public. Staff sign in with Google and
+// get a role doc, managed in the app by super admins (the seed only
+// bootstraps them):
+//   roles/{email} = { superAdmin?, admin?, marshal?: true, team?: 'og' | 'south' }
+// - Marshals enter scores.
+// - Managers (a team) enter scores too, and draft that team's lineups,
+//   blind: each team sees only its own until both have locked.
+// - Admins do everything marshals do, announce lineups onto the board and
+//   flip the board live.
+// - Super admins are admins who also add, edit and remove staff.
+// Roster, sessions and match layout are seeded server-side.
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    function isMarshal() {
-      return request.auth != null
-        && request.auth.token.email_verified == true
-        && request.auth.token.email in
-             get(/databases/$(database)/documents/config/marshals).data.emails;
+    function role() {
+      return request.auth != null && request.auth.token.email_verified == true
+        && exists(/databases/$(database)/documents/roles/$(request.auth.token.email.lower()))
+        ? get(/databases/$(database)/documents/roles/$(request.auth.token.email.lower())).data
+        : {};
+    }
+    function isSuper() { return role().get('superAdmin', false) == true; }
+    function isAdmin() { return isSuper() || role().get('admin', false) == true; }
+    function isMarshal() { return isAdmin() || isManager() || role().get('marshal', false) == true; }
+    function managesTeam(team) { return role().get('team', null) == team; }
+    function isManager() { return role().get('team', null) in ['og', 'south']; }
+    function otherTeam(team) { return team == 'og' ? 'south' : 'og'; }
+    // The single team key a manager's new group doc may hold.
+    function teamOf(data) { return data.get('locked', {}).keys().size() == 1 ? data.locked.keys()[0] : ''; }
+
+    function group(id) {
+      return exists(/databases/$(database)/documents/groups/$(id))
+        ? get(/databases/$(database)/documents/groups/$(id)).data
+        : {};
+    }
+    function locked(g, team) { return g.get('locked', {}).get(team, false) == true; }
+    function announced(g) { return g.get('announced', false) == true; }
+
+    function validRole(data) {
+      return data.keys().hasOnly(['superAdmin', 'admin', 'marshal', 'team', 'updatedBy'])
+        && data.get('superAdmin', false) is bool
+        && data.get('admin', false) is bool
+        && data.get('marshal', false) is bool
+        && data.get('team', 'og') in ['og', 'south'];
+    }
+    function isSelf(email) { return request.auth.token.email.lower() == email; }
+
+    // Each user can read their own role, so the app knows what to show.
+    // Emails are PII: only super admins see anyone else's.
+    match /roles/{email} {
+      allow get: if request.auth != null && (isSelf(email) || isSuper());
+      allow list: if isSuper();
+      // Keyed by lowercase email. A super admin can't demote or remove
+      // themselves, so there's always someone who can fix the list.
+      allow create, update: if isSuper() && email == email.lower() && email.matches('.+@.+')
+        && validRole(request.resource.data)
+        && (!isSelf(email) || request.resource.data.get('superAdmin', false) == true);
+      allow delete: if isSuper() && !isSelf(email);
     }
 
-    // Marshal emails are PII: readable only by the rules engine via get().
+    // Retired by roles/; nothing reads it.
     match /config/{doc} {
       allow read, write: if false;
     }
@@ -24,18 +70,81 @@ service cloud.firestore {
     // Player portraits for the TV, uploaded by cup-seed/photos.mjs.
     match /photos/{id}   { allow read: if true; }
 
+    // Whether the public board is up yet (else a countdown).
+    match /event/{doc} {
+      allow read: if true;
+      allow write: if isAdmin() && doc == 'status'
+        && request.resource.data.keys().hasOnly(['live', 'updatedBy'])
+        && request.resource.data.live is bool;
+    }
+
+    // One per announcement (sessions.json `group`): which teams have locked
+    // their lineup, and whether it's been announced. Public, so each side can
+    // see the other has locked without seeing the lineup.
+    match /groups/{id} {
+      allow read: if true;
+      // A manager locks their own team, or unlocks it until the other team
+      // has also locked (after that, both have seen each other's lineup).
+      allow create: if managesTeam(teamOf(request.resource.data))
+        && request.resource.data.keys().hasOnly(['locked'])
+        && request.resource.data.locked[teamOf(request.resource.data)] is bool;
+      allow update: if isManager() && !announced(resource.data)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['locked'])
+        && request.resource.data.locked.diff(resource.data.get('locked', {})).affectedKeys()
+             .hasOnly([role().team])
+        && (locked(request.resource.data, role().team)
+            || !locked(resource.data, otherTeam(role().team)));
+      // Admins announce, or reopen (unlock both, unannounce).
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['locked', 'announced', 'announcedAt', 'announcedBy']);
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['locked', 'announced', 'announcedAt', 'announcedBy']);
+      // Super admins' Reset everything (testing tools).
+      allow delete: if isSuper();
+    }
+
+    // A team's draft lineup for one announcement group: lineups/{group}_{team}
+    // = { group, team, slots: { "1": [player ids], ... } }. Hidden from the
+    // other team (and admins) until both teams have locked. Read access goes
+    // by the doc id, so a team can watch its draft before it exists.
+    match /lineups/{id} {
+      allow get: if managesTeam(id.split('_')[1])
+        || ((isManager() || isAdmin())
+            && locked(group(id.split('_')[0]), 'og') && locked(group(id.split('_')[0]), 'south'));
+      allow create, update: if managesTeam(request.resource.data.team)
+        && id == request.resource.data.group + '_' + request.resource.data.team
+        && request.resource.data.keys().hasOnly(['group', 'team', 'slots', 'updatedAt', 'updatedBy'])
+        && (resource == null || (resource.data.group == request.resource.data.group
+                                 && resource.data.team == request.resource.data.team))
+        && !locked(group(request.resource.data.group), request.resource.data.team)
+        && !announced(group(request.resource.data.group));
+      // Reset everything deletes drafts by id, without reading them, so a
+      // super admin still never sees a blind lineup.
+      allow delete: if isSuper();
+    }
+
     match /matches/{matchId} {
       allow read: if true;
-      // Marshals only touch scoring state; pairings and stroke holes are seeded.
+      // Marshals only touch scoring state.
       allow update: if isMarshal()
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['holes', 'concededBy', 'updatedAt', 'updatedBy']);
+      // Admins announce the pairings. Not updatedAt: that's when a score was
+      // last entered, which the TV times its segments from.
+      allow update: if isAdmin()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['players']);
+      // Testing tools: random matchups and Reset everything in one write.
+      allow update: if isSuper()
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['holes', 'concededBy', 'players', 'updatedAt', 'updatedBy']);
 
       // Append-only audit trail of every score change.
       match /edits/{editId} {
         allow read: if true;
         allow create: if isMarshal()
           && request.resource.data.by == request.auth.token.email;
+        allow delete: if isSuper();
       }
     }
   }

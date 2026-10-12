@@ -1,7 +1,7 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  TEAM_NAMES, currentSessionId, dayAndSession, fmtPoints, formatLabel, matchLead, matchSort, nineName, shortStatus, sideName, teeClock, thruLabel,
+  TEAM_NAMES, awaitingMatchups, currentSessionId, matchupsLine, dayAndSession, fmtPoints, formatLabel, matchLead, matchSort, nineName, shortStatus, sideName, teeClock, thruLabel,
   useMatches, usePlayers, useSessions, type Match, type Player, type Session,
 } from './data';
 import { TEAMS, TOTAL_POINTS, cupStanding, matchStates, type HoleOutcome, type TeamId } from './scoring';
@@ -185,6 +185,9 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
           <Link to="/cup?tv" className="hd-tv-link"><Tv aria-hidden />TV view</Link>
         </div>
       </div>
+      {awaitingMatchups(inSession(shown)) ? (
+        <p className="hd-awaiting">{matchupsLine(shown)}</p>
+      ) : (
       <div className="hd-rows">
         {inSession(shown).map((m, i) => (
           <CupLink
@@ -195,6 +198,7 @@ function BoardView({ layout, sessions, matches, byId, moments, intro, awake, swi
           </CupLink>
         ))}
       </div>
+      )}
       <nav className="hd-board-links" aria-label="Teams">
         {TEAMS.map(t => <CupLink key={t} to={`/cup/team/${t}`} className={t}><Logo name={t} className="hd-board-link-logo" />{TEAM_NAMES[t]} roster</CupLink>)}
       </nav>

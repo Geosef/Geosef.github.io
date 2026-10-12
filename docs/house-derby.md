@@ -8,7 +8,20 @@ Live scoreboard for a two-team, Ryder Cup–style match-play event (OG House vs 
 - **Fri, indoor, Trackman sims.** Two alt-shot stages (Alt-Shot 1 and 2) of 3 pairings each. Each pairing plays 18 holes as two separate points: the front nine (holes 1–9) and the back nine (10–18).
 - **Sat, Ballwin Golf Course, a 9-hole course.** Scramble (6 matches), then modified alt (6), then singles (12).
 - Stages are played one at a time, in order.
-- Marshals record who won each hole. There's no handicap math: stroke holes are set per match by the committee and shown to marshals.
+- Marshals record who won each hole. No stroke holes this year.
+
+## Lineups
+
+Lineups aren't known ahead of time. They're announced before each stage, Ryder Cup style:
+
+1. Each team's managers order their players into numbered slots on `/cup/admin/lineup/:group`. Neither side sees the other's lineup.
+2. Each team locks. A team can unlock until the other side locks too.
+3. Once both have locked, both teams and the admins see the matchups (slot N plays slot N).
+4. An admin taps Announce, which writes the players onto the matches and puts them on the board.
+
+An announcement covers one `group` in sessions.json. Friday's two stages are one group with 6 slots: 1–3 play Alt-Shot 1 and 4–6 play Alt-Shot 2. Admins can Reopen to unlock both teams. The board keeps the old matchups until the next Announce.
+
+Before a stage is announced, the board and the TV's up-next card show "Matchups announced <time>" (`announceAt`).
 
 ## Views
 
@@ -16,7 +29,7 @@ Viewer screens never show match numbers: each player plays once per stage, so th
 
 | Route | What |
 |---|---|
-| `/cup` | Public board: team header, stage tabs, match rows |
+| `/cup` | Public board: team header, stage tabs, match rows. Before go-live, every viewer route shows the countdown instead (below) |
 | `/cup/match/:id` | Match hero (status, both pairings with photos) and hole-by-hole grid |
 | `/cup/team/og\|south` | Roster: captains first, then by season Order of Merit (points not shown); one row per player with their best finish. Opened from the phone header's team halves and the roster links |
 | `/cup/race` | Race to 18 at phone size (the TV segment in a size container) with Share. Opened from the slim race strip under the board's header |
@@ -26,7 +39,12 @@ Viewer screens never show match numbers: each player plays once per stage, so th
 | `/cup?tv=landscape` | Pins the landscape board (clubhouse screens, 16:9 stream captures) |
 | `/cup?tv=vertical` | Pins the 9:16 board with bands kept clear for Instagram Live's overlays |
 | `…?tv&replay[=<match id>\|race]` | Loops the latest moment (or one match's result; the clinch once won), or with `=race` the race-to-18 entrance, for screen-recording Story clips. Linked as "Record a clip" in the share sheet, per card. |
-| `/cup/admin[/:id]` | Marshal entry (Google sign-in). `?demo` shows demo controls |
+| `/cup/admin` | Staff home (Google sign-in), showing what your role allows: the Go live switch, lineups, score entry |
+| `/cup/admin/lineup/:group` | Set, lock and announce one group's lineups |
+| `/cup/admin/staff` | Super admins: add, edit and remove staff and their roles |
+| `/cup/admin/:id` | Marshal score entry for one match |
+
+**Countdown:** before go-live, viewers get a countdown to first tee and the weekend schedule (`Countdown.tsx`), on phone and `?tv`. The board opens when an admin taps Go live. If nobody does, it opens on its own at first tee without a reload. Staff see the board early with a Preview badge: anyone signed in on that device, or a `?preview` link (remembered; `?preview=off` forgets it). This is cosmetic, since all data is public-read.
 
 Touching a full-screen board briefly shows an exit button; unattended screens never show it. The full-screen boards hold on the current stage: the one with live play, else the latest with results.
 
@@ -38,19 +56,42 @@ Touching a full-screen board briefly shows an exit button; unattended screens ne
 - `CupRoutes.tsx` + `nav.tsx`: the viewer pages load as one bundle, and `CupLink` navigates with view transitions. Elements with the same `view-transition-name` morph between pages (match row → match hero, team half → team header, portrait → player hero).
 - `shareCard.ts` + `ShareSheet.tsx`: 9:16 Story cards (standings, stage results, race to 18, match) drawn on a canvas, previewed, then handed to the system share sheet (download fallback). Share buttons on `/cup` and match pages.
 - `director.ts` + `Segments.tsx`: TV dead-time segments. Driven by scores only, never tee times. Once a stage has a score, the TV holds the live board until every match in it is final (covers gaps between nines and staggered starts). In dead time it cycles board → stage recap → race to 18 → up next, timed from the latest score so every screen flips together, with a team-color wipe. `?scene=board|recap|momentum|next` pins one.
-- `momentum.ts`: data for the race-to-18 segment (points bar + each team's running total), point by point in stage order, then when each match was last scored. Built only from current scores, so `--reset-scores` clears it and demo data drives it.
+- `momentum.ts`: data for the race-to-18 segment (points bar + each team's running total), point by point in stage order, then when each match was last scored. Built only from current scores, so `--reset-scores` clears it.
 - `display.ts`: which board a URL and screen shape get, page surfaces, wake lock. `CupSplash` is the crest loading screen, bundled with the site so it also covers the lazy /cup download.
 - `Board.tsx`: all three public layouts, sharing one `TeamHeader` and `MatchRow`.
-- `Admin.tsx` / `MatchEntry.tsx`: marshal list and entry. Every write is batched with an `edits/` log entry (`writes.ts`).
-- `demo.ts` / `DemoPanel.tsx`: demo states (phase × outcome: OG outright, South outright, OG on the tiebreak) and auto-play. "Tournament flow" plays stages in order with staggered tee times and dead time between stages; keep its tab visible or Chrome throttles it. **Remove before the event.**
+- `Admin.tsx` / `MatchEntry.tsx`: the staff home and marshal entry. Every score write is batched with an `edits/` log entry (`writes.ts`).
+- `staff.ts`: sign-in and role, the live switch, and the lineup drafts, locks and announce writes. `lineups.ts`: pure slot, validation and announce logic. `LineupPage.tsx`: the lineup UI for managers and admins.
+- `CupRoutes.tsx` also gates the viewer routes behind the countdown.
+- `DemoPanel.tsx` (Testing tools, super admins only, at the bottom of the staff home) has:
+  - Random matchups
+  - Demo scores: phase × outcome jumps and auto-play. Tournament flow plays stages in order with dead time; keep its tab visible or Chrome throttles it.
+  - Reset everything (`testing.ts`): the in-app `--reset-scores`, behind typing RESET. Staff roles survive.
+
+  All of it writes to the live database, and demo scores only show on stages that have players.
 - `brand.ts` / `Logo.tsx` / `logos/`: inline SVG logos. The two-tone crest is `crest-color.svg`; the single-color `crest.svg` is kept for the gleam mask. `useCupChrome` sets the tab title, icons and the html/body background (see iOS below).
 - Tests: `npm test` (Vitest).
 
 ## Backend: Firebase project `house-derby-2026` (personal Google account)
 
-- **Firestore collections:** `teams`, `players`, `sessions`, `matches` (and `matches/{id}/edits`), `config/marshals`, `config/allowances`.
-- **Match doc:** `{session, slot, nine?, firstHole, startHole, players{og,south}, strokes{og,south}, holes{"1".."18": {result}}, concededBy}`.
-- **Security rules (`firestore.rules`):** public read. Only allowlisted marshals can write, and only to `holes`, `concededBy` and `updated*`. `config/*` is readable only by the rules themselves.
+- **Firestore collections:** `teams`, `players`, `sessions`, `matches` (and `matches/{id}/edits`), `roles`, `lineups`, `groups`, `event/status`, `config/allowances`.
+- **Match doc:** `{session, slot, nine?, firstHole, startHole, players{og,south}, holes{"1".."18": {result}}, concededBy}`.
+- **Roles:** `roles/{lowercased email}` = `{superAdmin?, admin?, marshal?, team?}`. One person can hold several.
+
+  | Role | Can |
+  |---|---|
+  | Marshal | Enter and correct scores |
+  | Team manager (`team`) | Enter scores. Set, lock and unlock their team's lineup (unlock only until the other team locks); see the other team's once both are locked |
+  | Admin | Enter scores, announce and reopen lineups, go live |
+  | Super admin | Everything an admin can, plus manage staff and use the testing tools. Can't demote or remove themselves |
+
+  Users read only their own role; super admins can read and edit everyone's.
+- **Lineups:** `lineups/{group}_{team}` = `{slots: {"1": [ids]}}`, one field per slot so two managers don't overwrite each other. `groups/{group}` = `{locked: {og, south}, announced}` is public. `event/status` = `{live}` is public.
+- **Security rules (`firestore.rules`):**
+  - Viewer data is public-read.
+  - Marshals write only `holes`, `concededBy` and `updated*`.
+  - Admins write only `players` on matches. Not `updatedAt`, since the TV times its segments from it.
+  - A draft is readable by its own team, and by staff on both teams plus admins only once both teams have locked.
+  - Rules tests: `npm run test:rules` (emulator; needs Java, e.g. `PATH="/opt/homebrew/opt/openjdk@21/bin:$PATH"`).
 - **Web config:** comes from the `VITE_FIREBASE_*` secrets in CI and `geosef/.env.local` locally.
 - **API key:** restricted to geosef.io, the Firebase auth domain and local dev.
 - **Auth:** Google popup. Authorized sign-in domains include geosef.io.
@@ -64,11 +105,11 @@ Touching a full-screen board briefly shows an exit button; unattended screens ne
 SEED_ACCOUNT=<owner gcloud account> node cup-seed/seed.mjs [--reset-scores]
 ```
 
-- **Committed:** `sessions.json` (layout, venues, format labels).
-- **Gitignored:** `roster.local.json`, `marshals.local.json` and `pairings.local.json`. These hold the real names, emails and pairings.
-- **Pairings file:** keyed by session (`fri-w1`, `fri-w2`, `sat-am`, `sat-mid`, `sat-pm`), with one entry per slot: `{og: [ids], south: [ids], strokes: {og: [holes], south: [holes]}}`. Friday stroke holes are 1–18, and the seed splits them across the front and back nines.
-- **Re-seeding is safe mid-event.** It only writes pairing fields. It deletes matches and sessions that are no longer in `sessions.json`, and prints them first.
-- **`--reset-scores`** wipes all holes, concessions and edit logs.
+- **Committed:** `sessions.json` (layout, venues, format labels, tee times, announcement `group` and `announceAt`).
+- **Gitignored:** `roster.local.json` and `staff.local.json` (`{superAdmins, admins, marshals, og, south}`: emails, `og`/`south` being each team's managers). Staff are managed in the app (`/cup/admin/staff`). The file only bootstraps them: an email gets a role only if it has none yet, super admins always keep `superAdmin`, and the seed never removes anyone.
+- **Re-seeding is safe mid-event.** It never writes players, so announced lineups survive. It deletes matches and sessions that are no longer in `sessions.json`, and prints them first.
+- **`--reset-scores`** wipes all holes, concessions, edit logs, match players, lineup drafts and locks, and sets the board back to the countdown.
+- **Local testing:** `firebase emulators:start --only firestore,auth --project demo-house-derby`, then `FIRESTORE_EMULATOR_HOST=127.0.0.1:8181 node cup-seed/seed.mjs`, then start vite with `VITE_FIREBASE_EMULATOR=1 VITE_FIREBASE_PROJECT_ID=demo-house-derby`. In the console, `__hdSignIn('x@y')` signs in as anyone; give them a `roles/` doc first.
 
 ## Player photos
 
@@ -95,11 +136,11 @@ Safari 26+ ignores `theme-color`. It tints its toolbars and overscroll from the 
 
 ## Before the event
 
-- [ ] Real pairings and stroke holes in `pairings.local.json`, then seed with `--reset-scores`.
-- [ ] Confirm tee times in `sessions.json`, then seed. They're placeholders (Fri Alt-Shot 1/2 at 5:00/6:30 PM with back nines 45 min later; Sat stages 8 AM, 11 AM and 2 PM, matches 10 min apart). The seed writes `teeTime` on each match from `startsAt`, `backNineAt` and `teeInterval`. They're display only (up-next cards and countdown); the TV never changes what it shows based on them.
+- [ ] Tee times in `sessions.json` follow the published schedule: Fri 5:00 and 7:00 PM; Sat 8:00, 11:30 and 2:50, matches 10 min apart. Friday back nines are a guess (45 min after the front). The seed writes `teeTime` on each match from `startsAt`, `backNineAt` and `teeInterval`. They're display only (up-next cards and countdowns); the TV never changes what it shows based on them.
+- [ ] Before Thursday 8:40 PM, Reset everything (Testing tools) or seed with `--reset-scores`. Then add admins and team managers at `/cup/admin/staff`.
+- [ ] Before Thursday night, decide whether to Go live right after the Friday matchups are announced. Until go-live, the public sees only the countdown.
 - [ ] Media day (Oct 15): headshots named by player id, then `photos.mjs`. The current photos are Slack avatars.
-- [ ] Final marshal list in `marshals.local.json`, then seed. Every marshal must sign in with a Google account.
-- [ ] Remove the demo panel.
+- [ ] Final marshal list at `/cup/admin/staff`. Every staff member must sign in with a Google account.
 - [ ] Font: Bebas Neue is a stand-in for the club's Liberator. The personal license forbids web use. If the club's commercial license covers this site, swap `--hd-display` and inject a subset woff2 from a CI secret. Never commit the font file. Declare the file's real weight in its `@font-face` (a bold cut registered as 400 gets faux-bolded, which Safari draws doubled).
 - [ ] New domain: add it to the Firebase authorized domains and the API key referrers.
 - [ ] Freeze merges to `main` on Oct 16–17 (main = prod).
