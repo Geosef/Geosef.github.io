@@ -20,9 +20,6 @@ cd appscript && clasp push --force && clasp deploy -i "$(cat deployment-id.txt)"
 ```
 Same deployment ID, same URL, updates in place. Also the recovery command if `/exec` breaks.
 
-# House Derby (`/cup`)
+# House Derby
 
-Handoff doc: `docs/house-derby.md`.
-- Firebase project `house-derby-2026` is on a personal Google account, and the Firebase CLI is pinned to it for this directory. Seed and admin commands need `SEED_ACCOUNT` set.
-- Real names, emails and pairings live only in Firestore and in gitignored `cup-seed/*.local.json`. Keep them out of code, comments and commits.
-- Visual QA: drive headless Chrome over the DevTools protocol. `--screenshot` hangs on these live-updating pages.
+Moved to its own private repo, `Geosef/ggcderby` (served at ggcderby.com). Here, `/cup` links only redirect there (`404.html`, `index.html`, `App.tsx`).

@@ -10,6 +10,7 @@ package-lock.json
 geosef/.env
 
 ## House Derby seed data (real names — never commit)
+# House Derby moved to Geosef/ggcderby; local copies of its real-name files may remain.
 cup-seed/*.local.json
 # Season Order of Merit results (real names, results): seeded, never committed
 cup-seed/order_of_merit/

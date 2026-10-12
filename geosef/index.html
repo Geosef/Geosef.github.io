@@ -13,20 +13,11 @@
         }
       }(window.location));
 
-      // House Derby (/cup): paint the board's background before the app loads,
-      // so the page doesn't flash white ahead of the crest splash. Colors and
-      // layout rule mirror src/pages/HouseDerby/display.ts; the page's own
-      // styles take over (and remove this) once it mounts.
+      // The House Derby moved to ggcderby.com: same page there.
       (function(l) {
-        if (!/^\/cup(\/|$)/.test(l.pathname)) return;
-        var tv = new URLSearchParams(l.search).get('tv');
-        var bg = tv === null ? '#f8f6ea'
-          : tv === 'vertical' || (tv !== 'landscape' && matchMedia('(orientation: portrait)').matches) ? '#1d1f2b'
-          : '#3f4463';
-        var style = document.createElement('style');
-        style.id = 'cup-early-bg';
-        style.textContent = 'html,body{background:' + bg + '}';
-        document.head.appendChild(style);
+        if (/^\/cup(\/|$)/.test(l.pathname)) {
+          l.replace('https://ggcderby.com' + (l.pathname.replace(/^\/cup/, '') || '/') + l.search + l.hash);
+        }
       }(window.location));
     </script>
     <!-- Browser-chrome tint (status/address bar), matched to the page surface (--gl-white). -->

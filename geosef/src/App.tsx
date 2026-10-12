@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import TravelCoordinator from './pages/TravelCoordinator/TravelCoordinator';
@@ -13,13 +13,21 @@ import Playoffs from './pages/GolfLeaderboard/Playoffs';
 import RecentScores from './pages/GolfLeaderboard/RecentScores';
 import EventDetail from './pages/GolfLeaderboard/EventDetail';
 import NotFound from './pages/GolfLeaderboard/NotFound';
-import CupSplash from './pages/HouseDerby/CupSplash';
 import './App.css';
 
-// Lazy so the Firebase SDK only loads on /cup, not on every page. The crest
-// splash covers the download.
-const HouseDerbyAdmin = lazy(() => import('./pages/HouseDerby/Admin'));
-const HouseDerby = lazy(() => import('./pages/HouseDerby/CupRoutes'));
+
+/**
+ * The House Derby moved to its own site (ggcderby.com, repo Geosef/ggcderby).
+ * 404.html and index.html already redirect /cup links before the app loads;
+ * this catches any that get this far.
+ */
+function CupRedirect() {
+  useEffect(() => {
+    const l = window.location;
+    l.replace(`https://ggcderby.com${l.pathname.replace(/^\/cup/, '') || '/'}${l.search}${l.hash}`);
+  }, []);
+  return null;
+}
 
 function App() {
   return (
@@ -27,8 +35,7 @@ function App() {
     <Router>
       <div className="App">
         <Routes>
-          <Route path="/cup/*" element={<Suspense fallback={<CupSplash />}><HouseDerby /></Suspense>} />
-          <Route path="/cup/admin/*" element={<Suspense fallback={<CupSplash />}><HouseDerbyAdmin /></Suspense>} />
+          <Route path="/cup/*" element={<CupRedirect />} />
           <Route path="/travel-coordinator" element={<TravelCoordinator />} />
           <Route path="/golf-leaderboard" element={<GolfLayout />}>
             <Route index element={<GolfLeaderboard />} />
